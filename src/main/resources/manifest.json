@@ -1,0 +1,13 @@
+{
+  "Group": "islandium",
+  "Name": "prison",
+  "Version": "1.0.0",
+  "Description": "Islandium Prison - Gamemode Prison pour Hytale",
+  "Main": "com.islandium.prison.PrisonPlugin",
+  "Website": "",
+  "ServerVersion": "*",
+  "Dependencies": {
+    "islandium:core": "*"
+  },
+  "IncludesAssetPack": true
+}

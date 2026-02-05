@@ -1,0 +1,798 @@
+$C = "../../Common.ui";
+
+$C.@PageOverlay {
+    $C.@Container {
+        Anchor: (Width: 1250, Height: 720);
+
+        #Title {
+            Group {
+                $C.@Title {
+                    @Text = "Gestion des Mines";
+                }
+            }
+        }
+
+        #Content {
+            LayoutMode: Left;
+
+            // Colonne 1 - Liste des Mines
+            Group #LeftPanel {
+                Anchor: (Width: 220);
+                LayoutMode: Top;
+                Padding: (Right: 10);
+
+                Label {
+                    Text: "Mines";
+                    Anchor: (Height: 30);
+                    Style: (FontSize: 16, TextColor: #ffd700, RenderBold: true);
+                }
+
+                Group #MineList {
+                    FlexWeight: 1;
+                    LayoutMode: TopScrolling;
+                    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+                    Background: (Color: #0a0f17);
+                    Padding: (Full: 5);
+                }
+
+                TextButton #CreateMineButton {
+                    Anchor: (Height: 40, Top: 10);
+                    Text: "+ Nouvelle Mine";
+                    Style: TextButtonStyle(
+                        Default: (
+                            Background: #2d5a2d,
+                            LabelStyle: (FontSize: 13, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)
+                        ),
+                        Hovered: (
+                            Background: #3d7a3d,
+                            LabelStyle: (FontSize: 13, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)
+                        ),
+                        Sounds: $C.@ButtonSounds,
+                    );
+                }
+            }
+
+            Group {
+                Anchor: (Width: 2);
+                Background: (Color: #4a4a6a);
+            }
+
+            // Colonne 2 - Configuration de la Mine
+            Group #MiddlePanel {
+                Anchor: (Width: 420);
+                LayoutMode: Top;
+                Padding: (Horizontal: 12);
+
+                Label #ConfigTitle {
+                    Text: "Configuration";
+                    Anchor: (Height: 30);
+                    Style: (FontSize: 16, TextColor: #ffd700, RenderBold: true);
+                }
+
+                Group #ConfigSection {
+                    FlexWeight: 1;
+                    LayoutMode: TopScrolling;
+                    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+                    Visible: false;
+
+                    // Nom d'affichage et Rang requis sur la même ligne
+                    Group {
+                        Anchor: (Height: 55);
+                        LayoutMode: Left;
+
+                        Group {
+                            FlexWeight: 1;
+                            LayoutMode: Top;
+
+                            Label {
+                                Text: "Nom d'affichage:";
+                                Anchor: (Height: 20);
+                                Style: (FontSize: 11, TextColor: #96a9be);
+                            }
+                            $C.@TextField #DisplayNameField {
+                                Anchor: (Height: 30);
+                            }
+                        }
+
+                        Group {
+                            Anchor: (Width: 80, Left: 10);
+                            LayoutMode: Top;
+
+                            Label {
+                                Text: "Rang:";
+                                Anchor: (Height: 20);
+                                Style: (FontSize: 11, TextColor: #96a9be);
+                            }
+                            $C.@TextField #RequiredRankField {
+                                Anchor: (Height: 30);
+                                PlaceholderText: "A";
+                            }
+                        }
+                    }
+
+                    // Selection de forme
+                    Group #ShapeSection {
+                        Anchor: (Height: 35, Top: 10);
+                        LayoutMode: Left;
+
+                        Label {
+                            Text: "Forme:";
+                            Anchor: (Width: 50);
+                            Style: (FontSize: 12, TextColor: #96a9be, VerticalAlignment: Center);
+                        }
+
+                        Button #ShapeCuboidCheckbox {
+                            Anchor: (Width: 22, Height: 22, Left: 5);
+                            Background: (Color: #1a2332);
+                            Label #ShapeCuboidCheck { Text: "X"; Style: (FontSize: 14, TextColor: #4a9f4a, HorizontalAlignment: Center, VerticalAlignment: Center); }
+                        }
+
+                        Label {
+                            Anchor: (Width: 60, Left: 5);
+                            Text: "Cuboid";
+                            Style: (FontSize: 12, TextColor: #96a9be, VerticalAlignment: Center);
+                        }
+
+                        Button #ShapeCylinderCheckbox {
+                            Anchor: (Width: 22, Height: 22, Left: 10);
+                            Background: (Color: #1a2332);
+                            Label #ShapeCylinderCheck { Text: ""; Style: (FontSize: 14, TextColor: #4a9f4a, HorizontalAlignment: Center, VerticalAlignment: Center); }
+                        }
+
+                        Label {
+                            Anchor: (Width: 60, Left: 5);
+                            Text: "Cylindre";
+                            Style: (FontSize: 12, TextColor: #96a9be, VerticalAlignment: Center);
+                        }
+                    }
+
+                    // Section Cuboid (coins)
+                    Group #CuboidSection {
+                        Anchor: (Height: 70, Top: 10);
+                        LayoutMode: Top;
+
+                        Label {
+                            Text: "Coins de la mine:";
+                            Anchor: (Height: 22);
+                            Style: (FontSize: 12, TextColor: #96a9be);
+                        }
+
+                        Group {
+                            Anchor: (Height: 28);
+                            LayoutMode: Left;
+
+                            Label #Corner1Label {
+                                FlexWeight: 1;
+                                Style: (FontSize: 11, TextColor: #70a0c0, VerticalAlignment: Center);
+                            }
+
+                            TextButton #SetCorner1Button {
+                                Anchor: (Width: 70, Height: 26);
+                                Text: "Definir";
+                                Style: TextButtonStyle(
+                                    Default: (
+                                        Background: #2d4a5a,
+                                        LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Hovered: (
+                                        Background: #3d5a6a,
+                                        LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Sounds: $C.@ButtonSounds,
+                                );
+                            }
+                        }
+
+                        Group {
+                            Anchor: (Height: 28, Top: 3);
+                            LayoutMode: Left;
+
+                            Label #Corner2Label {
+                                FlexWeight: 1;
+                                Style: (FontSize: 11, TextColor: #70a0c0, VerticalAlignment: Center);
+                            }
+
+                            TextButton #SetCorner2Button {
+                                Anchor: (Width: 70, Height: 26);
+                                Text: "Definir";
+                                Style: TextButtonStyle(
+                                    Default: (
+                                        Background: #2d4a5a,
+                                        LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Hovered: (
+                                        Background: #3d5a6a,
+                                        LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Sounds: $C.@ButtonSounds,
+                                );
+                            }
+                        }
+                    }
+
+                    // Section Cylindre (centre, rayon, hauteur)
+                    Group #CylinderSection {
+                        Anchor: (Height: 115, Top: 10);
+                        LayoutMode: Top;
+                        Visible: false;
+
+                        // Centre et Spawn regroupés
+                        Group {
+                            Anchor: (Height: 28);
+                            LayoutMode: Left;
+
+                            Label {
+                                Anchor: (Width: 50);
+                                Text: "Centre:";
+                                Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center);
+                            }
+
+                            Label #CenterLabel {
+                                FlexWeight: 1;
+                                Text: "Non defini";
+                                Style: (FontSize: 11, TextColor: #70a0c0, VerticalAlignment: Center);
+                            }
+
+                            TextButton #SetCenterButton {
+                                Anchor: (Width: 60, Height: 24);
+                                Text: "Definir";
+                                Style: TextButtonStyle(
+                                    Default: (
+                                        Background: #2d4a5a,
+                                        LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Hovered: (
+                                        Background: #3d5a6a,
+                                        LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Sounds: $C.@ButtonSounds,
+                                );
+                            }
+                        }
+
+                        Group {
+                            Anchor: (Height: 28, Top: 3);
+                            LayoutMode: Left;
+
+                            Label {
+                                Anchor: (Width: 50);
+                                Text: "Spawn:";
+                                Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center);
+                            }
+
+                            Label #SpawnLabel {
+                                FlexWeight: 1;
+                                Style: (FontSize: 11, TextColor: #70a0c0, VerticalAlignment: Center);
+                            }
+
+                            TextButton #SetSpawnButton {
+                                Anchor: (Width: 60, Height: 24);
+                                Text: "Definir";
+                                Style: TextButtonStyle(
+                                    Default: (
+                                        Background: #2d4a5a,
+                                        LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Hovered: (
+                                        Background: #3d5a6a,
+                                        LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Sounds: $C.@ButtonSounds,
+                                );
+                            }
+                        }
+
+                        // Rayon, Hauteur et Radius Adjust sur la même ligne
+                        Group {
+                            Anchor: (Height: 32, Top: 8);
+                            LayoutMode: Left;
+
+                            Label {
+                                Anchor: (Width: 42);
+                                Text: "Rayon:";
+                                Style: (FontSize: 10, TextColor: #96a9be, VerticalAlignment: Center);
+                            }
+
+                            $C.@TextField #RadiusField {
+                                Anchor: (Width: 55, Height: 28);
+                                PlaceholderText: "46";
+                            }
+
+                            Label {
+                                Anchor: (Width: 55, Left: 8);
+                                Text: "Hauteur:";
+                                Style: (FontSize: 10, TextColor: #96a9be, VerticalAlignment: Center);
+                            }
+
+                            $C.@TextField #HeightField {
+                                Anchor: (Width: 55, Height: 28);
+                                PlaceholderText: "20";
+                            }
+
+                            Label {
+                                Anchor: (Width: 45, Left: 8);
+                                Text: "Adjust:";
+                                Style: (FontSize: 10, TextColor: #96a9be, VerticalAlignment: Center);
+                            }
+
+                            $C.@TextField #RadiusAdjustField {
+                                Anchor: (Width: 60, Height: 28);
+                                PlaceholderText: "0.46";
+                            }
+                        }
+                    }
+
+                    // Spawn pour mode Cuboid (séparé)
+                    Group #SpawnSection {
+                        Anchor: (Height: 55, Top: 8);
+                        LayoutMode: Top;
+
+                        Label {
+                            Text: "Point de spawn:";
+                            Anchor: (Height: 22);
+                            Style: (FontSize: 12, TextColor: #96a9be);
+                        }
+
+                        Group {
+                            Anchor: (Height: 28);
+                            LayoutMode: Left;
+
+                            Label #SpawnLabelCuboid {
+                                FlexWeight: 1;
+                                Style: (FontSize: 11, TextColor: #70a0c0, VerticalAlignment: Center);
+                            }
+
+                            TextButton #SetSpawnButtonCuboid {
+                                Anchor: (Width: 70, Height: 26);
+                                Text: "Definir";
+                                Style: TextButtonStyle(
+                                    Default: (
+                                        Background: #2d4a5a,
+                                        LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Hovered: (
+                                        Background: #3d5a6a,
+                                        LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Sounds: $C.@ButtonSounds,
+                                );
+                            }
+                        }
+                    }
+
+                    // Options
+                    Group #OptionsSection {
+                        Anchor: (Height: 100, Top: 10);
+                        LayoutMode: Top;
+
+                        Group #NaturalModeToggle {
+                            Anchor: (Height: 28);
+                            LayoutMode: Left;
+
+                            Button #NaturalModeCheckbox {
+                                Anchor: (Width: 22, Height: 22);
+                                Background: (Color: #1a2332);
+                                Label #NaturalModeCheck { Text: ""; Style: (FontSize: 14, TextColor: #4a9f4a, HorizontalAlignment: Center, VerticalAlignment: Center); }
+                            }
+
+                            Label {
+                                FlexWeight: 1;
+                                Anchor: (Left: 8);
+                                Text: "Mode Naturel (protection)";
+                                Style: (FontSize: 12, TextColor: #96a9be, VerticalAlignment: Center);
+                            }
+                        }
+
+                        Group #AutoResetToggle {
+                            Anchor: (Height: 28, Top: 5);
+                            LayoutMode: Left;
+
+                            Button #AutoResetCheckbox {
+                                Anchor: (Width: 22, Height: 22);
+                                Background: (Color: #1a2332);
+                                Label #AutoResetCheck { Text: ""; Style: (FontSize: 14, TextColor: #4a9f4a, HorizontalAlignment: Center, VerticalAlignment: Center); }
+                            }
+
+                            Label {
+                                FlexWeight: 1;
+                                Anchor: (Left: 8);
+                                Text: "Reset automatique";
+                                Style: (FontSize: 12, TextColor: #96a9be, VerticalAlignment: Center);
+                            }
+                        }
+
+                        Group #UseLayersToggle {
+                            Anchor: (Height: 28, Top: 5);
+                            LayoutMode: Left;
+
+                            Button #UseLayersCheckbox {
+                                Anchor: (Width: 22, Height: 22);
+                                Background: (Color: #1a2332);
+                                Label #UseLayersCheck { Text: ""; Style: (FontSize: 14, TextColor: #4a9f4a, HorizontalAlignment: Center, VerticalAlignment: Center); }
+                            }
+
+                            Label {
+                                FlexWeight: 1;
+                                Anchor: (Left: 8);
+                                Text: "Composition par couche";
+                                Style: (FontSize: 12, TextColor: #96a9be, VerticalAlignment: Center);
+                            }
+                        }
+                    }
+
+                    // Actions
+                    Group #ActionsSection {
+                        Anchor: (Height: 130, Top: 15);
+                        LayoutMode: Top;
+
+                        Group {
+                            Anchor: (Height: 40);
+                            LayoutMode: Left;
+
+                            TextButton #ResetMineButton {
+                                Anchor: (Width: 60, Height: 36);
+                                Text: "Reset";
+                                Style: TextButtonStyle(
+                                    Default: (
+                                        Background: #2d5a2d,
+                                        LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Hovered: (
+                                        Background: #3d7a3d,
+                                        LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Sounds: $C.@ButtonSounds,
+                                );
+                            }
+
+                            TextButton #ClearZoneButton {
+                                Anchor: (Width: 60, Left: 5, Height: 36);
+                                Text: "Vider";
+                                Style: TextButtonStyle(
+                                    Default: (
+                                        Background: #8b4a2d,
+                                        LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Hovered: (
+                                        Background: #ab6a3d,
+                                        LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Sounds: $C.@ButtonSounds,
+                                );
+                            }
+
+                            TextButton #ScanMineButton {
+                                Anchor: (Width: 70, Left: 5, Height: 36);
+                                Text: "Scanner";
+                                Style: TextButtonStyle(
+                                    Default: (
+                                        Background: #2d4a8b,
+                                        LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Hovered: (
+                                        Background: #3d5a9b,
+                                        LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Sounds: $C.@ButtonSounds,
+                                );
+                            }
+
+                            TextButton #TeleportButton {
+                                Anchor: (Width: 80, Left: 5, Height: 36);
+                                Text: "TP";
+                                Style: TextButtonStyle(
+                                    Default: (
+                                        Background: #5a2d8b,
+                                        LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Hovered: (
+                                        Background: #7a3dab,
+                                        LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Sounds: $C.@ButtonSounds,
+                                );
+                            }
+
+                            TextButton #VisualizeButton {
+                                Anchor: (Width: 80, Left: 5, Height: 36);
+                                Text: "Voir Zone";
+                                Style: TextButtonStyle(
+                                    Default: (
+                                        Background: #8b5a2d,
+                                        LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Hovered: (
+                                        Background: #ab7a3d,
+                                        LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Sounds: $C.@ButtonSounds,
+                                );
+                            }
+                        }
+
+                        Group {
+                            Anchor: (Height: 40, Top: 5);
+                            LayoutMode: Left;
+
+                            TextButton #SaveButton {
+                                Anchor: (Width: 100, Height: 36);
+                                Text: "Sauvegarder";
+                                Style: TextButtonStyle(
+                                    Default: (
+                                        Background: #2d5a2d,
+                                        LabelStyle: (FontSize: 12, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)
+                                    ),
+                                    Hovered: (
+                                        Background: #3d7a3d,
+                                        LabelStyle: (FontSize: 12, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)
+                                    ),
+                                    Sounds: $C.@ButtonSounds,
+                                );
+                            }
+
+                            TextButton #DeleteButton {
+                                Anchor: (Width: 100, Left: 8, Height: 36);
+                                Text: "Supprimer";
+                                Style: TextButtonStyle(
+                                    Default: (
+                                        Background: #8b2020,
+                                        LabelStyle: (FontSize: 12, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)
+                                    ),
+                                    Hovered: (
+                                        Background: #ab3030,
+                                        LabelStyle: (FontSize: 12, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)
+                                    ),
+                                    Sounds: $C.@ButtonSounds,
+                                );
+                            }
+                        }
+                    }
+                }
+
+                Group #NoMineSelected {
+                    FlexWeight: 1;
+                    Label {
+                        Anchor: (Height: 40);
+                        Text: "Selectionnez une mine";
+                        Style: (FontSize: 12, TextColor: #808080, HorizontalAlignment: Center, VerticalAlignment: Center);
+                    }
+                }
+            }
+
+            Group {
+                Anchor: (Width: 2);
+                Background: (Color: #4a4a6a);
+            }
+
+            // Colonne 3 - Composition
+            Group #RightPanel {
+                Anchor: (Width: 400);
+                LayoutMode: Top;
+                Padding: (Left: 12);
+
+                Label #CompositionTitle {
+                    Text: "Composition";
+                    Anchor: (Height: 30);
+                    Style: (FontSize: 16, TextColor: #ffd700, RenderBold: true);
+                }
+
+                // Stats de la mine (masquées par défaut)
+                Group #MineStats {
+                    Anchor: (Height: 60);
+                    LayoutMode: Left;
+                    Background: (Color: #151d28);
+                    Padding: (Full: 10);
+                    Visible: false;
+
+                    Group {
+                        FlexWeight: 1;
+                        LayoutMode: Top;
+
+                        Label {
+                            Text: "Blocs Total";
+                            Anchor: (Height: 18);
+                            Style: (FontSize: 10, TextColor: #808080);
+                        }
+                        Label #TotalBlocksLabel {
+                            Text: "0";
+                            Anchor: (Height: 22);
+                            Style: (FontSize: 18, TextColor: #ffffff, RenderBold: true);
+                        }
+                    }
+
+                    Group {
+                        FlexWeight: 1;
+                        LayoutMode: Top;
+
+                        Label {
+                            Text: "Restants";
+                            Anchor: (Height: 18);
+                            Style: (FontSize: 10, TextColor: #808080);
+                        }
+                        Label #RemainingBlocksLabel {
+                            Text: "0";
+                            Anchor: (Height: 22);
+                            Style: (FontSize: 18, TextColor: #00ff7f, RenderBold: true);
+                        }
+                    }
+
+                    Group {
+                        FlexWeight: 1;
+                        LayoutMode: Top;
+
+                        Label {
+                            Text: "Pourcentage";
+                            Anchor: (Height: 18);
+                            Style: (FontSize: 10, TextColor: #808080);
+                        }
+                        Label #PercentageLabel {
+                            Text: "100%";
+                            Anchor: (Height: 22);
+                            Style: (FontSize: 18, TextColor: #ffd700, RenderBold: true);
+                        }
+                    }
+                }
+
+                // Label "Blocs:" (masqué par défaut)
+                Label #BlocksLabel {
+                    Text: "Blocs:";
+                    Anchor: (Height: 25, Top: 10);
+                    Style: (FontSize: 12, TextColor: #96a9be);
+                    Visible: false;
+                }
+
+                // Liste de composition - DOIT rester visible pour que appendInline fonctionne
+                // On utilise Anchor: (Height: 0) quand on veut le "cacher" visuellement
+                Group #BlockList {
+                    FlexWeight: 1;
+                    LayoutMode: TopScrolling;
+                    ScrollbarStyle: $C.@DefaultScrollbarStyle;
+                    Background: (Color: #0a0f17);
+                    Padding: (Full: 5);
+                }
+
+                // Section édition des limites de couches (clic sur un bloc)
+                Group #LayerEditSection {
+                    Anchor: (Height: 55, Top: 5);
+                    LayoutMode: Top;
+                    Background: (Color: #1a2535);
+                    Padding: (Full: 8);
+                    Visible: false;
+
+                    Label #LayerEditTitle {
+                        Anchor: (Height: 18);
+                        Text: "Limites de couches:";
+                        Style: (FontSize: 10, TextColor: #6bc5ff, RenderBold: true);
+                    }
+
+                    Group {
+                        Anchor: (Height: 28, Top: 2);
+                        LayoutMode: Left;
+
+                        Label {
+                            Anchor: (Width: 30);
+                            Text: "Min:";
+                            Style: (FontSize: 10, TextColor: #96a9be, VerticalAlignment: Center);
+                        }
+
+                        $C.@TextField #LayerMinField {
+                            Anchor: (Width: 50, Height: 26);
+                            PlaceholderText: "0";
+                        }
+
+                        Label {
+                            Anchor: (Width: 35, Left: 10);
+                            Text: "Max:";
+                            Style: (FontSize: 10, TextColor: #96a9be, VerticalAlignment: Center);
+                        }
+
+                        $C.@TextField #LayerMaxField {
+                            Anchor: (Width: 50, Height: 26);
+                            PlaceholderText: "99";
+                        }
+
+                        TextButton #ApplyLayerBtn {
+                            Anchor: (Width: 60, Left: 10, Height: 26);
+                            Text: "OK";
+                            Style: TextButtonStyle(
+                                Default: (
+                                    Background: #2d5a2d,
+                                    LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                ),
+                                Hovered: (Background: #3d7a3d),
+                                Sounds: $C.@ButtonSounds,
+                            );
+                        }
+
+                        TextButton #ClearLayerBtn {
+                            Anchor: (Width: 50, Left: 5, Height: 26);
+                            Text: "Clear";
+                            Style: TextButtonStyle(
+                                Default: (
+                                    Background: #5a4a2d,
+                                    LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                ),
+                                Hovered: (Background: #7a6a3d),
+                                Sounds: $C.@ButtonSounds,
+                            );
+                        }
+                    }
+                }
+
+                // Ajouter un bloc (masqué par défaut)
+                Group #AddBlockRow {
+                    Anchor: (Height: 40, Top: 8);
+                    LayoutMode: Left;
+                    Visible: false;
+
+                    $C.@TextField #BlockTypeField {
+                        Anchor: (Width: 140, Height: 36);
+                        PlaceholderText: "stone, diamond_ore...";
+                    }
+
+                    TextButton #PickBlockButton {
+                        Anchor: (Width: 36, Left: 5, Height: 36);
+                        Text: "<-";
+                        Style: TextButtonStyle(
+                            Default: (
+                                Background: #5a4a2d,
+                                LabelStyle: (FontSize: 14, TextColor: #ffd700, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)
+                            ),
+                            Hovered: (
+                                Background: #7a6a3d,
+                                LabelStyle: (FontSize: 14, TextColor: #ffd700, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)
+                            ),
+                            Sounds: $C.@ButtonSounds,
+                        );
+                    }
+
+                    $C.@TextField #BlockPercentField {
+                        Anchor: (Width: 60, Left: 5, Height: 36);
+                        PlaceholderText: "%";
+                    }
+
+                    TextButton #AddBlockButton {
+                        Anchor: (Width: 36, Left: 5, Height: 36);
+                        Text: "+";
+                        Style: TextButtonStyle(
+                            Default: (
+                                Background: #2d5a2d,
+                                LabelStyle: (FontSize: 20, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)
+                            ),
+                            Hovered: (
+                                Background: #3d7a3d,
+                                LabelStyle: (FontSize: 20, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)
+                            ),
+                            Sounds: $C.@ButtonSounds,
+                        );
+                    }
+
+                    TextButton #AddAirButton {
+                        Anchor: (Width: 45, Left: 5, Height: 36);
+                        Text: "Air";
+                        Style: TextButtonStyle(
+                            Default: (
+                                Background: #4a4a6a,
+                                LabelStyle: (FontSize: 12, TextColor: #a0c0ff, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)
+                            ),
+                            Hovered: (
+                                Background: #5a5a8a,
+                                LabelStyle: (FontSize: 12, TextColor: #c0e0ff, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)
+                            ),
+                            Sounds: $C.@ButtonSounds,
+                        );
+                    }
+                }
+
+                Group #NoMineSelectedComp {
+                    FlexWeight: 1;
+                    Label {
+                        Anchor: (Height: 40);
+                        Text: "Selectionnez une mine";
+                        Style: (FontSize: 12, TextColor: #808080, HorizontalAlignment: Center, VerticalAlignment: Center);
+                    }
+                }
+            }
+        }
+    }
+}

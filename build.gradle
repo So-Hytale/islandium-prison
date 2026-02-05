@@ -1,0 +1,60 @@
+plugins {
+    id 'java'
+    id 'com.gradleup.shadow' version '8.3.5'
+}
+
+archivesBaseName = 'islandium-prison'
+
+dependencies {
+    // Islandium Core (compileOnly car fourni séparément comme plugin)
+    compileOnly project(':islandium-core')
+
+    // Hytale Server API (compileOnly car fourni par le serveur)
+    compileOnly files('../libs/HytaleServer.jar')
+
+    // MultipleHUD API (compileOnly car fourni comme plugin séparé)
+    compileOnly files('../libs/MultipleHUD-1.0.4.jar')
+
+    // JSON (déjà inclus dans islandium-core, pas besoin de re-inclure)
+    compileOnly 'com.google.code.gson:gson:2.10.1'
+
+    // Annotations
+    compileOnly 'org.jetbrains:annotations:24.1.0'
+}
+
+shadowJar {
+    archiveBaseName.set('islandium-prison')
+    archiveClassifier.set('')
+    archiveVersion.set(version)
+
+    // Pas de relocations nécessaires - toutes les deps sont compileOnly
+
+    manifest {
+        attributes(
+            'Main-Class': 'com.islandium.prison.PrisonPlugin',
+            'Implementation-Title': 'Islandium Prison',
+            'Implementation-Version': version,
+            'Implementation-Vendor-Id': 'com.islandium',
+            'Java-Version': '21'
+        )
+    }
+}
+
+jar {
+    archiveBaseName.set('islandium-prison')
+    archiveClassifier.set('slim')
+    archiveVersion.set(version)
+
+    manifest {
+        attributes(
+            'Main-Class': 'com.islandium.prison.PrisonPlugin',
+            'Implementation-Title': 'Islandium Prison',
+            'Implementation-Version': version,
+            'Implementation-Vendor-Id': 'com.islandium',
+            'Java-Version': '21'
+        )
+    }
+}
+
+// Build shadow jar by default
+build.dependsOn shadowJar
