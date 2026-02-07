@@ -160,17 +160,17 @@ public class KitConfigPage extends InteractiveCustomUIPage<KitConfigPage.PageDat
                     cmd.set("#" + itemRowId + " #ItemQty.Text", "x" + item.quantity);
                     cmd.set("#" + itemRowId + " #RemoveItemBtn Label.Text", "X");
 
-                    // Item icon
-                    try {
-                        String iconId = item.itemId;
-                        if (iconId != null && !iconId.isEmpty()) {
-                            if (!iconId.contains(":")) iconId = "minecraft:" + iconId;
-                            ItemStack iconStack = new ItemStack(iconId, 1);
-                            if (iconStack != null && !ItemStack.isEmpty(iconStack)) {
-                                cmd.setObject("#" + itemRowId + "Icon", iconStack);
-                            }
-                        }
-                    } catch (Exception ignored) {}
+                    // TODO: Item icon via setObject - disabled for now, needs investigation
+                    // try {
+                    //     String iconId = item.itemId;
+                    //     if (iconId != null && !iconId.isEmpty()) {
+                    //         if (!iconId.contains(":")) iconId = "minecraft:" + iconId;
+                    //         ItemStack iconStack = new ItemStack(iconId, 1);
+                    //         if (iconStack != null && !ItemStack.isEmpty(iconStack)) {
+                    //             cmd.setObject("#" + itemRowId + "Icon", iconStack);
+                    //         }
+                    //     }
+                    // } catch (Exception ignored) {}
 
                     final int finalItemIdx = itemIdx;
                     event.addEventBinding(CustomUIEventBindingType.Activating, "#" + itemRowId + " #RemoveItemBtn",

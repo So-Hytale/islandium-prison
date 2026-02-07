@@ -153,19 +153,19 @@ public class KitPage extends InteractiveCustomUIPage<KitPage.PageData> {
                     cmd.set("#" + cardId + "Desc.Text", kit.description != null ? kit.description : "");
                     cmd.set("#" + cardId + "Status.Text", statusText);
 
-                    // Set item icon from first item in kit
-                    if (kit.items != null && !kit.items.isEmpty()) {
-                        try {
-                            String iconItemId = kit.items.get(0).itemId;
-                            if (iconItemId != null && !iconItemId.isEmpty()) {
-                                if (!iconItemId.contains(":")) iconItemId = "minecraft:" + iconItemId;
-                                ItemStack iconStack = new ItemStack(iconItemId, 1);
-                                if (iconStack != null && !ItemStack.isEmpty(iconStack)) {
-                                    cmd.setObject("#" + cardId + "Icon", iconStack);
-                                }
-                            }
-                        } catch (Exception ignored) {}
-                    }
+                    // TODO: Item icon via setObject - disabled for now, needs valid item IDs
+                    // if (kit.items != null && !kit.items.isEmpty()) {
+                    //     try {
+                    //         String iconItemId = kit.items.get(0).itemId;
+                    //         if (iconItemId != null && !iconItemId.isEmpty()) {
+                    //             if (!iconItemId.contains(":")) iconItemId = "minecraft:" + iconItemId;
+                    //             ItemStack iconStack = new ItemStack(iconItemId, 1);
+                    //             if (iconStack != null && !ItemStack.isEmpty(iconStack)) {
+                    //                 cmd.setObject("#" + cardId + "Icon", iconStack);
+                    //             }
+                    //         }
+                    //     } catch (Exception ignored) {}
+                    // }
 
                     event.addEventBinding(CustomUIEventBindingType.Activating, "#" + cardId,
                         EventData.of("Action", "viewKit").append("KitId", kit.id), false);
@@ -273,17 +273,14 @@ public class KitPage extends InteractiveCustomUIPage<KitPage.PageData> {
                 cmd.set("#" + itemRowId + " #IName.Text", formatBlockName(item.itemId));
                 cmd.set("#" + itemRowId + " #IQty.Text", "x" + item.quantity);
 
-                // Item icon
-                try {
-                    String iconId = item.itemId;
-                    if (iconId != null && !iconId.isEmpty()) {
-                        if (!iconId.contains(":")) iconId = "minecraft:" + iconId;
-                        ItemStack iconStack = new ItemStack(iconId, 1);
-                        if (iconStack != null && !ItemStack.isEmpty(iconStack)) {
-                            cmd.setObject("#" + itemRowId + "Icon", iconStack);
-                        }
-                    }
-                } catch (Exception ignored) {}
+                // TODO: Item icon via setObject - disabled for now
+                // try {
+                //     String iconId = item.itemId;
+                //     if (iconId != null && !iconId.isEmpty()) {
+                //         if (!iconId.contains(":")) iconId = "minecraft:" + iconId;
+                //         cmd.setObject("#" + itemRowId + "Icon", new ItemStack(iconId, 1));
+                //     }
+                // } catch (Exception ignored) {}
                 idx++;
             }
         } else {
