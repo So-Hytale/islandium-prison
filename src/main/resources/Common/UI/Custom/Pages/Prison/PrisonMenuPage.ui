@@ -8,19 +8,6 @@ $C = "../../Common.ui";
 @IconClassement = PatchStyle(TexturePath: "Icons/classement.png");
 @IconCellule = PatchStyle(TexturePath: "Icons/cellule.png");
 
-// Style commun pour les cartes
-@CardStyle = TextButtonStyle(
-    Default: (
-        Background: #151d28,
-        LabelStyle: (FontSize: 1, TextColor: #00000000)
-    ),
-    Hovered: (
-        Background: #1c2940,
-        LabelStyle: (FontSize: 1, TextColor: #00000000)
-    ),
-    Sounds: $C.@ButtonSounds,
-);
-
 $C.@PageOverlay {
     $C.@Container {
         Anchor: (Width: 900, Height: 560);
@@ -90,26 +77,29 @@ $C.@PageOverlay {
                         FlexWeight: 1;
                         Padding: (Right: 10);
 
-                        TextButton #CardMines {
-                            Style: @CardStyle;
-                            LayoutMode: Top;
-                            Padding: (Full: 12);
+                        Button #CardMines {
+                            Background: (Color: #151d28);
 
-                            Group #IconMines {
-                                Anchor: (Height: 90);
-                                Background: @IconMines;
-                            }
+                            Group {
+                                LayoutMode: Top;
+                                Padding: (Full: 12);
 
-                            Label {
-                                Anchor: (Height: 30, Top: 8);
-                                Text: "MINES";
-                                Style: (FontSize: 15, TextColor: #4fc3f7, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
-                            }
+                                Group {
+                                    Anchor: (Height: 90);
+                                    Background: @IconMines;
+                                }
 
-                            Label {
-                                Anchor: (Height: 20);
-                                Text: "Teleportation vers les mines";
-                                Style: (FontSize: 11, TextColor: #7c8b99, HorizontalAlignment: Center);
+                                Label {
+                                    Anchor: (Height: 30, Top: 8);
+                                    Text: "MINES";
+                                    Style: (FontSize: 15, TextColor: #4fc3f7, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
+                                }
+
+                                Label {
+                                    Anchor: (Height: 20);
+                                    Text: "Teleportation vers les mines";
+                                    Style: (FontSize: 11, TextColor: #7c8b99, HorizontalAlignment: Center);
+                                }
                             }
                         }
                     }
@@ -119,26 +109,29 @@ $C.@PageOverlay {
                         FlexWeight: 1;
                         Padding: (Horizontal: 5);
 
-                        TextButton #CardRang {
-                            Style: @CardStyle;
-                            LayoutMode: Top;
-                            Padding: (Full: 12);
+                        Button #CardRang {
+                            Background: (Color: #151d28);
 
-                            Group #IconRang {
-                                Anchor: (Height: 90);
-                                Background: @IconRang;
-                            }
+                            Group {
+                                LayoutMode: Top;
+                                Padding: (Full: 12);
 
-                            Label {
-                                Anchor: (Height: 30, Top: 8);
-                                Text: "RANG";
-                                Style: (FontSize: 15, TextColor: #ffd700, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
-                            }
+                                Group {
+                                    Anchor: (Height: 90);
+                                    Background: @IconRang;
+                                }
 
-                            Label {
-                                Anchor: (Height: 20);
-                                Text: "Progression et rankup";
-                                Style: (FontSize: 11, TextColor: #7c8b99, HorizontalAlignment: Center);
+                                Label {
+                                    Anchor: (Height: 30, Top: 8);
+                                    Text: "RANG";
+                                    Style: (FontSize: 15, TextColor: #ffd700, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
+                                }
+
+                                Label {
+                                    Anchor: (Height: 20);
+                                    Text: "Progression et rankup";
+                                    Style: (FontSize: 11, TextColor: #7c8b99, HorizontalAlignment: Center);
+                                }
                             }
                         }
                     }
@@ -148,26 +141,29 @@ $C.@PageOverlay {
                         FlexWeight: 1;
                         Padding: (Left: 10);
 
-                        TextButton #CardUpgrades {
-                            Style: @CardStyle;
-                            LayoutMode: Top;
-                            Padding: (Full: 12);
+                        Button #CardUpgrades {
+                            Background: (Color: #151d28);
 
-                            Group #IconUpgrades {
-                                Anchor: (Height: 90);
-                                Background: @IconUpgrades;
-                            }
+                            Group {
+                                LayoutMode: Top;
+                                Padding: (Full: 12);
 
-                            Label {
-                                Anchor: (Height: 30, Top: 8);
-                                Text: "UPGRADES";
-                                Style: (FontSize: 15, TextColor: #ab47bc, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
-                            }
+                                Group {
+                                    Anchor: (Height: 90);
+                                    Background: @IconUpgrades;
+                                }
 
-                            Label {
-                                Anchor: (Height: 20);
-                                Text: "Ameliorations de pioche";
-                                Style: (FontSize: 11, TextColor: #7c8b99, HorizontalAlignment: Center);
+                                Label {
+                                    Anchor: (Height: 30, Top: 8);
+                                    Text: "UPGRADES";
+                                    Style: (FontSize: 15, TextColor: #ab47bc, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
+                                }
+
+                                Label {
+                                    Anchor: (Height: 20);
+                                    Text: "Ameliorations de pioche";
+                                    Style: (FontSize: 11, TextColor: #7c8b99, HorizontalAlignment: Center);
+                                }
                             }
                         }
                     }
@@ -183,26 +179,29 @@ $C.@PageOverlay {
                         FlexWeight: 1;
                         Padding: (Right: 10);
 
-                        TextButton #CardVendre {
-                            Style: @CardStyle;
-                            LayoutMode: Top;
-                            Padding: (Full: 12);
+                        Button #CardVendre {
+                            Background: (Color: #151d28);
 
-                            Group #IconVendre {
-                                Anchor: (Height: 90);
-                                Background: @IconVendre;
-                            }
+                            Group {
+                                LayoutMode: Top;
+                                Padding: (Full: 12);
 
-                            Label {
-                                Anchor: (Height: 30, Top: 8);
-                                Text: "VENDRE";
-                                Style: (FontSize: 15, TextColor: #66bb6a, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
-                            }
+                                Group {
+                                    Anchor: (Height: 90);
+                                    Background: @IconVendre;
+                                }
 
-                            Label {
-                                Anchor: (Height: 20);
-                                Text: "Vendre les blocs";
-                                Style: (FontSize: 11, TextColor: #7c8b99, HorizontalAlignment: Center);
+                                Label {
+                                    Anchor: (Height: 30, Top: 8);
+                                    Text: "VENDRE";
+                                    Style: (FontSize: 15, TextColor: #66bb6a, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
+                                }
+
+                                Label {
+                                    Anchor: (Height: 20);
+                                    Text: "Vendre les blocs";
+                                    Style: (FontSize: 11, TextColor: #7c8b99, HorizontalAlignment: Center);
+                                }
                             }
                         }
                     }
@@ -212,26 +211,29 @@ $C.@PageOverlay {
                         FlexWeight: 1;
                         Padding: (Horizontal: 5);
 
-                        TextButton #CardClassement {
-                            Style: @CardStyle;
-                            LayoutMode: Top;
-                            Padding: (Full: 12);
+                        Button #CardClassement {
+                            Background: (Color: #151d28);
 
-                            Group #IconClassement {
-                                Anchor: (Height: 90);
-                                Background: @IconClassement;
-                            }
+                            Group {
+                                LayoutMode: Top;
+                                Padding: (Full: 12);
 
-                            Label {
-                                Anchor: (Height: 30, Top: 8);
-                                Text: "CLASSEMENT";
-                                Style: (FontSize: 15, TextColor: #ef5350, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
-                            }
+                                Group {
+                                    Anchor: (Height: 90);
+                                    Background: @IconClassement;
+                                }
 
-                            Label {
-                                Anchor: (Height: 20);
-                                Text: "Top joueurs";
-                                Style: (FontSize: 11, TextColor: #7c8b99, HorizontalAlignment: Center);
+                                Label {
+                                    Anchor: (Height: 30, Top: 8);
+                                    Text: "CLASSEMENT";
+                                    Style: (FontSize: 15, TextColor: #ef5350, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
+                                }
+
+                                Label {
+                                    Anchor: (Height: 20);
+                                    Text: "Top joueurs";
+                                    Style: (FontSize: 11, TextColor: #7c8b99, HorizontalAlignment: Center);
+                                }
                             }
                         }
                     }
@@ -241,26 +243,29 @@ $C.@PageOverlay {
                         FlexWeight: 1;
                         Padding: (Left: 10);
 
-                        TextButton #CardCellule {
-                            Style: @CardStyle;
-                            LayoutMode: Top;
-                            Padding: (Full: 12);
+                        Button #CardCellule {
+                            Background: (Color: #151d28);
 
-                            Group #IconCellule {
-                                Anchor: (Height: 90);
-                                Background: @IconCellule;
-                            }
+                            Group {
+                                LayoutMode: Top;
+                                Padding: (Full: 12);
 
-                            Label {
-                                Anchor: (Height: 30, Top: 8);
-                                Text: "CELLULE";
-                                Style: (FontSize: 15, TextColor: #8d6e63, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
-                            }
+                                Group {
+                                    Anchor: (Height: 90);
+                                    Background: @IconCellule;
+                                }
 
-                            Label {
-                                Anchor: (Height: 20);
-                                Text: "Gestion de cellule";
-                                Style: (FontSize: 11, TextColor: #7c8b99, HorizontalAlignment: Center);
+                                Label {
+                                    Anchor: (Height: 30, Top: 8);
+                                    Text: "CELLULE";
+                                    Style: (FontSize: 15, TextColor: #8d6e63, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
+                                }
+
+                                Label {
+                                    Anchor: (Height: 20);
+                                    Text: "Gestion de cellule";
+                                    Style: (FontSize: 11, TextColor: #7c8b99, HorizontalAlignment: Center);
+                                }
                             }
                         }
                     }
