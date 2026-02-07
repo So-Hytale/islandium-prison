@@ -193,6 +193,18 @@ public class PrisonConfig {
         return data.blockValues;
     }
 
+    public void setBlockValue(@NotNull String blockType, @NotNull BigDecimal value) {
+        data.blockValues.put(blockType, value);
+    }
+
+    public void removeBlockValue(@NotNull String blockType) {
+        data.blockValues.remove(blockType);
+    }
+
+    public void setBlockSellMultiplier(double multiplier) {
+        data.economy.blockSellMultiplier = multiplier;
+    }
+
     @NotNull
     public String getMessage(String key) {
         if (data == null || data.messages == null) {

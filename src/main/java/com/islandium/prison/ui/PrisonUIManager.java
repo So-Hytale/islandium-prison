@@ -3,6 +3,7 @@ package com.islandium.prison.ui;
 import com.islandium.prison.PrisonPlugin;
 import com.islandium.prison.ui.prisonhud.PrisonHud;
 import com.islandium.prison.ui.pages.MineManagerPage;
+import com.islandium.prison.ui.pages.SellConfigPage;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import org.jetbrains.annotations.NotNull;
@@ -185,6 +186,37 @@ public class PrisonUIManager {
             plugin.log(Level.WARNING, "MultipleHUD not available: " + e.getMessage());
         } catch (Exception e) {
             plugin.log(Level.WARNING, "Failed to invoke MultipleHUD." + methodName + ": " + e.getMessage());
+        }
+    }
+
+    /**
+     * Ouvre la page de configuration du Sell Shop pour un admin.
+     */
+    public void openSellConfig(@NotNull Player player) {
+        try {
+            var ref = player.getReference();
+            if (ref == null || !ref.isValid()) {
+                plugin.log(Level.WARNING, "Cannot open sell config: Reference is null or invalid");
+                return;
+            }
+
+            var store = ref.getStore();
+            var world = store.getExternalData().getWorld();
+
+            CompletableFuture.runAsync(() -> {
+                var playerRef = store.getComponent(ref, PlayerRef.getComponentType());
+                if (playerRef == null) {
+                    plugin.log(Level.WARNING, "Cannot open sell config: PlayerRef not found");
+                    return;
+                }
+
+                SellConfigPage page = new SellConfigPage(playerRef, plugin);
+                player.getPageManager().openCustomPage(ref, store, page);
+            }, world);
+
+        } catch (Exception e) {
+            plugin.log(Level.SEVERE, "Failed to open sell config: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

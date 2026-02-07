@@ -20,6 +20,7 @@ import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
+import com.hypixel.hytale.server.core.inventory.Inventory;
 import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
@@ -338,6 +339,195 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
     }
 
     // =========================================
+    // VENDRE
+    // =========================================
+
+    private void buildVendrePage(UICommandBuilder cmd, UIEventBuilder event, Player player) {
+        showSubPage(cmd);
+        cmd.clear("#PageContent");
+        cmd.set("#HeaderTitle.Text", "VENDRE");
+
+        UUID uuid = playerRef.getUuid();
+        Map<String, BigDecimal> blockValues = plugin.getConfig().getBlockValues();
+        double multiplier = plugin.getRankManager().getPlayerMultiplier(uuid) * plugin.getConfig().getBlockSellMultiplier();
+
+        // Balance actuelle
+        BigDecimal balance = BigDecimal.ZERO;
+        try {
+            EconomyService eco = IslandiumAPI.get().getEconomyService();
+            if (eco != null) {
+                balance = eco.getBalance(uuid).join();
+            }
+        } catch (Exception ignored) {}
+
+        // Resume rapide
+        cmd.appendInline("#PageContent",
+            "Group { Anchor: (Height: 45); Background: (Color: #151d28); Padding: (Horizontal: 15); LayoutMode: Left; " +
+            "  Label #MultLabel { FlexWeight: 1; Style: (FontSize: 13, TextColor: #00e5ff, RenderBold: true, VerticalAlignment: Center); } " +
+            "  Label #BalLabel { Anchor: (Width: 200); Style: (FontSize: 13, TextColor: #66bb6a, RenderBold: true, VerticalAlignment: Center); } " +
+            "}");
+        cmd.set("#MultLabel.Text", "Multiplicateur: x" + String.format("%.2f", multiplier));
+        cmd.set("#BalLabel.Text", "Balance: " + SellService.formatMoney(balance));
+
+        // Titre prix des blocs
+        cmd.appendInline("#PageContent",
+            "Label { Anchor: (Height: 30, Top: 12); Text: \"PRIX DES BLOCS\"; " +
+            "Style: (FontSize: 14, TextColor: #ffd700, RenderBold: true); }");
+
+        // Header colonnes prix
+        cmd.appendInline("#PageContent",
+            "Group { Anchor: (Height: 22); LayoutMode: Left; Padding: (Horizontal: 10); " +
+            "  Label { FlexWeight: 1; Text: \"Bloc\"; Style: (FontSize: 10, TextColor: #7c8b99, VerticalAlignment: Center); } " +
+            "  Label { Anchor: (Width: 100); Text: \"Prix unit.\"; Style: (FontSize: 10, TextColor: #7c8b99, VerticalAlignment: Center); } " +
+            "  Label { Anchor: (Width: 100); Text: \"Avec multi.\"; Style: (FontSize: 10, TextColor: #7c8b99, VerticalAlignment: Center); } " +
+            "}");
+
+        // Liste des blocs triés par prix
+        List<Map.Entry<String, BigDecimal>> sortedBlocks = blockValues.entrySet().stream()
+            .sorted(Map.Entry.comparingByValue())
+            .collect(Collectors.toList());
+
+        int priceIdx = 0;
+        for (Map.Entry<String, BigDecimal> entry : sortedBlocks) {
+            String blockId = entry.getKey();
+            BigDecimal basePrice = entry.getValue();
+            BigDecimal withMult = basePrice.multiply(BigDecimal.valueOf(multiplier)).setScale(2, java.math.RoundingMode.HALF_UP);
+            String bgColor = priceIdx % 2 == 0 ? "#111b27" : "#151d28";
+            String rowSelector = "#PageContent[" + (priceIdx + 3) + "]"; // +3 pour resume + titre + header
+
+            cmd.appendInline("#PageContent",
+                "Group { Anchor: (Height: 26); LayoutMode: Left; Padding: (Horizontal: 10); Background: (Color: " + bgColor + "); " +
+                "  Label #BName { FlexWeight: 1; Style: (FontSize: 11, TextColor: #ffffff, VerticalAlignment: Center); } " +
+                "  Label #BBase { Anchor: (Width: 100); Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center); } " +
+                "  Label #BMult { Anchor: (Width: 100); Style: (FontSize: 11, TextColor: #66bb6a, VerticalAlignment: Center); } " +
+                "}");
+
+            cmd.set(rowSelector + " #BName.Text", formatBlockName(blockId));
+            cmd.set(rowSelector + " #BBase.Text", basePrice.setScale(2, java.math.RoundingMode.HALF_UP) + "$");
+            cmd.set(rowSelector + " #BMult.Text", withMult + "$");
+            priceIdx++;
+        }
+
+        // Separator
+        int invHeaderIdx = priceIdx + 3;
+
+        // Titre inventaire
+        cmd.appendInline("#PageContent",
+            "Label { Anchor: (Height: 30, Top: 12); Text: \"TON INVENTAIRE\"; " +
+            "Style: (FontSize: 14, TextColor: #4fc3f7, RenderBold: true); }");
+
+        // Scanner inventaire
+        Map<String, Integer> sellableItems = scanSellableInventory(player, blockValues);
+
+        if (sellableItems.isEmpty()) {
+            cmd.appendInline("#PageContent",
+                "Label { Anchor: (Height: 25); Text: \"Rien a vendre dans ton inventaire.\"; " +
+                "Style: (FontSize: 12, TextColor: #808080); }");
+
+            // Pas de bouton vendre si rien
+            return;
+        }
+
+        BigDecimal totalEstimated = BigDecimal.ZERO;
+        int invIdx = 0;
+        for (Map.Entry<String, Integer> item : sellableItems.entrySet()) {
+            String blockId = item.getKey();
+            int qty = item.getValue();
+            BigDecimal basePrice = blockValues.getOrDefault(blockId, BigDecimal.ZERO);
+            BigDecimal itemTotal = basePrice.multiply(BigDecimal.valueOf(qty)).multiply(BigDecimal.valueOf(multiplier))
+                .setScale(2, java.math.RoundingMode.HALF_UP);
+            totalEstimated = totalEstimated.add(itemTotal);
+
+            String bgColor = invIdx % 2 == 0 ? "#111b27" : "#151d28";
+            // Use unique IDs per row to avoid selector issues
+            String invRowId = "InvRow" + invIdx;
+
+            cmd.appendInline("#PageContent",
+                "Group #" + invRowId + " { Anchor: (Height: 26); LayoutMode: Left; Padding: (Horizontal: 10); Background: (Color: " + bgColor + "); " +
+                "  Label #IName { FlexWeight: 1; Style: (FontSize: 11, TextColor: #ffffff, VerticalAlignment: Center); } " +
+                "  Label #ITotal { Anchor: (Width: 120); Style: (FontSize: 11, TextColor: #66bb6a, RenderBold: true, VerticalAlignment: Center); } " +
+                "}");
+
+            cmd.set("#" + invRowId + " #IName.Text", qty + "x " + formatBlockName(blockId));
+            cmd.set("#" + invRowId + " #ITotal.Text", SellService.formatMoney(itemTotal));
+            invIdx++;
+        }
+
+        // Total estimé
+        cmd.appendInline("#PageContent",
+            "Group { Anchor: (Height: 35, Top: 8); Background: (Color: #1a2a1a); Padding: (Horizontal: 15); LayoutMode: Left; " +
+            "  Label { FlexWeight: 1; Text: \"Total estime\"; Style: (FontSize: 14, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center); } " +
+            "  Label #TotalEst { Anchor: (Width: 150); Style: (FontSize: 16, TextColor: #66bb6a, RenderBold: true, VerticalAlignment: Center); } " +
+            "}");
+        cmd.set("#TotalEst.Text", SellService.formatMoney(totalEstimated));
+
+        // Bouton VENDRE TOUT
+        cmd.appendInline("#PageContent",
+            "Group { Anchor: (Height: 55, Top: 10); LayoutMode: Left; " +
+            "  Group { FlexWeight: 1; } " +
+            "  TextButton #SellAllBtn { Anchor: (Width: 220, Height: 45); " +
+            "    Style: TextButtonStyle(Default: (Background: #2a5f2a, LabelStyle: (FontSize: 16, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center)), " +
+            "    Hovered: (Background: #3a7f3a, LabelStyle: (FontSize: 16, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center))); } " +
+            "  Group { FlexWeight: 1; } " +
+            "}");
+        cmd.set("#SellAllBtn.Text", "VENDRE TOUT");
+        event.addEventBinding(CustomUIEventBindingType.Activating, "#SellAllBtn", EventData.of("Action", "sellAll"), false);
+    }
+
+    private Map<String, Integer> scanSellableInventory(Player player, Map<String, BigDecimal> blockValues) {
+        Map<String, Integer> result = new LinkedHashMap<>();
+        try {
+            Inventory inv = player.getInventory();
+
+            // Storage
+            var storage = inv.getStorage();
+            for (short slot = 0; slot < storage.getCapacity(); slot++) {
+                var stack = storage.getItemStack(slot);
+                if (com.hypixel.hytale.server.core.inventory.ItemStack.isEmpty(stack)) continue;
+                String itemId = stack.getItemId();
+                BigDecimal value = blockValues.get(itemId);
+                if (value != null && value.compareTo(BigDecimal.ZERO) > 0) {
+                    result.merge(itemId, stack.getQuantity(), Integer::sum);
+                }
+            }
+
+            // Hotbar
+            var hotbar = inv.getHotbar();
+            for (short slot = 0; slot < hotbar.getCapacity(); slot++) {
+                var stack = hotbar.getItemStack(slot);
+                if (com.hypixel.hytale.server.core.inventory.ItemStack.isEmpty(stack)) continue;
+                String itemId = stack.getItemId();
+                BigDecimal value = blockValues.get(itemId);
+                if (value != null && value.compareTo(BigDecimal.ZERO) > 0) {
+                    result.merge(itemId, stack.getQuantity(), Integer::sum);
+                }
+            }
+        } catch (Exception ignored) {}
+        return result;
+    }
+
+    private String formatBlockName(String blockId) {
+        // "minecraft:cobblestone" -> "Cobblestone"
+        // "minecraft:coal_ore" -> "Coal Ore"
+        String name = blockId;
+        int colonIdx = name.indexOf(':');
+        if (colonIdx >= 0) {
+            name = name.substring(colonIdx + 1);
+        }
+        // Replace underscores with spaces and capitalize each word
+        String[] parts = name.split("_");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < parts.length; i++) {
+            if (i > 0) sb.append(" ");
+            if (!parts[i].isEmpty()) {
+                sb.append(Character.toUpperCase(parts[i].charAt(0)));
+                if (parts[i].length() > 1) sb.append(parts[i].substring(1));
+            }
+        }
+        return sb.toString();
+    }
+
+    // =========================================
     // CLASSEMENT
     // =========================================
 
@@ -486,17 +676,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                 case "upgrades" -> { currentPage = "upgrades"; buildUpgradesPage(cmd, event); }
                 case "classement" -> { currentPage = "classement"; buildClassementPage(cmd, event); }
                 case "cellule" -> { currentPage = "cellule"; buildCellulePage(cmd, event); }
-                case "vendre" -> {
-                    // Action directe: vendre tout
-                    SellService.SellResult result = plugin.getSellService().sellFromInventory(uuid, player, null);
-                    if (result.isEmpty()) {
-                        player.sendMessage(Message.raw("Rien a vendre dans ton inventaire!"));
-                    } else {
-                        StringBuilder msg = new StringBuilder("Vendu " + result.getTotalBlocksSold() + " blocs pour " + SellService.formatMoney(result.getTotalEarned()) + "!");
-                        player.sendMessage(Message.raw(msg.toString()));
-                    }
-                    return;
-                }
+                case "vendre" -> { currentPage = "vendre"; buildVendrePage(cmd, event, player); }
             }
             sendUpdate(cmd, event, false);
             return;
@@ -529,6 +709,18 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         // Actions
         if (data.action != null) {
             switch (data.action) {
+                case "sellAll" -> {
+                    SellService.SellResult result = plugin.getSellService().sellFromInventory(uuid, player, null);
+                    if (result.isEmpty()) {
+                        player.sendMessage(Message.raw("Rien a vendre dans ton inventaire!"));
+                    } else {
+                        player.sendMessage(Message.raw("Vendu " + result.getTotalBlocksSold() + " blocs pour " + SellService.formatMoney(result.getTotalEarned()) + "!"));
+                    }
+                    // Rebuild la page vendre pour rafraichir
+                    buildVendrePage(cmd, event, player);
+                    sendUpdate(cmd, event, false);
+                    return;
+                }
                 case "rankup" -> {
                     PrisonRankManager.RankupResult result = plugin.getRankManager().rankup(uuid);
                     switch (result) {

@@ -58,8 +58,9 @@ public class PrisonAdminCommand extends PrisonCommand {
         addSubCommand(new SetRankCommand(plugin));
         addSubCommand(new SetPrestigeCommand(plugin));
 
-        // GUI subcommand
+        // GUI subcommands
         addSubCommand(new GuiCommand(plugin));
+        addSubCommand(new SellConfigCommand(plugin));
 
         // General subcommands
         addSubCommand(new ReloadCommand(plugin));
@@ -113,6 +114,7 @@ public class PrisonAdminCommand extends PrisonCommand {
         sendMessage(ctx, "");
         sendMessage(ctx, "&e&lGeneral:");
         sendMessage(ctx, "&e/pa gui &8- &7Ouvre l'interface de gestion");
+        sendMessage(ctx, "&e/pa sellconfig &8- &7Configure le sell shop (UI)");
         sendMessage(ctx, "&e/pa reload &8- &7Recharge la config");
         sendMessage(ctx, "&e/pa save &8- &7Sauvegarde les donnees");
     }
@@ -927,6 +929,30 @@ public class PrisonAdminCommand extends PrisonCommand {
             }
 
             plugin.getUIManager().openMineManager(player);
+            return complete();
+        }
+    }
+
+    private static class SellConfigCommand extends PrisonCommand {
+        public SellConfigCommand(@NotNull PrisonPlugin plugin) {
+            super(plugin, "sellconfig", "Configure le sell shop");
+            addAliases("sellshop", "sc");
+        }
+
+        @Override
+        public CompletableFuture<Void> execute(CommandContext ctx) {
+            if (!isPlayer(ctx)) {
+                sendMessage(ctx, "&cCette commande est reservee aux joueurs!");
+                return complete();
+            }
+
+            Player player = getPlayer(ctx);
+            if (player == null) {
+                sendMessage(ctx, "&cErreur: Impossible de recuperer le joueur!");
+                return complete();
+            }
+
+            plugin.getUIManager().openSellConfig(player);
             return complete();
         }
     }

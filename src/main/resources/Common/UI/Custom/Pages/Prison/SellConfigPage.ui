@@ -1,0 +1,198 @@
+$C = "../../Common.ui";
+
+$C.@PageOverlay {
+    $C.@Container {
+        Anchor: (Width: 800, Height: 600);
+
+        #Title {
+            Group {
+                $C.@Title {
+                    @Text = "Configuration Sell Shop";
+                }
+            }
+        }
+
+        #Content {
+            LayoutMode: Top;
+
+            // Multiplicateur global
+            Group #MultiplierSection {
+                Anchor: (Height: 55);
+                Background: (Color: #151d28);
+                Padding: (Horizontal: 20, Vertical: 10);
+                LayoutMode: Left;
+
+                Label {
+                    Anchor: (Width: 200);
+                    Text: "Multiplicateur global:";
+                    Style: (FontSize: 14, TextColor: #ffd700, RenderBold: true, VerticalAlignment: Center);
+                }
+
+                $C.@TextField #MultiplierField {
+                    Anchor: (Width: 100, Height: 32);
+                    PlaceholderText: "1.0";
+                }
+
+                TextButton #SaveMultiplierBtn {
+                    Anchor: (Width: 120, Left: 10, Height: 32);
+                    Text: "SAUVEGARDER";
+                    Style: TextButtonStyle(
+                        Default: (
+                            Background: #2d5a2d,
+                            LabelStyle: (FontSize: 12, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)
+                        ),
+                        Hovered: (
+                            Background: #3d7a3d,
+                            LabelStyle: (FontSize: 12, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)
+                        ),
+                        Sounds: $C.@ButtonSounds,
+                    );
+                }
+
+                Label #MultiplierInfo {
+                    FlexWeight: 1;
+                    Anchor: (Left: 15);
+                    Style: (FontSize: 11, TextColor: #66bb6a, VerticalAlignment: Center);
+                }
+            }
+
+            // Header blocs
+            Group #BlocksHeader {
+                Anchor: (Height: 40, Top: 10);
+                LayoutMode: Left;
+                Padding: (Horizontal: 20);
+
+                Label {
+                    FlexWeight: 1;
+                    Text: "BLOCS VENDABLES";
+                    Style: (FontSize: 14, TextColor: #4fc3f7, RenderBold: true, VerticalAlignment: Center);
+                }
+
+                TextButton #AddBlockBtn {
+                    Anchor: (Width: 100, Height: 32);
+                    Text: "+ AJOUTER";
+                    Style: TextButtonStyle(
+                        Default: (
+                            Background: #2d5a2d,
+                            LabelStyle: (FontSize: 12, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)
+                        ),
+                        Hovered: (
+                            Background: #3d7a3d,
+                            LabelStyle: (FontSize: 12, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)
+                        ),
+                        Sounds: $C.@ButtonSounds,
+                    );
+                }
+            }
+
+            // Formulaire ajout (masque par defaut)
+            Group #AddForm {
+                Anchor: (Height: 45);
+                LayoutMode: Left;
+                Padding: (Horizontal: 20);
+                Background: (Color: #1a2a1a);
+                Visible: false;
+
+                Label {
+                    Anchor: (Width: 60);
+                    Text: "ID Bloc:";
+                    Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center);
+                }
+
+                $C.@TextField #NewBlockIdField {
+                    Anchor: (Width: 200, Height: 30);
+                    PlaceholderText: "minecraft:block_id";
+                }
+
+                Label {
+                    Anchor: (Width: 40, Left: 10);
+                    Text: "Prix:";
+                    Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center);
+                }
+
+                $C.@TextField #NewBlockPriceField {
+                    Anchor: (Width: 80, Height: 30);
+                    PlaceholderText: "10.0";
+                }
+
+                TextButton #ConfirmAddBtn {
+                    Anchor: (Width: 80, Left: 10, Height: 30);
+                    Text: "AJOUTER";
+                    Style: TextButtonStyle(
+                        Default: (
+                            Background: #2d5a2d,
+                            LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                        ),
+                        Hovered: (
+                            Background: #3d7a3d,
+                            LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                        ),
+                        Sounds: $C.@ButtonSounds,
+                    );
+                }
+
+                TextButton #CancelAddBtn {
+                    Anchor: (Width: 70, Left: 5, Height: 30);
+                    Text: "ANNULER";
+                    Style: TextButtonStyle(
+                        Default: (
+                            Background: #5a2d2d,
+                            LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                        ),
+                        Hovered: (
+                            Background: #7a3d3d,
+                            LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                        ),
+                        Sounds: $C.@ButtonSounds,
+                    );
+                }
+            }
+
+            // Header colonnes
+            Group #ColumnHeader {
+                Anchor: (Height: 25);
+                LayoutMode: Left;
+                Padding: (Horizontal: 20);
+                Background: (Color: #0d1520);
+
+                Label {
+                    FlexWeight: 1;
+                    Text: "Bloc";
+                    Style: (FontSize: 10, TextColor: #7c8b99, VerticalAlignment: Center);
+                }
+
+                Label {
+                    Anchor: (Width: 100);
+                    Text: "Prix";
+                    Style: (FontSize: 10, TextColor: #7c8b99, VerticalAlignment: Center);
+                }
+
+                Label {
+                    Anchor: (Width: 140);
+                    Text: "Actions";
+                    Style: (FontSize: 10, TextColor: #7c8b99, VerticalAlignment: Center);
+                }
+            }
+
+            // Liste des blocs (scrollable)
+            Group #BlockList {
+                FlexWeight: 1;
+                LayoutMode: TopScrolling;
+                ScrollbarStyle: $C.@DefaultScrollbarStyle;
+                Background: (Color: #0a0f17);
+                Padding: (Horizontal: 15, Vertical: 5);
+            }
+
+            // Barre de statut
+            Group #StatusBar {
+                Anchor: (Height: 30);
+                Background: (Color: #0d1520);
+                Padding: (Horizontal: 20);
+
+                Label #StatusLabel {
+                    Style: (FontSize: 11, TextColor: #7c8b99, VerticalAlignment: Center);
+                }
+            }
+        }
+    }
+}
