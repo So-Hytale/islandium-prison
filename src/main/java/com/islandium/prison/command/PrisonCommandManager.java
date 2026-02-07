@@ -47,6 +47,9 @@ public class PrisonCommandManager {
         // Leaderboard
         register(new TopCommand(plugin));
 
+        // Kits
+        register(new KitCommand(plugin));
+
         // Admin commands
         register(new PrisonAdminCommand(plugin));
 

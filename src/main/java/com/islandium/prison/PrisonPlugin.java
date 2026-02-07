@@ -4,6 +4,7 @@ import com.islandium.core.IslandiumPlugin;
 import com.islandium.prison.command.PrisonCommandManager;
 import com.islandium.prison.config.PrisonConfig;
 import com.islandium.prison.economy.SellService;
+import com.islandium.prison.kit.KitManager;
 import com.islandium.prison.listener.PrisonListenerManager;
 import com.islandium.prison.mine.MineManager;
 import com.islandium.prison.rank.PrisonRankManager;
@@ -11,6 +12,7 @@ import com.islandium.prison.cell.CellManager;
 import com.islandium.prison.service.PrisonServiceManager;
 import com.islandium.prison.stats.PlayerStatsManager;
 import com.islandium.prison.ui.PrisonUIManager;
+import com.islandium.prison.ui.pages.KitPage;
 import com.islandium.prison.ui.pages.PrisonMenuPage;
 import com.islandium.prison.upgrade.PickaxeUpgradeManager;
 import com.islandium.prison.event.BreakBlockEventSystem;
@@ -37,6 +39,7 @@ public class PrisonPlugin extends JavaPlugin {
     private PlayerStatsManager statsManager;
     private CellManager cellManager;
     private SellService sellService;
+    private KitManager kitManager;
     private PickaxeUpgradeManager upgradeManager;
     private PrisonServiceManager serviceManager;
     private PrisonCommandManager commandManager;
@@ -75,6 +78,7 @@ public class PrisonPlugin extends JavaPlugin {
             this.rankManager = new PrisonRankManager(this);
             this.statsManager = new PlayerStatsManager(this);
             this.sellService = new SellService(this);
+            this.kitManager = new KitManager(this);
             this.upgradeManager = new PickaxeUpgradeManager(this);
             this.cellManager = new CellManager(this);
 
@@ -83,6 +87,7 @@ public class PrisonPlugin extends JavaPlugin {
             rankManager.loadAll();
             statsManager.loadAll();
             cellManager.loadAll();
+            kitManager.loadCooldowns();
 
             // 5. Initialize UI Manager
             log(Level.INFO, "Initializing UI manager...");
@@ -112,6 +117,16 @@ public class PrisonPlugin extends JavaPlugin {
                     false
             ));
 
+            // 9. Register Kits in main menu
+            IslandiumUIRegistry.getInstance().register(new IslandiumUIRegistry.Entry(
+                    "kits",
+                    "KITS",
+                    "Reclame tes kits",
+                    "#4fc3f7",
+                    playerRef -> new KitPage(playerRef, this),
+                    false
+            ));
+
             log(Level.INFO, "Prison initialized successfully!");
 
         } catch (Exception e) {
@@ -136,6 +151,9 @@ public class PrisonPlugin extends JavaPlugin {
             }
             if (cellManager != null) {
                 cellManager.saveAll();
+            }
+            if (kitManager != null) {
+                kitManager.saveCooldowns();
             }
 
             // Shutdown UI refresh timer
@@ -197,6 +215,11 @@ public class PrisonPlugin extends JavaPlugin {
     @NotNull
     public PlayerStatsManager getStatsManager() {
         return statsManager;
+    }
+
+    @NotNull
+    public KitManager getKitManager() {
+        return kitManager;
     }
 
     @NotNull

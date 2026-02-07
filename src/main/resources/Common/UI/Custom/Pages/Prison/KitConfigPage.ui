@@ -1,0 +1,228 @@
+$C = "../../Common.ui";
+
+$C.@PageOverlay {
+    $C.@Container {
+        Anchor: (Width: 850, Height: 620);
+
+        #Title {
+            Group {
+                $C.@Title {
+                    @Text = "Configuration des Kits";
+                }
+            }
+        }
+
+        #Content {
+            LayoutMode: Top;
+
+            // Header
+            Group #KitsHeader {
+                Anchor: (Height: 40);
+                LayoutMode: Left;
+                Padding: (Horizontal: 20);
+
+                Label #HeaderLabel {
+                    FlexWeight: 1;
+                    Text: "LISTE DES KITS";
+                    Style: (FontSize: 14, TextColor: #4fc3f7, RenderBold: true, VerticalAlignment: Center);
+                }
+
+                TextButton #NewKitBtn {
+                    Anchor: (Width: 130, Height: 32);
+                    Text: "+ NOUVEAU KIT";
+                    Style: TextButtonStyle(
+                        Default: (
+                            Background: #2d5a2d,
+                            LabelStyle: (FontSize: 12, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)
+                        ),
+                        Hovered: (
+                            Background: #3d7a3d,
+                            LabelStyle: (FontSize: 12, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)
+                        ),
+                        Sounds: $C.@ButtonSounds,
+                    );
+                }
+            }
+
+            // Formulaire creation kit (masque)
+            Group #CreateForm {
+                Anchor: (Height: 180);
+                LayoutMode: Top;
+                Padding: (Horizontal: 20, Vertical: 8);
+                Background: (Color: #1a2a1a);
+                Visible: false;
+
+                Label {
+                    Anchor: (Height: 22);
+                    Text: "CREER UN KIT";
+                    Style: (FontSize: 13, TextColor: #66bb6a, RenderBold: true);
+                }
+
+                // Ligne 1: ID + Nom
+                Group {
+                    Anchor: (Height: 35);
+                    LayoutMode: Left;
+
+                    Label { Anchor: (Width: 25); Text: "ID:"; Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center); }
+                    $C.@TextField #NewKitIdField { Anchor: (Width: 140, Height: 28); PlaceholderText: "mon_kit"; }
+
+                    Label { Anchor: (Width: 40, Left: 10); Text: "Nom:"; Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center); }
+                    $C.@TextField #NewKitNameField { Anchor: (Width: 180, Height: 28); PlaceholderText: "Mon Kit"; }
+
+                    Label { Anchor: (Width: 55, Left: 10); Text: "Couleur:"; Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center); }
+                    $C.@TextField #NewKitColorField { Anchor: (Width: 80, Height: 28); PlaceholderText: "#4fc3f7"; }
+                }
+
+                // Ligne 2: Description
+                Group {
+                    Anchor: (Height: 35);
+                    LayoutMode: Left;
+
+                    Label { Anchor: (Width: 75); Text: "Description:"; Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center); }
+                    $C.@TextField #NewKitDescField { Anchor: (Width: 500, Height: 28); PlaceholderText: "Description du kit"; }
+                }
+
+                // Ligne 3: Cooldown + Permission + First Join
+                Group {
+                    Anchor: (Height: 35);
+                    LayoutMode: Left;
+
+                    Label { Anchor: (Width: 70); Text: "Cooldown:"; Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center); }
+                    $C.@TextField #NewKitCooldownField { Anchor: (Width: 80, Height: 28); PlaceholderText: "3600"; }
+                    Label { Anchor: (Width: 130, Left: 5); Text: "(sec, 0=unique, -1=aucun)"; Style: (FontSize: 9, TextColor: #7c8b99, VerticalAlignment: Center); }
+
+                    Label { Anchor: (Width: 70, Left: 10); Text: "Permission:"; Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center); }
+                    $C.@TextField #NewKitPermField { Anchor: (Width: 150, Height: 28); PlaceholderText: "(vide = tous)"; }
+                }
+
+                // Ligne 4: Boutons
+                Group {
+                    Anchor: (Height: 35);
+                    LayoutMode: Left;
+
+                    TextButton #ToggleFirstJoinBtn {
+                        Anchor: (Width: 160, Height: 28);
+                        Text: "First Join: NON";
+                        Style: TextButtonStyle(
+                            Default: (
+                                Background: #5a2d2d,
+                                LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                            ),
+                            Hovered: (
+                                Background: #7a3d3d,
+                                LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                            ),
+                            Sounds: $C.@ButtonSounds,
+                        );
+                    }
+
+                    Group { FlexWeight: 1; }
+
+                    TextButton #ConfirmCreateBtn {
+                        Anchor: (Width: 80, Height: 28);
+                        Text: "CREER";
+                        Style: TextButtonStyle(
+                            Default: (
+                                Background: #2d5a2d,
+                                LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                            ),
+                            Hovered: (
+                                Background: #3d7a3d,
+                                LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                            ),
+                            Sounds: $C.@ButtonSounds,
+                        );
+                    }
+
+                    TextButton #CancelCreateBtn {
+                        Anchor: (Width: 80, Left: 5, Height: 28);
+                        Text: "ANNULER";
+                        Style: TextButtonStyle(
+                            Default: (
+                                Background: #5a2d2d,
+                                LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                            ),
+                            Hovered: (
+                                Background: #7a3d3d,
+                                LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                            ),
+                            Sounds: $C.@ButtonSounds,
+                        );
+                    }
+                }
+            }
+
+            // Formulaire ajout item (masque)
+            Group #AddItemForm {
+                Anchor: (Height: 45);
+                LayoutMode: Left;
+                Padding: (Horizontal: 20);
+                Background: (Color: #1a2a3a);
+                Visible: false;
+
+                Label #AddItemLabel {
+                    Anchor: (Width: 120);
+                    Style: (FontSize: 11, TextColor: #4fc3f7, RenderBold: true, VerticalAlignment: Center);
+                }
+
+                Label { Anchor: (Width: 35); Text: "Item:"; Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center); }
+                $C.@TextField #NewItemIdField { Anchor: (Width: 200, Height: 28); PlaceholderText: "block_id"; }
+
+                Label { Anchor: (Width: 30, Left: 10); Text: "Qty:"; Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center); }
+                $C.@TextField #NewItemQtyField { Anchor: (Width: 60, Height: 28); PlaceholderText: "1"; }
+
+                TextButton #ConfirmAddItemBtn {
+                    Anchor: (Width: 70, Left: 10, Height: 28);
+                    Text: "AJOUTER";
+                    Style: TextButtonStyle(
+                        Default: (
+                            Background: #2d5a2d,
+                            LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                        ),
+                        Hovered: (
+                            Background: #3d7a3d,
+                            LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                        ),
+                        Sounds: $C.@ButtonSounds,
+                    );
+                }
+
+                TextButton #CancelAddItemBtn {
+                    Anchor: (Width: 70, Left: 5, Height: 28);
+                    Text: "ANNULER";
+                    Style: TextButtonStyle(
+                        Default: (
+                            Background: #5a2d2d,
+                            LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                        ),
+                        Hovered: (
+                            Background: #7a3d3d,
+                            LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                        ),
+                        Sounds: $C.@ButtonSounds,
+                    );
+                }
+            }
+
+            // Liste des kits (scrollable)
+            Group #KitList {
+                FlexWeight: 1;
+                LayoutMode: TopScrolling;
+                ScrollbarStyle: $C.@DefaultScrollbarStyle;
+                Background: (Color: #0a0f17);
+                Padding: (Horizontal: 15, Vertical: 5);
+            }
+
+            // Status bar
+            Group #StatusBar {
+                Anchor: (Height: 30);
+                Background: (Color: #0d1520);
+                Padding: (Horizontal: 20);
+
+                Label #StatusLabel {
+                    Style: (FontSize: 11, TextColor: #7c8b99, VerticalAlignment: Center);
+                }
+            }
+        }
+    }
+}

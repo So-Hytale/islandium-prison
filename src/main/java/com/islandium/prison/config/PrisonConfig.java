@@ -105,6 +105,25 @@ public class PrisonConfig {
         config.blockValues.put("minecraft:emerald_ore", new BigDecimal("500"));
         config.blockValues.put("minecraft:ancient_debris", new BigDecimal("1000"));
 
+        // Kits config
+        config.kits = new KitsConfig();
+        config.kits.kits = new ArrayList<>();
+
+        // Kit starter par defaut
+        KitDefinition starterKit = new KitDefinition();
+        starterKit.id = "starter";
+        starterKit.displayName = "Kit Starter";
+        starterKit.description = "Kit de depart pour les nouveaux joueurs";
+        starterKit.icon = "minecraft:wooden_pickaxe";
+        starterKit.color = "#4fc3f7";
+        starterKit.items = new ArrayList<>();
+        starterKit.items.add(new KitItem("minecraft:wooden_pickaxe", 1));
+        starterKit.items.add(new KitItem("minecraft:bread", 16));
+        starterKit.cooldownSeconds = 0; // usage unique
+        starterKit.giveOnFirstJoin = true;
+        starterKit.permission = null; // accessible a tous
+        config.kits.kits.add(starterKit);
+
         // Messages
         config.messages = new HashMap<>();
         config.messages.put("prefix", "&8[&6Prison&8] &f");
@@ -205,6 +224,36 @@ public class PrisonConfig {
         data.economy.blockSellMultiplier = multiplier;
     }
 
+    // === Kit Getters/Setters ===
+
+    @NotNull
+    public List<KitDefinition> getKits() {
+        if (data.kits == null || data.kits.kits == null) {
+            return new ArrayList<>();
+        }
+        return data.kits.kits;
+    }
+
+    public KitDefinition getKit(@NotNull String id) {
+        return getKits().stream()
+                .filter(k -> k.id.equalsIgnoreCase(id))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public void addKit(@NotNull KitDefinition kit) {
+        if (data.kits == null) {
+            data.kits = new KitsConfig();
+            data.kits.kits = new ArrayList<>();
+        }
+        data.kits.kits.add(kit);
+    }
+
+    public boolean removeKit(@NotNull String id) {
+        if (data.kits == null || data.kits.kits == null) return false;
+        return data.kits.kits.removeIf(k -> k.id.equalsIgnoreCase(id));
+    }
+
     @NotNull
     public String getMessage(String key) {
         if (data == null || data.messages == null) {
@@ -241,6 +290,7 @@ public class PrisonConfig {
         RanksConfig ranks;
         CellsConfig cells;
         EconomyConfig economy;
+        KitsConfig kits;
         Map<String, BigDecimal> blockValues;
         Map<String, String> messages;
     }
@@ -273,5 +323,33 @@ public class PrisonConfig {
         public BigDecimal price;
         public String mineName;
         public double multiplier;
+    }
+
+    private static class KitsConfig {
+        List<KitDefinition> kits;
+    }
+
+    public static class KitDefinition {
+        public String id;
+        public String displayName;
+        public String description;
+        public String icon; // item ID pour l'icone (ex: "minecraft:diamond_pickaxe")
+        public String color; // hex color pour la carte (ex: "#4fc3f7")
+        public List<KitItem> items;
+        public int cooldownSeconds; // 0 = usage unique, -1 = illimite (pas de cooldown)
+        public boolean giveOnFirstJoin;
+        public String permission; // null = accessible a tous
+    }
+
+    public static class KitItem {
+        public String itemId;
+        public int quantity;
+
+        public KitItem() {}
+
+        public KitItem(String itemId, int quantity) {
+            this.itemId = itemId;
+            this.quantity = quantity;
+        }
     }
 }

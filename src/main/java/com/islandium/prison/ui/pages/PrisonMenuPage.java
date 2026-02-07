@@ -424,7 +424,8 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                 "Label { Anchor: (Height: 25); Text: \"Rien a vendre dans ton inventaire.\"; " +
                 "Style: (FontSize: 12, TextColor: #808080); }");
 
-            // Pas de bouton vendre si rien
+            // Bouton admin meme si inventaire vide
+            appendAdminButton(cmd, event, uuid);
             return;
         }
 
@@ -473,11 +474,16 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         cmd.set("#SellAllBtn.Text", "VENDRE TOUT");
         event.addEventBinding(CustomUIEventBindingType.Activating, "#SellAllBtn", EventData.of("Action", "sellAll"), false);
 
-        // Bouton admin config (visible uniquement pour les admins)
+        appendAdminButton(cmd, event, uuid);
+    }
+
+    private void appendAdminButton(UICommandBuilder cmd, UIEventBuilder event, UUID uuid) {
         boolean isAdmin = false;
         try {
             var perms = com.hypixel.hytale.server.core.permissions.PermissionsModule.get();
-            isAdmin = perms.getGroupsForUser(uuid).contains("OP") || perms.hasPermission(uuid, "prison.admin");
+            isAdmin = perms.getGroupsForUser(uuid).contains("OP")
+                || perms.hasPermission(uuid, "prison.admin")
+                || perms.hasPermission(uuid, "*");
         } catch (Exception ignored) {}
 
         if (isAdmin) {
