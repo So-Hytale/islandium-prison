@@ -31,7 +31,9 @@ public class PrisonConfig {
         if (Files.exists(path)) {
             String content = Files.readString(path);
             this.data = GSON.fromJson(content, ConfigData.class);
-        } else {
+        }
+        // If file doesn't exist OR was corrupted (contains "null"), create defaults
+        if (this.data == null) {
             this.data = createDefault();
             save();
         }
