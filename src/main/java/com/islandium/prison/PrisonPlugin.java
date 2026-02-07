@@ -1,6 +1,7 @@
 package com.islandium.prison;
 
 import com.islandium.core.IslandiumPlugin;
+import com.islandium.core.ui.IslandiumUIRegistry;
 import com.islandium.prison.command.PrisonCommandManager;
 import com.islandium.prison.config.PrisonConfig;
 import com.islandium.prison.economy.SellService;
@@ -11,6 +12,7 @@ import com.islandium.prison.cell.CellManager;
 import com.islandium.prison.service.PrisonServiceManager;
 import com.islandium.prison.stats.PlayerStatsManager;
 import com.islandium.prison.ui.PrisonUIManager;
+import com.islandium.prison.ui.pages.MineManagerPage;
 import com.islandium.prison.upgrade.PickaxeUpgradeManager;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
@@ -94,6 +96,17 @@ public class PrisonPlugin extends JavaPlugin {
             log(Level.INFO, "Registering listeners...");
             this.listenerManager = new PrisonListenerManager(this);
             listenerManager.registerAll();
+
+            // 8. Register in main menu
+            log(Level.INFO, "Registering in main menu...");
+            IslandiumUIRegistry.getInstance().register(new IslandiumUIRegistry.Entry(
+                    "prison",
+                    "PRISON",
+                    "Gestion des mines et du gamemode",
+                    "#e040fb",
+                    playerRef -> new MineManagerPage(playerRef, this),
+                    false
+            ));
 
             log(Level.INFO, "Prison initialized successfully!");
 
