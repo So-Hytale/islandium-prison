@@ -5,9 +5,12 @@ import com.islandium.prison.ui.hud.PrisonHud;
 import com.islandium.prison.ui.pages.MineManagerPage;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.Universe;
+import com.hypixel.hytale.server.core.universe.world.World;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -64,7 +67,7 @@ public class PrisonUIManager {
             // Enregistrer via MultipleHUD (reflection pour compatibilité de version)
             invokeMultipleHUD("setCustomHud", player, playerRef, HUD_ID, hud);
 
-            plugin.log(Level.INFO, "Prison HUD shown for " + playerRef.getUsername() + " (via MultipleHUD)");
+            plugin.log(Level.FINE, "Prison HUD shown for " + playerRef.getUsername() + " (via MultipleHUD)");
         } catch (Exception e) {
             plugin.log(Level.WARNING, "Failed to show Prison HUD: " + e.getMessage());
         }
@@ -115,12 +118,44 @@ public class PrisonUIManager {
     }
 
     /**
-     * Rafraichit le HUD pour un joueur par UUID.
-     * Note: Necessite de retrouver le Player, donc moins efficace.
+     * Rafraichit le HUD de tous les joueurs connectés.
+     * Utilisé par le scheduler périodique pour mettre à jour la mine, le solde, etc.
      */
-    public void refreshHud(@NotNull UUID uuid) {
-        // Le refresh par UUID n'est pas possible sans le Player
-        // Car MultipleHUD.setCustomHud necessite le Player et le PlayerRef
+    public void refreshAllHuds() {
+        if (activeHuds.isEmpty()) return;
+
+        try {
+            // Parcourir tous les mondes pour trouver les joueurs
+            for (World world : Universe.get().getWorlds().values()) {
+                List<Player> players = world.getPlayers();
+                if (players == null) continue;
+
+                for (Player player : players) {
+                    try {
+                        var ref = player.getReference();
+                        if (ref == null || !ref.isValid()) continue;
+
+                        var store = ref.getStore();
+                        var playerRef = store.getComponent(ref, PlayerRef.getComponentType());
+                        if (playerRef == null) continue;
+
+                        UUID uuid = playerRef.getUuid();
+                        if (!activeHuds.containsKey(uuid)) continue;
+
+                        // Refresh on the world thread
+                        CompletableFuture.runAsync(() -> {
+                            try {
+                                showHud(playerRef, player);
+                            } catch (Exception ignored) {}
+                        }, store.getExternalData().getWorld());
+                    } catch (Exception ignored) {
+                        // Skip players with invalid state
+                    }
+                }
+            }
+        } catch (Exception e) {
+            plugin.log(Level.FINE, "Error refreshing all HUDs: " + e.getMessage());
+        }
     }
 
     /**

@@ -60,6 +60,7 @@ public class PrestigeCommand extends PrisonCommand {
             sendMessage(ctx, "&a&l✓ PRESTIGE RÉUSSI!");
             sendMessage(ctx, "&aTu es maintenant Prestige &e" + (currentPrestige + 1) + "&a!");
             sendMessage(ctx, "&7Bon courage pour ta nouvelle progression!");
+            plugin.getUIManager().refreshHud(requirePlayer(ctx));
         } else {
             sendMessage(ctx, "&cErreur lors du prestige.");
         }

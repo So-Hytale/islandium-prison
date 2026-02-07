@@ -35,6 +35,9 @@ public class PrisonServiceManager {
         // Schedule cell expiration check every hour
         scheduler.scheduleAtFixedRate(this::checkCellExpirations, 1, 1, TimeUnit.HOURS);
 
+        // Schedule HUD refresh every 10 seconds (updates mine info, balance, etc.)
+        scheduler.scheduleAtFixedRate(this::refreshHuds, 10, 10, TimeUnit.SECONDS);
+
         plugin.log(Level.INFO, "Prison services initialized");
     }
 
@@ -67,6 +70,17 @@ public class PrisonServiceManager {
             plugin.log(Level.FINE, "Auto-save completed");
         } catch (Exception e) {
             plugin.log(Level.WARNING, "Auto-save failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Rafraîchit les HUDs de tous les joueurs en ligne.
+     */
+    private void refreshHuds() {
+        try {
+            plugin.getUIManager().refreshAllHuds();
+        } catch (Exception e) {
+            plugin.log(Level.FINE, "HUD refresh failed: " + e.getMessage());
         }
     }
 

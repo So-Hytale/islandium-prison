@@ -148,6 +148,7 @@ public class UpgradeCommand extends PrisonCommand {
                 sendMessage(ctx, plugin.getConfig().getMessage("prefix")
                         + "&a⛏ Fortune améliorée au niveau &e" + newLevel + "&a!");
                 sendMessage(ctx, "   " + plugin.getUpgradeManager().getFortuneDescription(newLevel));
+                plugin.getUIManager().refreshHud(requirePlayer(ctx));
                 break;
 
             case MAX_LEVEL:
@@ -175,6 +176,7 @@ public class UpgradeCommand extends PrisonCommand {
                 sendMessage(ctx, plugin.getConfig().getMessage("prefix")
                         + "&a⚡ Efficacité améliorée au niveau &e" + newLevel + "&a!");
                 sendMessage(ctx, "   " + plugin.getUpgradeManager().getEfficiencyDescription(newLevel));
+                plugin.getUIManager().refreshHud(requirePlayer(ctx));
                 break;
 
             case MAX_LEVEL:
@@ -204,6 +206,7 @@ public class UpgradeCommand extends PrisonCommand {
                 sendMessage(ctx, plugin.getConfig().getMessage("prefix")
                         + "&c🔄 Auto-Sell &cdésactivé! &7Les blocs iront dans ton inventaire.");
             }
+            plugin.getUIManager().refreshHud(requirePlayer(ctx));
         } else {
             // Acheter
             PickaxeUpgradeManager.UpgradeResult result = plugin.getUpgradeManager().purchaseAutoSell(uuid);
@@ -214,6 +217,7 @@ public class UpgradeCommand extends PrisonCommand {
                             + "&a🔄 Auto-Sell acheté et activé!");
                     sendMessage(ctx, "   &7Les blocs seront vendus automatiquement au minage.");
                     sendMessage(ctx, "   &8(/upgrade autosell pour désactiver)");
+                    plugin.getUIManager().refreshHud(requirePlayer(ctx));
                     break;
 
                 case NOT_ENOUGH_MONEY:
