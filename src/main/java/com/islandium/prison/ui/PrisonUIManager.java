@@ -125,7 +125,6 @@ public class PrisonUIManager {
         if (activeHuds.isEmpty()) return;
 
         try {
-            // Parcourir tous les mondes pour trouver les joueurs
             for (World world : Universe.get().getWorlds().values()) {
                 List<Player> players = world.getPlayers();
                 if (players == null) continue;
@@ -169,19 +168,12 @@ public class PrisonUIManager {
 
     /**
      * Invoque une méthode sur MultipleHUD.getInstance() par reflection.
-     * Permet d'éviter la dépendance directe au compile-time sur le JAR MultipleHUD
-     * qui peut être compilé pour une version de Java différente.
      */
     private void invokeMultipleHUD(String methodName, Object... args) {
         try {
             Class<?> mhudClass = Class.forName("com.buuz135.mhud.MultipleHUD");
             Method getInstance = mhudClass.getMethod("getInstance");
             Object instance = getInstance.invoke(null);
-
-            Class<?>[] paramTypes = new Class<?>[args.length];
-            for (int i = 0; i < args.length; i++) {
-                paramTypes[i] = args[i].getClass();
-            }
 
             // Rechercher la méthode par nom et nombre de paramètres
             for (Method m : mhudClass.getMethods()) {
