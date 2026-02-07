@@ -1,225 +1,147 @@
 $C = "../../Common.ui";
 
-// HUD Prison — Design Premium RPG
+// HUD Prison - Affiche les infos du joueur
 Group #PrisonHud {
-    Anchor: (Width: 240, Height: 280, Right: 10, Top: 10);
-    Background: (Color: #0a0f1acc);
-    Padding: (Left: 12, Right: 12, Top: 8, Bottom: 8);
+    Anchor: (Width: 220, Height: 190, Right: 10, Top: 10);
+    Background: (Color: #0a0f17cc);
+    Padding: (Full: 10);
     LayoutMode: Top;
 
-    // ===== HEADER =====
-    Label #Header {
-        Text: "PRISON";
-        Anchor: (Height: 22);
-        Style: (FontSize: 14, TextColor: #ffd700, RenderBold: true, HorizontalAlignment: Center);
-    }
-
-    Group #Sep1 {
-        Anchor: (Height: 1, Top: 4, Bottom: 4);
-        Background: (Color: #2a3a5c);
-    }
-
-    // ===== SECTION RANG =====
+    // Rang et Prestige
     Group #RankRow {
-        Anchor: (Height: 24);
+        Anchor: (Height: 28);
         LayoutMode: Left;
 
+        Label #RankLabel {
+            Text: "Rang:";
+            Anchor: (Width: 50);
+            Style: (FontSize: 12, TextColor: #808080, VerticalAlignment: Center);
+        }
+
         Label #RankValue {
-            Text: "Rang A";
-            FlexWeight: 1;
-            Style: (FontSize: 15, TextColor: #ffd700, VerticalAlignment: Center, RenderBold: true);
+            Text: "A";
+            Anchor: (Width: 40);
+            Style: (FontSize: 16, TextColor: #ffd700, VerticalAlignment: Center, RenderBold: true);
+        }
+
+        Label #PrestigeLabel {
+            Text: "P";
+            Anchor: (Width: 15, Left: 5);
+            Style: (FontSize: 10, TextColor: #ff69b4, VerticalAlignment: Center);
         }
 
         Label #PrestigeValue {
-            Text: "";
-            Anchor: (Width: 40);
-            Style: (FontSize: 12, TextColor: #da70d6, VerticalAlignment: Center, HorizontalAlignment: Right, RenderBold: true);
+            Text: "0";
+            Anchor: (Width: 30);
+            Style: (FontSize: 14, TextColor: #ff69b4, VerticalAlignment: Center, RenderBold: true);
         }
     }
 
-    // Barre de progression
-    Group #ProgressBarBg {
-        Anchor: (Height: 6, Top: 3);
-        Background: (Color: #1a2535);
+    // Multiplicateur
+    Group #MultiplierRow {
+        Anchor: (Height: 22, Top: 2);
         LayoutMode: Left;
 
-        Group #ProgressBarFill {
-            Anchor: (Height: 6, Width: 0);
-            Background: (Color: #00c853);
-        }
-    }
-
-    // Info progression
-    Group #ProgressRow {
-        Anchor: (Height: 16, Top: 2);
-        LayoutMode: Left;
-
-        Label #ProgressPercent {
-            Text: "0%";
-            Anchor: (Width: 35);
-            Style: (FontSize: 9, TextColor: #ffffff, VerticalAlignment: Center);
+        Label #MultiplierLabel {
+            Text: "Multi:";
+            Anchor: (Width: 50);
+            Style: (FontSize: 11, TextColor: #808080, VerticalAlignment: Center);
         }
 
-        Label #NextRankInfo {
-            Text: "";
+        Label #MultiplierValue {
+            Text: "x1.0";
             FlexWeight: 1;
-            Style: (FontSize: 9, TextColor: #b0b8c0, VerticalAlignment: Center, HorizontalAlignment: Right);
+            Style: (FontSize: 13, TextColor: #00ff7f, VerticalAlignment: Center, RenderBold: true);
         }
     }
 
-    // Label rang max (visible seulement si rang max)
-    Label #MaxRankLabel {
-        Text: "";
-        Anchor: (Height: 0);
-        Style: (FontSize: 10, TextColor: #69f0ae, HorizontalAlignment: Center);
+    // Separateur
+    Group #Separator {
+        Anchor: (Height: 1, Top: 5, Bottom: 5);
+        Background: (Color: #4a4a6a);
     }
 
-    Group #Sep2 {
-        Anchor: (Height: 1, Top: 4, Bottom: 4);
-        Background: (Color: #2a3a5c);
-    }
-
-    // ===== SECTION ECONOMIE =====
-    Group #BalanceRow {
-        Anchor: (Height: 22);
+    // Mine actuelle
+    Group #MineRow {
+        Anchor: (Height: 22, Top: 2);
         LayoutMode: Left;
 
-        Label #BalanceIcon {
+        Label #MineLabel {
+            Text: "Mine:";
+            Anchor: (Width: 50);
+            Style: (FontSize: 11, TextColor: #808080, VerticalAlignment: Center);
+        }
+
+        Label #MineValue {
+            Text: "Aucune";
+            FlexWeight: 1;
+            Style: (FontSize: 12, TextColor: #70a0c0, VerticalAlignment: Center);
+        }
+    }
+
+    // Balance
+    Group #BalanceRow {
+        Anchor: (Height: 22, Top: 2);
+        LayoutMode: Left;
+
+        Label #BalanceLabel {
             Text: "$";
-            Anchor: (Width: 18);
+            Anchor: (Width: 20);
             Style: (FontSize: 14, TextColor: #ffd700, VerticalAlignment: Center, RenderBold: true);
         }
 
         Label #BalanceValue {
             Text: "0";
             FlexWeight: 1;
-            Style: (FontSize: 14, TextColor: #69f0ae, VerticalAlignment: Center, RenderBold: true);
+            Style: (FontSize: 13, TextColor: #ffffff, VerticalAlignment: Center);
         }
     }
 
+    // Separateur 2
+    Group #Separator2 {
+        Anchor: (Height: 1, Top: 5, Bottom: 5);
+        Background: (Color: #4a4a6a);
+    }
+
+    // Blocs mines
     Group #BlocksRow {
-        Anchor: (Height: 20, Top: 1);
+        Anchor: (Height: 22, Top: 2);
         LayoutMode: Left;
 
-        Label #BlocksIcon {
-            Text: "B";
-            Anchor: (Width: 18);
-            Style: (FontSize: 11, TextColor: #82b1ff, VerticalAlignment: Center, RenderBold: true);
+        Label #BlocksLabel {
+            Text: "Blocs:";
+            Anchor: (Width: 50);
+            Style: (FontSize: 11, TextColor: #808080, VerticalAlignment: Center);
         }
 
         Label #BlocksValue {
-            Text: "0 blocs";
+            Text: "0";
             FlexWeight: 1;
-            Style: (FontSize: 11, TextColor: #82b1ff, VerticalAlignment: Center);
+            Style: (FontSize: 12, TextColor: #87ceeb, VerticalAlignment: Center);
         }
     }
 
-    Group #MineRow {
-        Anchor: (Height: 20, Top: 1);
-        LayoutMode: Left;
-
-        Label #MineIcon {
-            Text: "M";
-            Anchor: (Width: 18);
-            Style: (FontSize: 11, TextColor: #8090a0, VerticalAlignment: Center, RenderBold: true);
-        }
-
-        Label #MineValue {
-            Text: "Aucune";
-            FlexWeight: 1;
-            Style: (FontSize: 11, TextColor: #4dd0e1, VerticalAlignment: Center);
-        }
-    }
-
-    Group #Sep3 {
-        Anchor: (Height: 1, Top: 4, Bottom: 4);
-        Background: (Color: #2a3a5c);
-    }
-
-    // ===== SECTION UPGRADES =====
-    Group #FortuneRow {
-        Anchor: (Height: 18);
+    // Upgrades
+    Group #UpgradesRow {
+        Anchor: (Height: 22, Top: 2);
         LayoutMode: Left;
 
         Label #FortuneLabel {
-            Text: "Fortune";
-            Anchor: (Width: 75);
-            Style: (FontSize: 10, TextColor: #8090a0, VerticalAlignment: Center);
+            Text: "F0";
+            Anchor: (Width: 35);
+            Style: (FontSize: 11, TextColor: #e0a040, VerticalAlignment: Center, RenderBold: true);
         }
 
-        Label #FortunePips {
-            Text: "-----";
-            FlexWeight: 1;
-            Style: (FontSize: 11, TextColor: #3a3a4a, VerticalAlignment: Center);
+        Label #EfficiencyLabel {
+            Text: "E0";
+            Anchor: (Width: 35, Left: 5);
+            Style: (FontSize: 11, TextColor: #40a0e0, VerticalAlignment: Center, RenderBold: true);
         }
 
-        Label #FortuneLevel {
-            Text: "0/5";
-            Anchor: (Width: 30);
-            Style: (FontSize: 10, TextColor: #8090a0, VerticalAlignment: Center, HorizontalAlignment: Right);
-        }
-    }
-
-    Group #EfficiencyRow {
-        Anchor: (Height: 18, Top: 2);
-        LayoutMode: Left;
-
-        Label #EffLabel {
-            Text: "Vitesse";
-            Anchor: (Width: 75);
-            Style: (FontSize: 10, TextColor: #8090a0, VerticalAlignment: Center);
-        }
-
-        Label #EffPips {
-            Text: "-----";
-            FlexWeight: 1;
-            Style: (FontSize: 11, TextColor: #3a3a4a, VerticalAlignment: Center);
-        }
-
-        Label #EffLevel {
-            Text: "0/5";
-            Anchor: (Width: 30);
-            Style: (FontSize: 10, TextColor: #8090a0, VerticalAlignment: Center, HorizontalAlignment: Right);
-        }
-    }
-
-    Group #AutoSellRow {
-        Anchor: (Height: 18, Top: 2);
-        LayoutMode: Left;
-
-        Label #ASLabel {
-            Text: "Auto-Sell";
-            Anchor: (Width: 75);
-            Style: (FontSize: 10, TextColor: #8090a0, VerticalAlignment: Center);
-        }
-
-        Label #ASStatus {
-            Text: "---";
-            FlexWeight: 1;
-            Style: (FontSize: 10, TextColor: #505060, VerticalAlignment: Center, HorizontalAlignment: Right, RenderBold: true);
-        }
-    }
-
-    Group #Sep4 {
-        Anchor: (Height: 1, Top: 4, Bottom: 4);
-        Background: (Color: #2a3a5c);
-    }
-
-    // ===== SECTION MULTIPLICATEUR =====
-    Group #MultiplierRow {
-        Anchor: (Height: 20);
-        LayoutMode: Left;
-
-        Label #MultLabel {
-            Text: "Multi";
-            Anchor: (Width: 50);
-            Style: (FontSize: 10, TextColor: #8090a0, VerticalAlignment: Center);
-        }
-
-        Label #MultValue {
-            Text: "x1.0";
-            FlexWeight: 1;
-            Style: (FontSize: 12, TextColor: #c6ff00, VerticalAlignment: Center, RenderBold: true);
+        Label #AutoSellLabel {
+            Text: "AS:OFF";
+            Anchor: (Width: 60, Left: 5);
+            Style: (FontSize: 10, TextColor: #808080, VerticalAlignment: Center);
         }
     }
 }
