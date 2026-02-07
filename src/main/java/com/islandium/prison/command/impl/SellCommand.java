@@ -74,8 +74,6 @@ public class SellCommand extends PrisonCommand {
         sendMessage(ctx, "&a&lTotal: &e" + SellService.formatMoney(result.getTotalEarned())
                 + " &7(" + result.getTotalBlocksSold() + " blocs)");
 
-        plugin.getUIManager().refreshHud(player);
-
         return complete();
     }
 

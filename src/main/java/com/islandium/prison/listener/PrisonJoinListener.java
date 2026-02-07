@@ -58,8 +58,6 @@ public class PrisonJoinListener extends PrisonListener {
                         }
                         var store = ref.getStore();
                         var world = store.getExternalData().getWorld();
-
-                        // Show HUD on the world thread (required for UI operations)
                         CompletableFuture.runAsync(() -> {
                             try {
                                 plugin.getUIManager().showHud(playerRef, player);

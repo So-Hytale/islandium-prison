@@ -49,7 +49,6 @@ public class RankupCommand extends PrisonCommand {
         switch (result) {
             case SUCCESS:
                 sendConfigMessage(ctx, "rankup.success", "rank", nextRank.displayName);
-                plugin.getUIManager().refreshHud(requirePlayer(ctx));
                 break;
             case NOT_ENOUGH_MONEY:
                 sendConfigMessage(ctx, "rankup.not-enough-money", "price", nextRank.price.toString());

@@ -22,10 +22,8 @@ import org.jetbrains.annotations.Nullable;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 /**
@@ -38,9 +36,6 @@ import java.util.logging.Level;
 public class BlockBreakListener extends PrisonListener {
 
     private static final double MAX_BREAK_DISTANCE = 8.0; // Distance max pour associer un joueur
-    private static final long HUD_REFRESH_COOLDOWN_MS = 5000; // 5 secondes entre chaque refresh HUD
-
-    private final Map<UUID, Long> lastHudRefresh = new ConcurrentHashMap<>();
 
     public BlockBreakListener(@NotNull PrisonPlugin plugin) {
         super(plugin);
@@ -127,18 +122,6 @@ public class BlockBreakListener extends PrisonListener {
         }
         // Note: Si auto-sell désactivé, les blocs vont naturellement dans l'inventaire via le jeu
         // Le fortune bonus en mode non-auto-sell sera géré par le drop naturel du jeu
-
-        // 4. Refresh HUD (throttled - max 1 fois toutes les 5 secondes par joueur)
-        long now = System.currentTimeMillis();
-        Long lastRefresh = lastHudRefresh.get(uuid);
-        if (lastRefresh == null || (now - lastRefresh) >= HUD_REFRESH_COOLDOWN_MS) {
-            lastHudRefresh.put(uuid, now);
-            try {
-                plugin.getUIManager().refreshHud(nearestPlayer);
-            } catch (Exception e) {
-                plugin.log(Level.FINE, "Error refreshing HUD for miner: " + e.getMessage());
-            }
-        }
     }
 
     /**

@@ -1,20 +1,20 @@
 package com.islandium.prison.ui;
 
 import com.islandium.prison.PrisonPlugin;
-import com.islandium.prison.ui.hud.PrisonHud;
+import com.islandium.prison.ui.prisonhud.PrisonHud;
 import com.islandium.prison.ui.pages.MineManagerPage;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
-import com.hypixel.hytale.server.core.universe.Universe;
-import com.hypixel.hytale.server.core.universe.world.World;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 /**
@@ -25,11 +25,42 @@ public class PrisonUIManager {
 
     private static final String HUD_ID = "PrisonHud";
 
+    private static final long REFRESH_INTERVAL_SECONDS = 5;
+
     private final PrisonPlugin plugin;
     private final Map<UUID, PrisonHud> activeHuds = new ConcurrentHashMap<>();
+    private ScheduledExecutorService refreshScheduler;
 
     public PrisonUIManager(@NotNull PrisonPlugin plugin) {
         this.plugin = plugin;
+        startRefreshTimer();
+    }
+
+    private void startRefreshTimer() {
+        refreshScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "Prison-HUD-Refresh");
+            t.setDaemon(true);
+            return t;
+        });
+        refreshScheduler.scheduleAtFixedRate(() -> {
+            try {
+                for (PrisonHud hud : activeHuds.values()) {
+                    try {
+                        hud.refreshData();
+                    } catch (Exception e) {
+                        // Ignore individual refresh errors
+                    }
+                }
+            } catch (Exception e) {
+                // Ignore
+            }
+        }, REFRESH_INTERVAL_SECONDS, REFRESH_INTERVAL_SECONDS, TimeUnit.SECONDS);
+    }
+
+    public void shutdown() {
+        if (refreshScheduler != null) {
+            refreshScheduler.shutdown();
+        }
     }
 
     // === HUD Management (via MultipleHUD API) ===
@@ -61,13 +92,13 @@ public class PrisonUIManager {
             UUID uuid = playerRef.getUuid();
 
             // Creer le HUD
-            PrisonHud hud = new PrisonHud(playerRef, plugin);
+            PrisonHud hud = new PrisonHud(playerRef, player, plugin);
             activeHuds.put(uuid, hud);
 
             // Enregistrer via MultipleHUD (reflection pour compatibilité de version)
             invokeMultipleHUD("setCustomHud", player, playerRef, HUD_ID, hud);
 
-            plugin.log(Level.FINE, "Prison HUD shown for " + playerRef.getUsername() + " (via MultipleHUD)");
+            plugin.log(Level.INFO, "Prison HUD shown for " + playerRef.getUsername() + " (via MultipleHUD)");
         } catch (Exception e) {
             plugin.log(Level.WARNING, "Failed to show Prison HUD: " + e.getMessage());
         }
@@ -88,7 +119,7 @@ public class PrisonUIManager {
             UUID uuid = playerRef.getUuid();
             activeHuds.remove(uuid);
 
-            // Retirer via MultipleHUD (reflection pour compatibilité de version)
+            // Retirer via MultipleHUD
             invokeMultipleHUD("hideCustomHud", player, playerRef, HUD_ID);
         } catch (Exception e) {
             plugin.log(Level.WARNING, "Failed to hide Prison HUD: " + e.getMessage());
@@ -97,7 +128,6 @@ public class PrisonUIManager {
 
     /**
      * Rafraichit le HUD Prison pour un joueur.
-     * Recree le HUD via MultipleHUD.
      */
     public void refreshHud(@NotNull Player player) {
         try {
@@ -118,43 +148,10 @@ public class PrisonUIManager {
     }
 
     /**
-     * Rafraichit le HUD de tous les joueurs connectés.
-     * Utilisé par le scheduler périodique pour mettre à jour la mine, le solde, etc.
+     * Rafraichit le HUD pour un joueur par UUID.
      */
-    public void refreshAllHuds() {
-        if (activeHuds.isEmpty()) return;
-
-        try {
-            for (World world : Universe.get().getWorlds().values()) {
-                List<Player> players = world.getPlayers();
-                if (players == null) continue;
-
-                for (Player player : players) {
-                    try {
-                        var ref = player.getReference();
-                        if (ref == null || !ref.isValid()) continue;
-
-                        var store = ref.getStore();
-                        var playerRef = store.getComponent(ref, PlayerRef.getComponentType());
-                        if (playerRef == null) continue;
-
-                        UUID uuid = playerRef.getUuid();
-                        if (!activeHuds.containsKey(uuid)) continue;
-
-                        // Refresh on the world thread
-                        CompletableFuture.runAsync(() -> {
-                            try {
-                                showHud(playerRef, player);
-                            } catch (Exception ignored) {}
-                        }, store.getExternalData().getWorld());
-                    } catch (Exception ignored) {
-                        // Skip players with invalid state
-                    }
-                }
-            }
-        } catch (Exception e) {
-            plugin.log(Level.FINE, "Error refreshing all HUDs: " + e.getMessage());
-        }
+    public void refreshHud(@NotNull UUID uuid) {
+        // Pas possible sans le Player
     }
 
     /**

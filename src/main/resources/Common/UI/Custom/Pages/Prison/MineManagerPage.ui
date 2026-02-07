@@ -124,7 +124,7 @@ $C.@PageOverlay {
                         Button #ShapeCuboidCheckbox {
                             Anchor: (Width: 22, Height: 22, Left: 5);
                             Background: (Color: #1a2332);
-                            Label #ShapeCuboidCheck { Text: "X"; Style: (FontSize: 14, TextColor: #4a9f4a, HorizontalAlignment: Center, VerticalAlignment: Center); }
+                            Label #ShapeCuboidCheck { Text: "X"; Style: (FontSize: 14, TextColor: #4a9f4a, VerticalAlignment: Center); }
                         }
 
                         Label {
@@ -136,7 +136,7 @@ $C.@PageOverlay {
                         Button #ShapeCylinderCheckbox {
                             Anchor: (Width: 22, Height: 22, Left: 10);
                             Background: (Color: #1a2332);
-                            Label #ShapeCylinderCheck { Text: ""; Style: (FontSize: 14, TextColor: #4a9f4a, HorizontalAlignment: Center, VerticalAlignment: Center); }
+                            Label #ShapeCylinderCheck { Text: ""; Style: (FontSize: 14, TextColor: #4a9f4a, VerticalAlignment: Center); }
                         }
 
                         Label {
@@ -372,7 +372,7 @@ $C.@PageOverlay {
                             Button #NaturalModeCheckbox {
                                 Anchor: (Width: 22, Height: 22);
                                 Background: (Color: #1a2332);
-                                Label #NaturalModeCheck { Text: ""; Style: (FontSize: 14, TextColor: #4a9f4a, HorizontalAlignment: Center, VerticalAlignment: Center); }
+                                Label #NaturalModeCheck { Text: ""; Style: (FontSize: 14, TextColor: #4a9f4a, VerticalAlignment: Center); }
                             }
 
                             Label {
@@ -390,7 +390,7 @@ $C.@PageOverlay {
                             Button #AutoResetCheckbox {
                                 Anchor: (Width: 22, Height: 22);
                                 Background: (Color: #1a2332);
-                                Label #AutoResetCheck { Text: ""; Style: (FontSize: 14, TextColor: #4a9f4a, HorizontalAlignment: Center, VerticalAlignment: Center); }
+                                Label #AutoResetCheck { Text: ""; Style: (FontSize: 14, TextColor: #4a9f4a, VerticalAlignment: Center); }
                             }
 
                             Label {
@@ -408,7 +408,7 @@ $C.@PageOverlay {
                             Button #UseLayersCheckbox {
                                 Anchor: (Width: 22, Height: 22);
                                 Background: (Color: #1a2332);
-                                Label #UseLayersCheck { Text: ""; Style: (FontSize: 14, TextColor: #4a9f4a, HorizontalAlignment: Center, VerticalAlignment: Center); }
+                                Label #UseLayersCheck { Text: ""; Style: (FontSize: 14, TextColor: #4a9f4a, VerticalAlignment: Center); }
                             }
 
                             Label {
@@ -554,7 +554,7 @@ $C.@PageOverlay {
                     Label {
                         Anchor: (Height: 40);
                         Text: "Selectionnez une mine";
-                        Style: (FontSize: 12, TextColor: #808080, HorizontalAlignment: Center, VerticalAlignment: Center);
+                        Style: (FontSize: 12, TextColor: #808080, VerticalAlignment: Center);
                     }
                 }
             }
@@ -789,7 +789,7 @@ $C.@PageOverlay {
                     Label {
                         Anchor: (Height: 40);
                         Text: "Selectionnez une mine";
-                        Style: (FontSize: 12, TextColor: #808080, HorizontalAlignment: Center, VerticalAlignment: Center);
+                        Style: (FontSize: 12, TextColor: #808080, VerticalAlignment: Center);
                     }
                 }
             }
