@@ -214,10 +214,10 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
 
             cmd.appendInline("#PageContent",
                 "Group { Anchor: (Height: 60, Top: 8); Background: (Color: #151d28); Padding: (Full: 15); LayoutMode: Top; " +
-                "  Label { Anchor: (Height: 20); Style: (FontSize: 12, TextColor: #7c8b99); } " +
+                "  Label #NextRankLabel { Anchor: (Height: 20); Style: (FontSize: 12, TextColor: #7c8b99); } " +
                 "  Label #NextRankPrice { Anchor: (Height: 25); Style: (FontSize: 14, TextColor: #ffffff); } " +
                 "}");
-            cmd.set("#PageContent[2] Label.Text", "Prochain rang: " + nextRank.displayName);
+            cmd.set("#NextRankLabel.Text", "Prochain rang: " + nextRank.displayName);
             cmd.set("#NextRankPrice.Text", "Prix: " + SellService.formatMoney(price));
 
             // Boutons
