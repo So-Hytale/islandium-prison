@@ -61,7 +61,6 @@ public class PrisonAdminCommand extends PrisonCommand {
         // GUI subcommands
         addSubCommand(new GuiCommand(plugin));
         addSubCommand(new SellConfigCommand(plugin));
-        addSubCommand(new KitConfigCommand(plugin));
 
         // General subcommands
         addSubCommand(new ReloadCommand(plugin));
@@ -116,7 +115,6 @@ public class PrisonAdminCommand extends PrisonCommand {
         sendMessage(ctx, "&e&lGeneral:");
         sendMessage(ctx, "&e/pa gui &8- &7Ouvre l'interface de gestion");
         sendMessage(ctx, "&e/pa sellconfig &8- &7Configure le sell shop (UI)");
-        sendMessage(ctx, "&e/pa kitconfig &8- &7Configure les kits (UI)");
         sendMessage(ctx, "&e/pa reload &8- &7Recharge la config");
         sendMessage(ctx, "&e/pa save &8- &7Sauvegarde les donnees");
     }
@@ -955,30 +953,6 @@ public class PrisonAdminCommand extends PrisonCommand {
             }
 
             plugin.getUIManager().openSellConfig(player);
-            return complete();
-        }
-    }
-
-    private static class KitConfigCommand extends PrisonCommand {
-        public KitConfigCommand(@NotNull PrisonPlugin plugin) {
-            super(plugin, "kitconfig", "Configure les kits");
-            addAliases("kc", "kits");
-        }
-
-        @Override
-        public CompletableFuture<Void> execute(CommandContext ctx) {
-            if (!isPlayer(ctx)) {
-                sendMessage(ctx, "&cCette commande est reservee aux joueurs!");
-                return complete();
-            }
-
-            Player player = getPlayer(ctx);
-            if (player == null) {
-                sendMessage(ctx, "&cErreur: Impossible de recuperer le joueur!");
-                return complete();
-            }
-
-            plugin.getUIManager().openKitConfig(player);
             return complete();
         }
     }

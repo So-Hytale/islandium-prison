@@ -72,13 +72,6 @@ public class PrisonJoinListener extends PrisonListener {
                     }
                 }
 
-                // Give first-join kits
-                try {
-                    plugin.getKitManager().giveFirstJoinKits(player);
-                } catch (Exception e) {
-                    plugin.log(Level.WARNING, "Failed to give first-join kits to " + name + ": " + e.getMessage());
-                }
-
                 // Send rank info to player (in chat)
                 if (rankInfo != null) {
                     plugin.getCore().getPlayerManager().getOnlinePlayer(uuid).ifPresent(islandiumPlayer -> {

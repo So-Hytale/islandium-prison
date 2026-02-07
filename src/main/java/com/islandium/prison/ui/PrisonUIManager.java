@@ -2,8 +2,6 @@ package com.islandium.prison.ui;
 
 import com.islandium.prison.PrisonPlugin;
 import com.islandium.prison.ui.prisonhud.PrisonHud;
-import com.islandium.prison.ui.pages.KitConfigPage;
-import com.islandium.prison.ui.pages.KitPage;
 import com.islandium.prison.ui.pages.MineManagerPage;
 import com.islandium.prison.ui.pages.SellConfigPage;
 import com.hypixel.hytale.server.core.entity.entities.Player;
@@ -218,68 +216,6 @@ public class PrisonUIManager {
 
         } catch (Exception e) {
             plugin.log(Level.SEVERE, "Failed to open sell config: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Ouvre la page des kits pour un joueur.
-     */
-    public void openKitPage(@NotNull Player player) {
-        try {
-            var ref = player.getReference();
-            if (ref == null || !ref.isValid()) {
-                plugin.log(Level.WARNING, "Cannot open kit page: Reference is null or invalid");
-                return;
-            }
-
-            var store = ref.getStore();
-            var world = store.getExternalData().getWorld();
-
-            CompletableFuture.runAsync(() -> {
-                var playerRef = store.getComponent(ref, PlayerRef.getComponentType());
-                if (playerRef == null) {
-                    plugin.log(Level.WARNING, "Cannot open kit page: PlayerRef not found");
-                    return;
-                }
-
-                KitPage page = new KitPage(playerRef, plugin);
-                player.getPageManager().openCustomPage(ref, store, page);
-            }, world);
-
-        } catch (Exception e) {
-            plugin.log(Level.SEVERE, "Failed to open kit page: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Ouvre la page admin de configuration des kits.
-     */
-    public void openKitConfig(@NotNull Player player) {
-        try {
-            var ref = player.getReference();
-            if (ref == null || !ref.isValid()) {
-                plugin.log(Level.WARNING, "Cannot open kit config: Reference is null or invalid");
-                return;
-            }
-
-            var store = ref.getStore();
-            var world = store.getExternalData().getWorld();
-
-            CompletableFuture.runAsync(() -> {
-                var playerRef = store.getComponent(ref, PlayerRef.getComponentType());
-                if (playerRef == null) {
-                    plugin.log(Level.WARNING, "Cannot open kit config: PlayerRef not found");
-                    return;
-                }
-
-                KitConfigPage page = new KitConfigPage(playerRef, plugin);
-                player.getPageManager().openCustomPage(ref, store, page);
-            }, world);
-
-        } catch (Exception e) {
-            plugin.log(Level.SEVERE, "Failed to open kit config: " + e.getMessage());
             e.printStackTrace();
         }
     }
