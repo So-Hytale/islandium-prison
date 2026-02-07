@@ -26,8 +26,7 @@ public class PrisonListenerManager {
     public void registerAll() {
         EventRegistry registry = plugin.getCore().getEventRegistry();
 
-        // Block break listener (for mine tracking)
-        register(new BlockBreakListener(plugin), registry);
+        // Block break is now handled by BreakBlockEventSystem (ECS pattern)
 
         // Player join listener (for rank initialization and HUD)
         register(new PrisonJoinListener(plugin), registry);

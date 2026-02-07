@@ -50,38 +50,9 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
 
     @Override
     public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder cmd, @Nonnull UIEventBuilder event, @Nonnull Store<EntityStore> store) {
-        // Container principal
-        cmd.appendInline("",
-            "Group #PrisonMenuRoot { " +
-            "  Anchor: (Width: 900, Height: 560, HCenter: 0, VCenter: 0); " +
-            "  Background: (Color: #0d1520); " +
-            "  LayoutMode: Top; " +
-            // Header
-            "  Group #Header { " +
-            "    Anchor: (Height: 50); " +
-            "    Background: (Color: #16212f); " +
-            "    LayoutMode: Left; " +
-            "    Padding: (Horizontal: 20); " +
-            "    Label #HeaderTitle { " +
-            "      FlexWeight: 1; " +
-            "      Text: \"PRISON\"; " +
-            "      Style: (FontSize: 18, TextColor: #ff9800, RenderBold: true, RenderUppercase: true, VerticalAlignment: Center); " +
-            "    } " +
-            "    TextButton #BackBtn { " +
-            "      Anchor: (Width: 80, Height: 32); " +
-            "      Visible: false; " +
-            "      Style: TextButtonStyle(Default: (LabelStyle: (FontSize: 12, TextColor: #96a9be, VerticalAlignment: Center)), Hovered: (Background: #1a2836, LabelStyle: (FontSize: 12, TextColor: #ffffff, VerticalAlignment: Center))); " +
-            "    } " +
-            "  } " +
-            // Content area
-            "  Group #Content { " +
-            "    FlexWeight: 1; " +
-            "    LayoutMode: TopScrolling; " +
-            "    Padding: (Full: 20); " +
-            "  } " +
-            "}");
+        cmd.append("Pages/Prison/PrisonMenuPage.ui");
 
-        cmd.set("#BackBtn.Text", "< Retour");
+        // Back button event
         event.addEventBinding(CustomUIEventBindingType.Activating, "#BackBtn", EventData.of("Action", "back"), false);
 
         buildHub(cmd, event);
@@ -92,7 +63,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
     // =========================================
 
     private void buildHub(UICommandBuilder cmd, UIEventBuilder event) {
-        cmd.clear("#Content");
+        cmd.clear("#PageContent");
         cmd.set("#HeaderTitle.Text", "PRISON");
         cmd.set("#BackBtn.Visible", false);
 
@@ -111,9 +82,9 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
             String label = buttons[i][1];
             String desc = buttons[i][2];
             String color = buttons[i][3];
-            String selector = "#Content[" + i + "]";
+            String selector = "#PageContent[" + i + "]";
 
-            cmd.appendInline("#Content",
+            cmd.appendInline("#PageContent",
                 "Group { Anchor: (Height: 78); " +
                 "  Button #CardBtn { " +
                 "    Anchor: (Height: 70); " +
@@ -146,7 +117,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
     // =========================================
 
     private void buildMinesPage(UICommandBuilder cmd, UIEventBuilder event) {
-        cmd.clear("#Content");
+        cmd.clear("#PageContent");
         cmd.set("#HeaderTitle.Text", "MINES");
         cmd.set("#BackBtn.Visible", true);
 
@@ -155,7 +126,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         Collection<Mine> mines = plugin.getMineManager().getAllMines();
 
         if (mines.isEmpty()) {
-            cmd.appendInline("#Content",
+            cmd.appendInline("#PageContent",
                 "Label { Anchor: (Height: 40); Text: \"Aucune mine disponible.\"; " +
                 "Style: (FontSize: 14, TextColor: #808080); }");
             return;
@@ -173,12 +144,12 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         int index = 0;
         for (Mine mine : sortedMines) {
             boolean canAccess = plugin.getMineManager().canAccess(uuid, mine);
-            String selector = "#Content[" + index + "]";
+            String selector = "#PageContent[" + index + "]";
             String bgColor = canAccess ? "#1a2a1a" : "#2a1a1a";
             String statusColor = canAccess ? "#66bb6a" : "#ef5350";
             String statusText = canAccess ? "Accessible" : "Rang " + mine.getRequiredRank() + " requis";
 
-            cmd.appendInline("#Content",
+            cmd.appendInline("#PageContent",
                 "Group { Anchor: (Height: 55); LayoutMode: Left; Background: (Color: " + bgColor + "); Padding: (Horizontal: 15, Vertical: 5); " +
                 "  Group { FlexWeight: 1; LayoutMode: Top; " +
                 "    Label #MineName { Anchor: (Height: 25); Style: (FontSize: 15, TextColor: #ffd700, RenderBold: true, VerticalAlignment: Center); } " +
@@ -211,7 +182,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
     // =========================================
 
     private void buildRangPage(UICommandBuilder cmd, UIEventBuilder event) {
-        cmd.clear("#Content");
+        cmd.clear("#PageContent");
         cmd.set("#HeaderTitle.Text", "RANG");
         cmd.set("#BackBtn.Visible", true);
 
@@ -222,7 +193,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         PrisonConfig.RankInfo nextRank = plugin.getRankManager().getNextRankInfo(uuid);
 
         // Rang actuel
-        cmd.appendInline("#Content",
+        cmd.appendInline("#PageContent",
             "Group { Anchor: (Height: 80); Background: (Color: #151d28); Padding: (Full: 15); LayoutMode: Top; " +
             "  Label { Anchor: (Height: 25); Text: \"Rang actuel\"; Style: (FontSize: 12, TextColor: #7c8b99); } " +
             "  Label #CurrentRank { Anchor: (Height: 35); Style: (FontSize: 28, TextColor: #ffd700, RenderBold: true); } " +
@@ -230,7 +201,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         cmd.set("#CurrentRank.Text", currentRank + (prestige > 0 ? "  [P" + prestige + "]" : ""));
 
         // Multiplicateur
-        cmd.appendInline("#Content",
+        cmd.appendInline("#PageContent",
             "Group { Anchor: (Height: 40, Top: 8); Background: (Color: #151d28); Padding: (Horizontal: 15); LayoutMode: Left; " +
             "  Label { FlexWeight: 1; Text: \"Multiplicateur de gains\"; Style: (FontSize: 13, TextColor: #96a9be, VerticalAlignment: Center); } " +
             "  Label #Multiplier { Anchor: (Width: 100); Style: (FontSize: 15, TextColor: #00e5ff, RenderBold: true, VerticalAlignment: Center); } " +
@@ -241,16 +212,16 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         if (nextRank != null) {
             BigDecimal price = plugin.getRankManager().getRankupPrice(uuid, nextRank);
 
-            cmd.appendInline("#Content",
+            cmd.appendInline("#PageContent",
                 "Group { Anchor: (Height: 60, Top: 8); Background: (Color: #151d28); Padding: (Full: 15); LayoutMode: Top; " +
                 "  Label { Anchor: (Height: 20); Style: (FontSize: 12, TextColor: #7c8b99); } " +
                 "  Label #NextRankPrice { Anchor: (Height: 25); Style: (FontSize: 14, TextColor: #ffffff); } " +
                 "}");
-            cmd.set("#Content[2] Label.Text", "Prochain rang: " + nextRank.displayName);
+            cmd.set("#PageContent[2] Label.Text", "Prochain rang: " + nextRank.displayName);
             cmd.set("#NextRankPrice.Text", "Prix: " + SellService.formatMoney(price));
 
             // Boutons
-            cmd.appendInline("#Content",
+            cmd.appendInline("#PageContent",
                 "Group { Anchor: (Height: 50, Top: 10); LayoutMode: Left; " +
                 "  TextButton #RankupBtn { Anchor: (Width: 180, Height: 40); " +
                 "    Style: TextButtonStyle(Default: (Background: #2a5f2a, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center)), " +
@@ -266,7 +237,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
             event.addEventBinding(CustomUIEventBindingType.Activating, "#RankupBtn", EventData.of("Action", "rankup"), false);
             event.addEventBinding(CustomUIEventBindingType.Activating, "#MaxRankupBtn", EventData.of("Action", "maxrankup"), false);
         } else if (plugin.getRankManager().canPrestige(uuid)) {
-            cmd.appendInline("#Content",
+            cmd.appendInline("#PageContent",
                 "Group { Anchor: (Height: 60, Top: 10); LayoutMode: Left; " +
                 "  TextButton #PrestigeBtn { Anchor: (Width: 200, Height: 45); " +
                 "    Style: TextButtonStyle(Default: (Background: #5f2a5f, LabelStyle: (FontSize: 15, TextColor: #ff80ff, RenderBold: true, VerticalAlignment: Center)), " +
@@ -275,7 +246,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
             cmd.set("#PrestigeBtn.Text", "PRESTIGE");
             event.addEventBinding(CustomUIEventBindingType.Activating, "#PrestigeBtn", EventData.of("Action", "prestige"), false);
         } else {
-            cmd.appendInline("#Content",
+            cmd.appendInline("#PageContent",
                 "Label { Anchor: (Height: 30, Top: 10); Text: \"Rang maximum atteint!\"; " +
                 "Style: (FontSize: 14, TextColor: #ffd700, RenderBold: true); }");
         }
@@ -286,7 +257,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
     // =========================================
 
     private void buildUpgradesPage(UICommandBuilder cmd, UIEventBuilder event) {
-        cmd.clear("#Content");
+        cmd.clear("#PageContent");
         cmd.set("#HeaderTitle.Text", "UPGRADES");
         cmd.set("#BackBtn.Visible", true);
 
@@ -304,7 +275,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         String fortunePips = buildPips(fortuneLevel, PickaxeUpgradeManager.MAX_FORTUNE_LEVEL);
         String fortuneDesc = fortuneLevel > 0 ? (fortuneLevel * 10) + "% chance 2x drops" : "Pas d'enchantement";
 
-        cmd.appendInline("#Content",
+        cmd.appendInline("#PageContent",
             "Group { Anchor: (Height: 90); Background: (Color: #151d28); Padding: (Full: 12); LayoutMode: Top; " +
             "  Group { Anchor: (Height: 25); LayoutMode: Left; " +
             "    Label { FlexWeight: 1; Text: \"Fortune\"; Style: (FontSize: 15, TextColor: #ffd700, RenderBold: true, VerticalAlignment: Center); } " +
@@ -334,7 +305,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         String efficiencyPips = buildPips(efficiencyLevel, PickaxeUpgradeManager.MAX_EFFICIENCY_LEVEL);
         String efficiencyDesc = efficiencyLevel > 0 ? "Vitesse +" + (efficiencyLevel * 20) + "%" : "Pas d'enchantement";
 
-        cmd.appendInline("#Content",
+        cmd.appendInline("#PageContent",
             "Group { Anchor: (Height: 90, Top: 8); Background: (Color: #151d28); Padding: (Full: 12); LayoutMode: Top; " +
             "  Group { Anchor: (Height: 25); LayoutMode: Left; " +
             "    Label { FlexWeight: 1; Text: \"Efficacite\"; Style: (FontSize: 15, TextColor: #4fc3f7, RenderBold: true, VerticalAlignment: Center); } " +
@@ -373,7 +344,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
             autoSellColor = "#ef5350";
         }
 
-        cmd.appendInline("#Content",
+        cmd.appendInline("#PageContent",
             "Group { Anchor: (Height: 70, Top: 8); Background: (Color: #151d28); Padding: (Full: 12); LayoutMode: Top; " +
             "  Group { Anchor: (Height: 25); LayoutMode: Left; " +
             "    Label { FlexWeight: 1; Text: \"Auto-Sell\"; Style: (FontSize: 15, TextColor: #ab47bc, RenderBold: true, VerticalAlignment: Center); } " +
@@ -399,19 +370,19 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
     // =========================================
 
     private void buildClassementPage(UICommandBuilder cmd, UIEventBuilder event) {
-        cmd.clear("#Content");
+        cmd.clear("#PageContent");
         cmd.set("#HeaderTitle.Text", "CLASSEMENT");
         cmd.set("#BackBtn.Visible", true);
 
         Map<UUID, PlayerStatsManager.PlayerStatsData> allStats = plugin.getStatsManager().getAllStats();
 
         // Top par argent gagne
-        cmd.appendInline("#Content",
+        cmd.appendInline("#PageContent",
             "Label { Anchor: (Height: 30); Text: \"Top Richesse\"; " +
             "Style: (FontSize: 16, TextColor: #ffd700, RenderBold: true); }");
 
         // Header colonnes
-        cmd.appendInline("#Content",
+        cmd.appendInline("#PageContent",
             "Group { Anchor: (Height: 25); LayoutMode: Left; Padding: (Horizontal: 10); " +
             "  Label { Anchor: (Width: 30); Text: \"#\"; Style: (FontSize: 11, TextColor: #7c8b99, VerticalAlignment: Center); } " +
             "  Label { FlexWeight: 1; Text: \"Joueur\"; Style: (FontSize: 11, TextColor: #7c8b99, VerticalAlignment: Center); } " +
@@ -427,7 +398,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
             .collect(Collectors.toList());
 
         if (sorted.isEmpty()) {
-            cmd.appendInline("#Content",
+            cmd.appendInline("#PageContent",
                 "Label { Anchor: (Height: 30, Top: 10); Text: \"Aucune donnee disponible.\"; " +
                 "Style: (FontSize: 13, TextColor: #808080); }");
         } else {
@@ -449,9 +420,9 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                     case 2: rankColor = "#cd7f32"; break;
                     default: rankColor = "#96a9be"; break;
                 }
-                String selector = "#Content[" + (i + 2) + "]"; // +2 pour le titre et le header
+                String selector = "#PageContent[" + (i + 2) + "]"; // +2 pour le titre et le header
 
-                cmd.appendInline("#Content",
+                cmd.appendInline("#PageContent",
                     "Group { Anchor: (Height: 28); LayoutMode: Left; Padding: (Horizontal: 10); " +
                     "  Background: (Color: " + (i % 2 == 0 ? "#111b27" : "#151d28") + "); " +
                     "  Label #Pos { Anchor: (Width: 30); Style: (FontSize: 12, RenderBold: true, VerticalAlignment: Center); } " +
@@ -476,7 +447,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
     // =========================================
 
     private void buildCellulePage(UICommandBuilder cmd, UIEventBuilder event) {
-        cmd.clear("#Content");
+        cmd.clear("#PageContent");
         cmd.set("#HeaderTitle.Text", "CELLULE");
         cmd.set("#BackBtn.Visible", true);
 
@@ -485,7 +456,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         var playerCell = cellManager.getPlayerCell(uuid);
 
         if (playerCell != null) {
-            cmd.appendInline("#Content",
+            cmd.appendInline("#PageContent",
                 "Group { Anchor: (Height: 80); Background: (Color: #151d28); Padding: (Full: 15); LayoutMode: Top; " +
                 "  Label { Anchor: (Height: 25); Text: \"Ta cellule\"; Style: (FontSize: 14, TextColor: #8d6e63, RenderBold: true); } " +
                 "  Label #CellInfo { Anchor: (Height: 20); Style: (FontSize: 12, TextColor: #96a9be); } " +
@@ -493,7 +464,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
             cmd.set("#CellInfo.Text", "Cellule: " + playerCell.getOwnerName());
 
             if (playerCell.hasOwner()) {
-                cmd.appendInline("#Content",
+                cmd.appendInline("#PageContent",
                     "Group { Anchor: (Height: 50, Top: 10); " +
                     "  TextButton #CellTpBtn { Anchor: (Width: 180, Height: 40); " +
                     "    Style: TextButtonStyle(Default: (Background: #2a5f2a, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center)), " +
@@ -503,14 +474,14 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                 event.addEventBinding(CustomUIEventBindingType.Activating, "#CellTpBtn", EventData.of("Action", "tpCell"), false);
             }
         } else {
-            cmd.appendInline("#Content",
+            cmd.appendInline("#PageContent",
                 "Group { Anchor: (Height: 80); Background: (Color: #151d28); Padding: (Full: 15); LayoutMode: Top; " +
                 "  Label { Anchor: (Height: 25); Text: \"Pas de cellule\"; Style: (FontSize: 14, TextColor: #8d6e63, RenderBold: true); } " +
                 "  Label { Anchor: (Height: 20); Text: \"Tu n'as pas encore de cellule.\"; Style: (FontSize: 12, TextColor: #96a9be); } " +
                 "}");
 
             // Bouton acheter s'il y a des cellules libres
-            cmd.appendInline("#Content",
+            cmd.appendInline("#PageContent",
                 "Group { Anchor: (Height: 50, Top: 10); " +
                 "  TextButton #BuyCellBtn { Anchor: (Width: 180, Height: 40); " +
                 "    Style: TextButtonStyle(Default: (Background: #2a5f2a, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center)), " +

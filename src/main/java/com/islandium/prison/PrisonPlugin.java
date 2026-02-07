@@ -13,6 +13,7 @@ import com.islandium.prison.stats.PlayerStatsManager;
 import com.islandium.prison.ui.PrisonUIManager;
 import com.islandium.prison.ui.pages.PrisonMenuPage;
 import com.islandium.prison.upgrade.PickaxeUpgradeManager;
+import com.islandium.prison.event.BreakBlockEventSystem;
 import com.islandium.core.ui.IslandiumUIRegistry;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
@@ -92,7 +93,11 @@ public class PrisonPlugin extends JavaPlugin {
             this.commandManager = new PrisonCommandManager(this);
             commandManager.registerAll();
 
-            // 7. Register listeners
+            // 7. Register ECS event systems (like Regions pattern)
+            log(Level.INFO, "Registering ECS event systems...");
+            getEntityStoreRegistry().registerSystem(new BreakBlockEventSystem());
+
+            // 8. Register listeners
             log(Level.INFO, "Registering listeners...");
             this.listenerManager = new PrisonListenerManager(this);
             listenerManager.registerAll();

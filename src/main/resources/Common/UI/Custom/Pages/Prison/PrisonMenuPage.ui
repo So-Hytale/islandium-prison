@@ -1,0 +1,57 @@
+$C = "../../Common.ui";
+
+$C.@PageOverlay {
+    $C.@Container {
+        Anchor: (Width: 900, Height: 560);
+
+        #Title {
+            Group {
+                $C.@Title {
+                    @Text = "PRISON";
+                }
+            }
+        }
+
+        #Content {
+            LayoutMode: Top;
+
+            // Header bar
+            Group #HeaderBar {
+                Anchor: (Height: 50);
+                Background: (Color: #16212f);
+                LayoutMode: Left;
+                Padding: (Horizontal: 20);
+
+                Label #HeaderTitle {
+                    FlexWeight: 1;
+                    Text: "PRISON";
+                    Style: (FontSize: 16, TextColor: #ff9800, RenderBold: true, RenderUppercase: true, VerticalAlignment: Center);
+                }
+
+                TextButton #BackBtn {
+                    Anchor: (Width: 80, Height: 32);
+                    Visible: false;
+                    Text: "< Retour";
+                    Style: TextButtonStyle(
+                        Default: (
+                            LabelStyle: (FontSize: 12, TextColor: #96a9be, VerticalAlignment: Center)
+                        ),
+                        Hovered: (
+                            Background: #1a2836,
+                            LabelStyle: (FontSize: 12, TextColor: #ffffff, VerticalAlignment: Center)
+                        ),
+                        Sounds: $C.@ButtonSounds,
+                    );
+                }
+            }
+
+            // Dynamic content area
+            Group #PageContent {
+                FlexWeight: 1;
+                LayoutMode: TopScrolling;
+                ScrollbarStyle: $C.@DefaultScrollbarStyle;
+                Padding: (Full: 20);
+            }
+        }
+    }
+}
