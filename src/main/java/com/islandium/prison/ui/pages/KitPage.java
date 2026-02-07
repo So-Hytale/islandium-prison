@@ -157,9 +157,13 @@ public class KitPage extends InteractiveCustomUIPage<KitPage.PageData> {
                     if (kit.items != null && !kit.items.isEmpty()) {
                         try {
                             String iconItemId = kit.items.get(0).itemId;
-                            if (!iconItemId.contains(":")) iconItemId = "minecraft:" + iconItemId;
-                            ItemStack iconStack = new ItemStack(iconItemId, 1);
-                            cmd.setObject("#" + cardId + "Icon", iconStack);
+                            if (iconItemId != null && !iconItemId.isEmpty()) {
+                                if (!iconItemId.contains(":")) iconItemId = "minecraft:" + iconItemId;
+                                ItemStack iconStack = new ItemStack(iconItemId, 1);
+                                if (iconStack != null && !ItemStack.isEmpty(iconStack)) {
+                                    cmd.setObject("#" + cardId + "Icon", iconStack);
+                                }
+                            }
                         } catch (Exception ignored) {}
                     }
 
@@ -272,8 +276,13 @@ public class KitPage extends InteractiveCustomUIPage<KitPage.PageData> {
                 // Item icon
                 try {
                     String iconId = item.itemId;
-                    if (!iconId.contains(":")) iconId = "minecraft:" + iconId;
-                    cmd.setObject("#" + itemRowId + "Icon", new ItemStack(iconId, 1));
+                    if (iconId != null && !iconId.isEmpty()) {
+                        if (!iconId.contains(":")) iconId = "minecraft:" + iconId;
+                        ItemStack iconStack = new ItemStack(iconId, 1);
+                        if (iconStack != null && !ItemStack.isEmpty(iconStack)) {
+                            cmd.setObject("#" + itemRowId + "Icon", iconStack);
+                        }
+                    }
                 } catch (Exception ignored) {}
                 idx++;
             }

@@ -163,8 +163,13 @@ public class KitConfigPage extends InteractiveCustomUIPage<KitConfigPage.PageDat
                     // Item icon
                     try {
                         String iconId = item.itemId;
-                        if (!iconId.contains(":")) iconId = "minecraft:" + iconId;
-                        cmd.setObject("#" + itemRowId + "Icon", new ItemStack(iconId, 1));
+                        if (iconId != null && !iconId.isEmpty()) {
+                            if (!iconId.contains(":")) iconId = "minecraft:" + iconId;
+                            ItemStack iconStack = new ItemStack(iconId, 1);
+                            if (iconStack != null && !ItemStack.isEmpty(iconStack)) {
+                                cmd.setObject("#" + itemRowId + "Icon", iconStack);
+                            }
+                        }
                     } catch (Exception ignored) {}
 
                     final int finalItemIdx = itemIdx;
