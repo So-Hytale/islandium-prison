@@ -13,6 +13,7 @@ import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
+import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.permissions.PermissionsModule;
 import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
@@ -133,12 +134,15 @@ public class KitPage extends InteractiveCustomUIPage<KitPage.PageData> {
                         "Group { FlexWeight: 1; " + padding +
                         "  Button #" + cardId + " { Background: (Color: #151d28); " +
                         "    Group { LayoutMode: Top; Padding: (Full: 12); " +
-                        "      Label #" + cardId + "Name { Anchor: (Height: 35, Top: 15); " +
+                        "      Group { Anchor: (Height: 50); LayoutMode: Left; " +
+                        "        Group { FlexWeight: 1; } " +
+                        "        Group #" + cardId + "Icon { Anchor: (Width: 48, Height: 48); Background: (Color: #1a2535); } " +
+                        "        Group { FlexWeight: 1; } " +
+                        "      } " +
+                        "      Label #" + cardId + "Name { Anchor: (Height: 28, Top: 5); " +
                         "        Style: (FontSize: 15, TextColor: " + color + ", RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center); } " +
-                        "      Label #" + cardId + "Desc { Anchor: (Height: 50); " +
+                        "      Label #" + cardId + "Desc { Anchor: (Height: 40); " +
                         "        Style: (FontSize: 11, TextColor: #7c8b99, HorizontalAlignment: Center, VerticalAlignment: Center); } " +
-                        "      Label #" + cardId + "Items { Anchor: (Height: 25); " +
-                        "        Style: (FontSize: 10, TextColor: #96a9be, HorizontalAlignment: Center, VerticalAlignment: Center); } " +
                         "      Label #" + cardId + "Status { Anchor: (Height: 25); " +
                         "        Style: (FontSize: 12, TextColor: " + statusColor + ", RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center); } " +
                         "    } " +
@@ -147,9 +151,17 @@ public class KitPage extends InteractiveCustomUIPage<KitPage.PageData> {
 
                     cmd.set("#" + cardId + "Name.Text", kit.displayName != null ? kit.displayName : kit.id);
                     cmd.set("#" + cardId + "Desc.Text", kit.description != null ? kit.description : "");
-                    int itemCount = kit.items != null ? kit.items.size() : 0;
-                    cmd.set("#" + cardId + "Items.Text", itemCount + " item(s)");
                     cmd.set("#" + cardId + "Status.Text", statusText);
+
+                    // Set item icon from first item in kit
+                    if (kit.items != null && !kit.items.isEmpty()) {
+                        try {
+                            String iconItemId = kit.items.get(0).itemId;
+                            if (!iconItemId.contains(":")) iconItemId = "minecraft:" + iconItemId;
+                            ItemStack iconStack = new ItemStack(iconItemId, 1);
+                            cmd.setObject("#" + cardId + "Icon", iconStack);
+                        } catch (Exception ignored) {}
+                    }
 
                     event.addEventBinding(CustomUIEventBindingType.Activating, "#" + cardId,
                         EventData.of("Action", "viewKit").append("KitId", kit.id), false);
@@ -158,6 +170,32 @@ public class KitPage extends InteractiveCustomUIPage<KitPage.PageData> {
                     cmd.appendInline("#" + rowId, "Group { FlexWeight: 1; }");
                 }
             }
+        }
+
+        // Bouton admin config (visible uniquement pour les admins)
+        appendAdminButton(cmd, event, uuid);
+    }
+
+    private void appendAdminButton(UICommandBuilder cmd, UIEventBuilder event, UUID uuid) {
+        boolean isAdmin = false;
+        try {
+            var perms = PermissionsModule.get();
+            isAdmin = perms.getGroupsForUser(uuid).contains("OP")
+                || perms.hasPermission(uuid, "prison.admin")
+                || perms.hasPermission(uuid, "*");
+        } catch (Exception ignored) {}
+
+        if (isAdmin) {
+            cmd.appendInline("#HubGrid",
+                "Group { Anchor: (Height: 40, Top: 10); LayoutMode: Left; " +
+                "  Group { FlexWeight: 1; } " +
+                "  Button #AdminConfigBtn { Anchor: (Width: 180, Height: 32); Background: (Color: #2d4a5a); " +
+                "    Label { Style: (FontSize: 12, TextColor: #ffd700, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center); } } " +
+                "  Group { FlexWeight: 1; } " +
+                "}");
+            cmd.set("#AdminConfigBtn Label.Text", "CONFIG ADMIN");
+            event.addEventBinding(CustomUIEventBindingType.Activating, "#AdminConfigBtn",
+                EventData.of("Action", "openKitConfig"), false);
         }
     }
 
@@ -222,13 +260,21 @@ public class KitPage extends InteractiveCustomUIPage<KitPage.PageData> {
                 String itemRowId = "ItemRow" + idx;
 
                 cmd.appendInline("#PageContent",
-                    "Group #" + itemRowId + " { Anchor: (Height: 28); LayoutMode: Left; Padding: (Horizontal: 10); Background: (Color: " + bgColor + "); " +
-                    "  Label #IName { FlexWeight: 1; Style: (FontSize: 12, TextColor: #ffffff, VerticalAlignment: Center); } " +
+                    "Group #" + itemRowId + " { Anchor: (Height: 36); LayoutMode: Left; Padding: (Horizontal: 10); Background: (Color: " + bgColor + "); " +
+                    "  Group #" + itemRowId + "Icon { Anchor: (Width: 32, Height: 32); Background: (Color: #1a2535); } " +
+                    "  Label #IName { FlexWeight: 1; Anchor: (Left: 8); Style: (FontSize: 12, TextColor: #ffffff, VerticalAlignment: Center); } " +
                     "  Label #IQty { Anchor: (Width: 80); Style: (FontSize: 12, TextColor: #66bb6a, RenderBold: true, VerticalAlignment: Center); } " +
                     "}");
 
                 cmd.set("#" + itemRowId + " #IName.Text", formatBlockName(item.itemId));
                 cmd.set("#" + itemRowId + " #IQty.Text", "x" + item.quantity);
+
+                // Item icon
+                try {
+                    String iconId = item.itemId;
+                    if (!iconId.contains(":")) iconId = "minecraft:" + iconId;
+                    cmd.setObject("#" + itemRowId + "Icon", new ItemStack(iconId, 1));
+                } catch (Exception ignored) {}
                 idx++;
             }
         } else {
@@ -263,12 +309,11 @@ public class KitPage extends InteractiveCustomUIPage<KitPage.PageData> {
             cmd.appendInline("#PageContent",
                 "Group { Anchor: (Height: 55, Top: 10); LayoutMode: Left; " +
                 "  Group { FlexWeight: 1; } " +
-                "  TextButton #ClaimBtn { Anchor: (Width: 220, Height: 45); " +
-                "    Style: TextButtonStyle(Default: (Background: #2a5f2a, LabelStyle: (FontSize: 16, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center)), " +
-                "    Hovered: (Background: #3a7f3a, LabelStyle: (FontSize: 16, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center))); } " +
+                "  Button #ClaimBtn { Anchor: (Width: 220, Height: 45); Background: (Color: #2a5f2a); " +
+                "    Label { Style: (FontSize: 16, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center); } } " +
                 "  Group { FlexWeight: 1; } " +
                 "}");
-            cmd.set("#ClaimBtn.Text", "RECLAMER");
+            cmd.set("#ClaimBtn Label.Text", "RECLAMER");
             event.addEventBinding(CustomUIEventBindingType.Activating, "#ClaimBtn",
                 EventData.of("Action", "claimKit").append("KitId", kitId), false);
         }
@@ -286,6 +331,10 @@ public class KitPage extends InteractiveCustomUIPage<KitPage.PageData> {
         if (data.action == null) return;
 
         switch (data.action) {
+            case "openKitConfig" -> {
+                plugin.getUIManager().openKitConfig(player);
+                return;
+            }
             case "viewKit" -> {
                 if (data.kitId != null) {
                     currentPage = data.kitId;

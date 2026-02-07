@@ -3,7 +3,7 @@ $C = "../../Common.ui";
 Group #PrisonHud {
   LayoutMode: Top;
   Background: (Color: #0a0f1acc);
-  Anchor: (Width: 230, Height: 250, Right: 10, Top: 300);
+  Anchor: (Width: 230, Height: 272, Right: 10, Top: 300);
   Padding: (Left: 12, Right: 12, Top: 8, Bottom: 8);
   Group #HeaderRow {
     LayoutMode: Left;
@@ -95,6 +95,21 @@ Group #PrisonHud {
       FlexWeight: 1;
       Text: "Aucune";
       Style: (FontSize: 11, TextColor: #4dd0e1, VerticalAlignment: Center);
+    }
+  }
+  Group #TimerRow {
+    LayoutMode: Left;
+    Anchor: (Height: 20, Top: 2);
+    Visible: false;
+    Label #TimerLabel {
+      Anchor: (Width: 50);
+      Text: "Reset:";
+      Style: (FontSize: 11, TextColor: #808080, VerticalAlignment: Center);
+    }
+    Label #TimerValue {
+      FlexWeight: 1;
+      Text: "--:--";
+      Style: (FontSize: 11, TextColor: #ff9800, VerticalAlignment: Center);
     }
   }
   Group #Sep3 {

@@ -362,7 +362,7 @@ $C.@PageOverlay {
 
                     // Options
                     Group #OptionsSection {
-                        Anchor: (Height: 100, Top: 10);
+                        Anchor: (Height: 135, Top: 10);
                         LayoutMode: Top;
 
                         Group #NaturalModeToggle {
@@ -418,11 +418,34 @@ $C.@PageOverlay {
                                 Style: (FontSize: 12, TextColor: #96a9be, VerticalAlignment: Center);
                             }
                         }
+
+                        Group #VillageMarginToggle {
+                            Anchor: (Height: 30, Top: 5);
+                            LayoutMode: Left;
+
+                            Label {
+                                Anchor: (Width: 100);
+                                Text: "Village Margin:";
+                                Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center);
+                            }
+
+                            $C.@TextField #VillageMarginField {
+                                Anchor: (Width: 55, Height: 26);
+                                PlaceholderText: "0";
+                            }
+
+                            Label {
+                                FlexWeight: 1;
+                                Anchor: (Left: 8);
+                                Text: "(0 = desactive)";
+                                Style: (FontSize: 9, TextColor: #606060, VerticalAlignment: Center);
+                            }
+                        }
                     }
 
                     // Actions
                     Group #ActionsSection {
-                        Anchor: (Height: 130, Top: 15);
+                        Anchor: (Height: 175, Top: 15);
                         LayoutMode: Top;
 
                         Group {
@@ -503,6 +526,27 @@ $C.@PageOverlay {
                                     ),
                                     Hovered: (
                                         Background: #ab7a3d,
+                                        LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Sounds: $C.@ButtonSounds,
+                                );
+                            }
+                        }
+
+                        Group {
+                            Anchor: (Height: 40, Top: 5);
+                            LayoutMode: Left;
+
+                            TextButton #VisualizeVillageButton {
+                                Anchor: (Width: 120, Height: 36);
+                                Text: "Voir Village";
+                                Style: TextButtonStyle(
+                                    Default: (
+                                        Background: #6a2d8b,
+                                        LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                                    ),
+                                    Hovered: (
+                                        Background: #8a3dab,
                                         LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
                                     ),
                                     Sounds: $C.@ButtonSounds,

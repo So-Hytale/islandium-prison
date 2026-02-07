@@ -28,6 +28,9 @@ public class Mine {
     private boolean useDiameterMode = false; // Affichage en diamètre dans l'UI
     private double radiusAdjust = 0.46; // Ajustement du rayon pour le calcul de l'ellipse
 
+    // Zone village (surzone étendue autour de la mine)
+    private int villageMargin = 0; // 0 = désactivé
+
     // Point de spawn de la mine
     private ServerLocation spawnPoint;
 
@@ -218,6 +221,28 @@ public class Mine {
     public void setRadiusAdjust(double radiusAdjust) {
         this.radiusAdjust = radiusAdjust;
         recalculateTotalBlocks();
+    }
+
+    /**
+     * Obtient la marge de la zone village autour de la mine.
+     * 0 = zone village désactivée.
+     */
+    public int getVillageMargin() {
+        return villageMargin;
+    }
+
+    /**
+     * Définit la marge de la zone village autour de la mine.
+     */
+    public void setVillageMargin(int villageMargin) {
+        this.villageMargin = Math.max(0, villageMargin);
+    }
+
+    /**
+     * Vérifie si la mine a une zone village configurée.
+     */
+    public boolean hasVillageZone() {
+        return villageMargin > 0;
     }
 
     /**
@@ -683,6 +708,61 @@ public class Mine {
     }
 
     /**
+     * Vérifie si une position est dans la zone village (mine étendue par villageMargin).
+     * La zone village inclut la mine elle-même.
+     * Pour cylindre: radius + margin, Y étendu de margin en bas et en haut.
+     * Pour cuboid: coins étendus de margin dans toutes les directions.
+     */
+    public boolean containsVillage(@NotNull ServerLocation location) {
+        if (!isConfigured() || villageMargin <= 0) return false;
+
+        if (isCylindrical()) {
+            int cx = (int) Math.floor(center.x());
+            int cy = (int) Math.floor(center.y());
+            int cz = (int) Math.floor(center.z());
+            int lx = (int) Math.floor(location.x());
+            int ly = (int) Math.floor(location.y());
+            int lz = (int) Math.floor(location.z());
+
+            // Vérifier la hauteur étendue (Y élargi de margin en bas et en haut)
+            if (ly < cy - villageMargin || ly >= cy + height + villageMargin) {
+                return false;
+            }
+
+            // Rayon étendu
+            int expandedRadius = radius + villageMargin;
+            int halfW = expandedRadius;
+            int halfH = expandedRadius;
+            double rX = halfW + this.radiusAdjust;
+            double rZ = halfH + this.radiusAdjust;
+            double rXSq = rX * rX;
+            double rZSq = rZ * rZ;
+
+            int dx = lx - cx;
+            int dz = lz - cz;
+
+            if (dx < -halfW || dx > halfW || dz < -halfH || dz > halfH) {
+                return false;
+            }
+
+            double distSq = (dx * dx) / rXSq + (dz * dz) / rZSq;
+            return distSq < 1.0;
+        }
+
+        // Cuboid: coins étendus de margin dans toutes les directions
+        double minX = Math.min(corner1.x(), corner2.x()) - villageMargin;
+        double maxX = Math.max(corner1.x(), corner2.x()) + villageMargin;
+        double minY = Math.min(corner1.y(), corner2.y()) - villageMargin;
+        double maxY = Math.max(corner1.y(), corner2.y()) + villageMargin;
+        double minZ = Math.min(corner1.z(), corner2.z()) - villageMargin;
+        double maxZ = Math.max(corner1.z(), corner2.z()) + villageMargin;
+
+        return location.x() >= minX && location.x() <= maxX
+                && location.y() >= minY && location.y() <= maxY
+                && location.z() >= minZ && location.z() <= maxZ;
+    }
+
+    /**
      * Réinitialise l'état de la mine (pour après un reset).
      */
     public void resetState() {
@@ -724,6 +804,7 @@ public class Mine {
         for (Map.Entry<String, int[]> entry : blockLayerLimits.entrySet()) {
             data.blockLayerLimits.put(entry.getKey(), List.of(entry.getValue()[0], entry.getValue()[1]));
         }
+        data.villageMargin = villageMargin;
         data.totalBlocks = totalBlocks;
         data.remainingBlocks = remainingBlocks;
         data.lastResetTime = lastResetTime;
@@ -771,6 +852,7 @@ public class Mine {
                 }
             }
         }
+        mine.villageMargin = data.villageMargin;
         mine.totalBlocks = data.totalBlocks;
         mine.remainingBlocks = data.remainingBlocks;
         mine.lastResetTime = data.lastResetTime;
@@ -803,6 +885,7 @@ public class Mine {
         public Map<String, String> blockRankRequirements;
         public Set<String> disabledBlocks;
         public Map<String, List<Integer>> blockLayerLimits;
+        public int villageMargin;
         public int totalBlocks;
         public int remainingBlocks;
         public long lastResetTime;

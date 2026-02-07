@@ -12,6 +12,7 @@ import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
+import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
@@ -108,18 +109,17 @@ public class KitConfigPage extends InteractiveCustomUIPage<KitConfigPage.PageDat
             String color = kit.color != null ? kit.color : "#4fc3f7";
 
             // Kit row: Name | Description | Cooldown | FirstJoin | Actions
+            // NOTE: Use Button (not TextButton with TextButtonStyle) inline to avoid parse errors
             cmd.appendInline("#KitList",
                 "Group #" + rowId + " { Anchor: (Height: 34); LayoutMode: Left; Padding: (Horizontal: 5); Background: (Color: " + bgColor + "); " +
                 "  Label #KName { Anchor: (Width: 130); Style: (FontSize: 12, TextColor: " + nameColor + ", VerticalAlignment: Center" + (isEditing ? ", RenderBold: true" : "") + "); } " +
                 "  Label #KDesc { FlexWeight: 1; Style: (FontSize: 10, TextColor: #7c8b99, VerticalAlignment: Center); } " +
                 "  Label #KCd { Anchor: (Width: 65); Style: (FontSize: 10, TextColor: #96a9be, VerticalAlignment: Center); } " +
                 "  Label #KFj { Anchor: (Width: 30); Style: (FontSize: 10, TextColor: " + (kit.giveOnFirstJoin ? "#66bb6a" : "#5a5a5a") + ", RenderBold: true, VerticalAlignment: Center); } " +
-                "  TextButton #ItemsBtn { Anchor: (Width: 55, Left: 3, Height: 26); " +
-                "    Style: TextButtonStyle(Default: (Background: #2d4a5a, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
-                "    Hovered: (Background: #3d5a6a, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
-                "  TextButton #DeleteBtn { Anchor: (Width: 55, Left: 3, Height: 26); " +
-                "    Style: TextButtonStyle(Default: (Background: #5a2d2d, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
-                "    Hovered: (Background: #7a3d3d, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
+                "  Button #ItemsBtn { Anchor: (Width: 55, Left: 3, Height: 26); Background: (Color: #2d4a5a); " +
+                "    Label { Style: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center); } } " +
+                "  Button #DeleteBtn { Anchor: (Width: 55, Left: 3, Height: 26); Background: (Color: #5a2d2d); " +
+                "    Label { Style: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center); } } " +
                 "}");
 
             String displayName = kit.displayName != null ? kit.displayName : kit.id;
@@ -133,8 +133,8 @@ public class KitConfigPage extends InteractiveCustomUIPage<KitConfigPage.PageDat
             cmd.set("#" + rowId + " #KCd.Text", cdText);
 
             cmd.set("#" + rowId + " #KFj.Text", kit.giveOnFirstJoin ? "FJ" : "-");
-            cmd.set("#" + rowId + " #ItemsBtn.Text", "ITEMS");
-            cmd.set("#" + rowId + " #DeleteBtn.Text", "SUPPR");
+            cmd.set("#" + rowId + " #ItemsBtn Label.Text", "ITEMS");
+            cmd.set("#" + rowId + " #DeleteBtn Label.Text", "SUPPR");
 
             event.addEventBinding(CustomUIEventBindingType.Activating, "#" + rowId + " #ItemsBtn",
                 EventData.of("Action", "editKit").append("KitId", kit.id), false);
@@ -148,17 +148,24 @@ public class KitConfigPage extends InteractiveCustomUIPage<KitConfigPage.PageDat
                     String itemRowId = "KitItemRow" + index + "_" + itemIdx;
 
                     cmd.appendInline("#KitList",
-                        "Group #" + itemRowId + " { Anchor: (Height: 26); LayoutMode: Left; Padding: (Left: 40, Right: 5); Background: (Color: #0d1925); " +
-                        "  Label #ItemName { FlexWeight: 1; Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center); } " +
+                        "Group #" + itemRowId + " { Anchor: (Height: 30); LayoutMode: Left; Padding: (Left: 40, Right: 5); Background: (Color: #0d1925); " +
+                        "  Group #" + itemRowId + "Icon { Anchor: (Width: 26, Height: 26); Background: (Color: #1a2535); } " +
+                        "  Label #ItemName { FlexWeight: 1; Anchor: (Left: 6); Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center); } " +
                         "  Label #ItemQty { Anchor: (Width: 60); Style: (FontSize: 11, TextColor: #66bb6a, RenderBold: true, VerticalAlignment: Center); } " +
-                        "  TextButton #RemoveItemBtn { Anchor: (Width: 40, Left: 3, Height: 22); " +
-                        "    Style: TextButtonStyle(Default: (Background: #5a2d2d, LabelStyle: (FontSize: 9, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
-                        "    Hovered: (Background: #7a3d3d, LabelStyle: (FontSize: 9, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
+                        "  Button #RemoveItemBtn { Anchor: (Width: 40, Left: 3, Height: 22); Background: (Color: #5a2d2d); " +
+                        "    Label { Style: (FontSize: 9, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center); } } " +
                         "}");
 
                     cmd.set("#" + itemRowId + " #ItemName.Text", formatBlockName(item.itemId));
                     cmd.set("#" + itemRowId + " #ItemQty.Text", "x" + item.quantity);
-                    cmd.set("#" + itemRowId + " #RemoveItemBtn.Text", "X");
+                    cmd.set("#" + itemRowId + " #RemoveItemBtn Label.Text", "X");
+
+                    // Item icon
+                    try {
+                        String iconId = item.itemId;
+                        if (!iconId.contains(":")) iconId = "minecraft:" + iconId;
+                        cmd.setObject("#" + itemRowId + "Icon", new ItemStack(iconId, 1));
+                    } catch (Exception ignored) {}
 
                     final int finalItemIdx = itemIdx;
                     event.addEventBinding(CustomUIEventBindingType.Activating, "#" + itemRowId + " #RemoveItemBtn",
@@ -169,11 +176,10 @@ public class KitConfigPage extends InteractiveCustomUIPage<KitConfigPage.PageDat
                 String addRowId = "AddItemRow" + index;
                 cmd.appendInline("#KitList",
                     "Group #" + addRowId + " { Anchor: (Height: 28); LayoutMode: Left; Padding: (Left: 40, Right: 5); Background: (Color: #0d2520); " +
-                    "  TextButton #AddItemBtn { Anchor: (Width: 120, Height: 24); " +
-                    "    Style: TextButtonStyle(Default: (Background: #2d5a2d, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
-                    "    Hovered: (Background: #3d7a3d, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
+                    "  Button #AddItemBtn { Anchor: (Width: 120, Height: 24); Background: (Color: #2d5a2d); " +
+                    "    Label { Style: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center); } } " +
                     "}");
-                cmd.set("#" + addRowId + " #AddItemBtn.Text", "+ AJOUTER ITEM");
+                cmd.set("#" + addRowId + " #AddItemBtn Label.Text", "+ AJOUTER ITEM");
 
                 event.addEventBinding(CustomUIEventBindingType.Activating, "#" + addRowId + " #AddItemBtn",
                     EventData.of("Action", "showAddItem").append("KitId", kit.id), false);

@@ -178,6 +178,21 @@ public class MineManager {
     // === Mine Reset ===
 
     /**
+     * Calcule le temps restant en secondes avant le prochain check de reset.
+     * Retourne -1 si la mine n'a pas d'auto-reset actif.
+     */
+    public long getSecondsUntilNextCheck(@NotNull Mine mine) {
+        if (!mine.isAutoReset() || !mine.isConfigured()) return -1;
+
+        long intervalMs = plugin.getConfig().getMineResetInterval() * 60L * 1000L;
+        long elapsed = System.currentTimeMillis() - mine.getLastResetTime();
+        long remaining = intervalMs - elapsed;
+
+        if (remaining <= 0) return 0;
+        return remaining / 1000;
+    }
+
+    /**
      * Planifie le reset automatique d'une mine.
      */
     private void scheduleReset(@NotNull Mine mine) {

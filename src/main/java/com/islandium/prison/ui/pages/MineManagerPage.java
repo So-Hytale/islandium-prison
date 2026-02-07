@@ -179,6 +179,9 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
         cmd.set("#AutoResetCheck.Text", mine.isAutoReset() ? "X" : "");
         cmd.set("#UseLayersCheck.Text", mine.isUseLayerComposition() ? "X" : "");
 
+        // Village Margin
+        cmd.set("#VillageMarginField.Value", String.valueOf(mine.getVillageMargin()));
+
         // Stats
         cmd.set("#TotalBlocksLabel.Text", String.valueOf(mine.getTotalBlocks()));
         cmd.set("#RemainingBlocksLabel.Text", String.valueOf(mine.getRemainingBlocks()));
@@ -209,6 +212,7 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
         event.addEventBinding(CustomUIEventBindingType.Activating, "#UseLayersCheckbox", EventData.of("Toggle", "useLayers"), false);
         event.addEventBinding(CustomUIEventBindingType.ValueChanged, "#DisplayNameField", EventData.of("@DisplayName", "#DisplayNameField.Value"), false);
         event.addEventBinding(CustomUIEventBindingType.ValueChanged, "#RequiredRankField", EventData.of("@RequiredRank", "#RequiredRankField.Value"), false);
+        event.addEventBinding(CustomUIEventBindingType.ValueChanged, "#VillageMarginField", EventData.of("@VillageMargin", "#VillageMarginField.Value"), false);
 
         // Events actions
         event.addEventBinding(CustomUIEventBindingType.Activating, "#ResetMineButton", EventData.of("Action", "resetMine"), false);
@@ -216,6 +220,7 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
         event.addEventBinding(CustomUIEventBindingType.Activating, "#ScanMineButton", EventData.of("Action", "scanMine"), false);
         event.addEventBinding(CustomUIEventBindingType.Activating, "#TeleportButton", EventData.of("Action", "teleport"), false);
         event.addEventBinding(CustomUIEventBindingType.Activating, "#VisualizeButton", EventData.of("Action", "visualize"), false);
+        event.addEventBinding(CustomUIEventBindingType.Activating, "#VisualizeVillageButton", EventData.of("Action", "visualizeVillage"), false);
         event.addEventBinding(CustomUIEventBindingType.Activating, "#SaveButton", new EventData(Map.of(
                 "Action", "saveMine",
                 "@Radius", "#RadiusField.Value",
@@ -569,6 +574,21 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
             return;
         }
 
+        // Modification du villageMargin (via ValueChanged sur #VillageMarginField)
+        if (data.villageMargin != null && !data.villageMargin.isBlank() && selectedMineId != null && data.action == null) {
+            Mine mine = plugin.getMineManager().getMine(selectedMineId);
+            if (mine != null) {
+                try {
+                    int margin = Integer.parseInt(data.villageMargin);
+                    if (margin != mine.getVillageMargin() && margin >= 0) {
+                        mine.setVillageMargin(margin);
+                        plugin.getMineManager().saveMine(mine);
+                    }
+                } catch (NumberFormatException ignored) {}
+            }
+            return;
+        }
+
         // Actions
         if (data.action != null) {
             handleAction(data, player, playerRef, cmd, event);
@@ -854,6 +874,19 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                 }
             }
 
+            case "visualizeVillage" -> {
+                if (selectedMineId != null) {
+                    Mine mine = plugin.getMineManager().getMine(selectedMineId);
+                    if (mine != null && mine.hasVillageZone()) {
+                        clearVisualization(player);
+                        sendVillageVisualization(player, mine);
+                        player.sendMessage(Message.raw("[Prison] Visualisation village activee (5 min)."));
+                    } else {
+                        player.sendMessage(Message.raw("[Prison] Village margin est a 0 pour cette mine."));
+                    }
+                }
+            }
+
             case "saveMine" -> {
                 if (selectedMineId != null) {
                     Mine mine = plugin.getMineManager().getMine(selectedMineId);
@@ -989,6 +1022,8 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
 
     // Couleur de la zone (orange)
     private static final Vector3f MINE_COLOR = new Vector3f(1.0f, 0.6f, 0.2f);
+    // Couleur de la zone village (violet)
+    private static final Vector3f VILLAGE_COLOR = new Vector3f(0.6f, 0.2f, 0.8f);
     // Durée d'affichage en secondes (5 minutes)
     private static final float DISPLAY_DURATION = 300.0f;
     // Épaisseur des lignes
@@ -1257,6 +1292,149 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
         );
     }
 
+    // ==================== Visualisation Zone Village (murs pleins violets) ====================
+
+    /**
+     * Envoie la visualisation de la zone village au joueur.
+     * Murs solides, violet, de Y=0 à Y=256.
+     */
+    @SuppressWarnings("deprecation")
+    private void sendVillageVisualization(Player player, Mine mine) {
+        var connection = player.getPlayerConnection();
+        if (connection == null) return;
+
+        // Effacer anciennes formes
+        connection.write(new ClearDebugShapes());
+
+        int margin = mine.getVillageMargin();
+        if (margin <= 0) return;
+
+        List<DisplayDebug> packets = new ArrayList<>();
+
+        if (mine.isCylindrical()) {
+            packets.addAll(buildCylinderVillageWalls(mine, margin));
+        } else {
+            packets.addAll(buildCuboidVillageWalls(mine, margin));
+        }
+
+        for (DisplayDebug packet : packets) {
+            connection.write(packet);
+        }
+
+        player.sendMessage(Message.raw("[Prison] Village: " + packets.size() + " elements affiches."));
+    }
+
+    /**
+     * Construit 4 murs solides pour la zone village cuboid.
+     * Les murs vont de Y=0 à Y=256 (murs "rideaux").
+     */
+    private List<DisplayDebug> buildCuboidVillageWalls(Mine mine, int margin) {
+        List<DisplayDebug> packets = new ArrayList<>();
+
+        ServerLocation c1 = mine.getCorner1();
+        ServerLocation c2 = mine.getCorner2();
+        if (c1 == null || c2 == null) return packets;
+
+        double minX = Math.min(c1.x(), c2.x()) - margin;
+        double maxX = Math.max(c1.x(), c2.x()) + margin + 1;
+        double minZ = Math.min(c1.z(), c2.z()) - margin;
+        double maxZ = Math.max(c1.z(), c2.z()) + margin + 1;
+
+        double wallMinY = 0;
+        double wallMaxY = 256;
+        double wallHeight = wallMaxY - wallMinY;
+        double wallCenterY = wallMinY + wallHeight / 2.0;
+        double wallThickness = 0.15;
+
+        double sizeX = maxX - minX;
+        double sizeZ = maxZ - minZ;
+
+        // Mur Nord (Z min)
+        packets.add(createVillageEdge(minX + sizeX / 2, wallCenterY, minZ, sizeX, wallHeight, wallThickness));
+        // Mur Sud (Z max)
+        packets.add(createVillageEdge(minX + sizeX / 2, wallCenterY, maxZ, sizeX, wallHeight, wallThickness));
+        // Mur Ouest (X min)
+        packets.add(createVillageEdge(minX, wallCenterY, minZ + sizeZ / 2, wallThickness, wallHeight, sizeZ));
+        // Mur Est (X max)
+        packets.add(createVillageEdge(maxX, wallCenterY, minZ + sizeZ / 2, wallThickness, wallHeight, sizeZ));
+
+        return packets;
+    }
+
+    /**
+     * Construit des piliers verticaux sur le contour de la zone village cylindrique.
+     * Chaque bloc de contour a un pilier allant de Y=0 à Y=256.
+     */
+    private List<DisplayDebug> buildCylinderVillageWalls(Mine mine, int margin) {
+        List<DisplayDebug> packets = new ArrayList<>();
+
+        ServerLocation center = mine.getCenter();
+        if (center == null) return packets;
+
+        int cx = (int) Math.floor(center.x());
+        int cz = (int) Math.floor(center.z());
+
+        int expandedRadius = mine.getRadius() + margin;
+        int halfW = expandedRadius;
+        int halfH = expandedRadius;
+        double rX = halfW + mine.getRadiusAdjust();
+        double rZ = halfH + mine.getRadiusAdjust();
+        double rXSq = rX * rX;
+        double rZSq = rZ * rZ;
+
+        double wallMinY = 0;
+        double wallMaxY = 256;
+        double wallHeight = wallMaxY - wallMinY;
+        double wallCenterY = wallMinY + wallHeight / 2.0;
+
+        for (int dz = -halfH; dz <= halfH; dz++) {
+            for (int dx = -halfW; dx <= halfW; dx++) {
+                double distSq = (dx * dx) / rXSq + (dz * dz) / rZSq;
+                if (distSq >= 1.0) continue;
+
+                // Vérifier si c'est un bloc de contour
+                boolean isEdge = false;
+                for (int[] offset : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                    int nx = dx + offset[0];
+                    int nz = dz + offset[1];
+                    double nDistSq = (nx * nx) / rXSq + (nz * nz) / rZSq;
+                    if (nDistSq >= 1.0) {
+                        isEdge = true;
+                        break;
+                    }
+                }
+
+                if (isEdge) {
+                    double bx = cx + dx + 0.5;
+                    double bz = cz + dz + 0.5;
+                    // Pilier vertical de Y=0 à Y=256 (1 bloc de large)
+                    packets.add(createVillageEdge(bx, wallCenterY, bz, 0.3, wallHeight, 0.3));
+                }
+            }
+        }
+
+        return packets;
+    }
+
+    /**
+     * Crée un packet DisplayDebug pour un mur/pilier village (violet).
+     */
+    private DisplayDebug createVillageEdge(double x, double y, double z, double scaleX, double scaleY, double scaleZ) {
+        Matrix4d matrix = new Matrix4d()
+                .identity()
+                .translate(x, y, z)
+                .scale(scaleX, scaleY, scaleZ);
+
+        return new DisplayDebug(
+                DebugShape.Cube,
+                matrix.asFloatData(),
+                VILLAGE_COLOR,
+                DISPLAY_DURATION,
+                true,
+                null
+        );
+    }
+
     public static class PageData {
         public static final BuilderCodec<PageData> CODEC = BuilderCodec.builder(PageData.class, PageData::new)
                 .addField(new KeyedCodec<>("Action", Codec.STRING), (d, v) -> d.action = v, d -> d.action)
@@ -1281,6 +1459,8 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                 .addField(new KeyedCodec<>("@Radius", Codec.STRING), (d, v) -> d.radius = v, d -> d.radius)
                 .addField(new KeyedCodec<>("@Height", Codec.STRING), (d, v) -> d.height = v, d -> d.height)
                 .addField(new KeyedCodec<>("@RadiusAdjust", Codec.STRING), (d, v) -> d.radiusAdjust = v, d -> d.radiusAdjust)
+                // Village
+                .addField(new KeyedCodec<>("@VillageMargin", Codec.STRING), (d, v) -> d.villageMargin = v, d -> d.villageMargin)
                 .build();
 
         public String action;
@@ -1305,6 +1485,8 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
         public String radius;
         public String height;
         public String radiusAdjust;
+        // Village
+        public String villageMargin;
     }
 }
 

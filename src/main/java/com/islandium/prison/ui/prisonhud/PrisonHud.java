@@ -98,8 +98,24 @@ public class PrisonHud extends CustomUIHud {
         cmd.set("#MineValue.Text", mineName);
         if (mineName.equals("Aucune") || mineName.equals("---")) {
             cmd.set("#MineValue.Style.TextColor", "#8090a0");
+        } else if (mineName.startsWith("Village ")) {
+            cmd.set("#MineValue.Style.TextColor", "#b388ff");
         } else {
             cmd.set("#MineValue.Style.TextColor", "#4dd0e1");
+        }
+
+        // Timer de reset mine
+        Mine currentMine = getCurrentMine();
+        if (currentMine != null && currentMine.isAutoReset()) {
+            long secondsRemaining = plugin.getMineManager().getSecondsUntilNextCheck(currentMine);
+            if (secondsRemaining >= 0) {
+                cmd.set("#TimerRow.Visible", true);
+                cmd.set("#TimerValue.Text", formatTimer(secondsRemaining));
+            } else {
+                cmd.set("#TimerRow.Visible", false);
+            }
+        } else {
+            cmd.set("#TimerRow.Visible", false);
         }
 
         // Balance (avec $)
@@ -240,8 +256,24 @@ public class PrisonHud extends CustomUIHud {
             cmd.set("#MineValue.TextSpans", Message.raw(mineName));
             if (mineName.equals("Aucune") || mineName.equals("---")) {
                 cmd.set("#MineValue.Style.TextColor", "#8090a0");
+            } else if (mineName.startsWith("Village ")) {
+                cmd.set("#MineValue.Style.TextColor", "#b388ff");
             } else {
                 cmd.set("#MineValue.Style.TextColor", "#4dd0e1");
+            }
+
+            // Timer de reset
+            Mine currentMine = getCurrentMine();
+            if (currentMine != null && currentMine.isAutoReset()) {
+                long secondsRemaining = plugin.getMineManager().getSecondsUntilNextCheck(currentMine);
+                if (secondsRemaining >= 0) {
+                    cmd.set("#TimerRow.Visible", true);
+                    cmd.set("#TimerValue.TextSpans", Message.raw(formatTimer(secondsRemaining)));
+                } else {
+                    cmd.set("#TimerRow.Visible", false);
+                }
+            } else {
+                cmd.set("#TimerRow.Visible", false);
             }
 
             // Multiplicateur
@@ -321,6 +353,31 @@ public class PrisonHud extends CustomUIHud {
         return sb.toString();
     }
 
+    /**
+     * Retourne la mine dans laquelle le joueur est actuellement, ou null.
+     */
+    private Mine getCurrentMine() {
+        try {
+            IslandiumPlayer islandiumPlayer = plugin.getCore().getPlayerManager()
+                    .getOnlinePlayer(playerUuid)
+                    .orElse(null);
+
+            if (islandiumPlayer == null) return null;
+
+            ServerLocation loc = islandiumPlayer.getLocation();
+            if (loc == null) return null;
+
+            for (Mine mine : plugin.getMineManager().getAllMines()) {
+                if (mine.contains(loc)) {
+                    return mine;
+                }
+            }
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private String getCurrentMineName() {
         try {
             IslandiumPlayer islandiumPlayer = plugin.getCore().getPlayerManager()
@@ -332,11 +389,20 @@ public class PrisonHud extends CustomUIHud {
             ServerLocation loc = islandiumPlayer.getLocation();
             if (loc == null) return "---";
 
+            // D'abord vérifier si dans une mine
             for (Mine mine : plugin.getMineManager().getAllMines()) {
                 if (mine.contains(loc)) {
                     return mine.getDisplayName();
                 }
             }
+
+            // Sinon vérifier si dans une zone village
+            for (Mine mine : plugin.getMineManager().getAllMines()) {
+                if (mine.containsVillage(loc)) {
+                    return "Village " + mine.getDisplayName();
+                }
+            }
+
             return "Aucune";
         } catch (Exception e) {
             return "---";
@@ -381,6 +447,22 @@ public class PrisonHud extends CustomUIHud {
         } else {
             return "$" + BALANCE_FORMAT.format(value);
         }
+    }
+
+    /**
+     * Formate un nombre de secondes en timer lisible.
+     * Si < 1h: MM:SS
+     * Si >= 1h: HH:MM:SS
+     */
+    private String formatTimer(long totalSeconds) {
+        if (totalSeconds <= 0) return "Imminent";
+        long hours = totalSeconds / 3600;
+        long minutes = (totalSeconds % 3600) / 60;
+        long seconds = totalSeconds % 60;
+        if (hours > 0) {
+            return String.format("%d:%02d:%02d", hours, minutes, seconds);
+        }
+        return String.format("%d:%02d", minutes, seconds);
     }
 
     /**
