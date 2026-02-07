@@ -32,7 +32,7 @@ public class PrisonConfig {
             String content = Files.readString(path);
             this.data = GSON.fromJson(content, ConfigData.class);
         } else {
-            //this.data = createDefault();
+            this.data = createDefault();
             save();
         }
     }
