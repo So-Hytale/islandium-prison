@@ -194,10 +194,9 @@ public class KitPage extends InteractiveCustomUIPage<KitPage.PageData> {
                 "Group { Anchor: (Height: 40, Top: 10); LayoutMode: Left; " +
                 "  Group { FlexWeight: 1; } " +
                 "  Button #AdminConfigBtn { Anchor: (Width: 180, Height: 32); Background: (Color: #2d4a5a); " +
-                "    Label { Style: (FontSize: 12, TextColor: #ffd700, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center); } } " +
+                "    Label #AdminConfigBtnLbl { Text: \"CONFIG ADMIN\"; Style: (FontSize: 12, TextColor: #ffd700, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center); } } " +
                 "  Group { FlexWeight: 1; } " +
                 "}");
-            cmd.set("#AdminConfigBtn Label.Text", "CONFIG ADMIN");
             event.addEventBinding(CustomUIEventBindingType.Activating, "#AdminConfigBtn",
                 EventData.of("Action", "openKitConfig"), false);
         }
@@ -217,10 +216,10 @@ public class KitPage extends InteractiveCustomUIPage<KitPage.PageData> {
         String color = kit.color != null ? kit.color : "#4fc3f7";
 
         // Kit name
+        String kitNameText = kit.displayName != null ? kit.displayName : kit.id;
         cmd.appendInline("#PageContent",
-            "Label { Anchor: (Height: 35); " +
+            "Label #KitNameLabel { Anchor: (Height: 35); Text: \"" + kitNameText.replace("\"", "'") + "\"; " +
             "Style: (FontSize: 18, TextColor: " + color + ", RenderBold: true, VerticalAlignment: Center); }" );
-        cmd.set("#PageContent[0] Label.Text", kit.displayName != null ? kit.displayName : kit.id);
 
         // Description
         if (kit.description != null && !kit.description.isEmpty()) {
@@ -316,10 +315,9 @@ public class KitPage extends InteractiveCustomUIPage<KitPage.PageData> {
                 "Group { Anchor: (Height: 55, Top: 10); LayoutMode: Left; " +
                 "  Group { FlexWeight: 1; } " +
                 "  Button #ClaimBtn { Anchor: (Width: 220, Height: 45); Background: (Color: #2a5f2a); " +
-                "    Label { Style: (FontSize: 16, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center); } } " +
+                "    Label #ClaimBtnLbl { Text: \"RECLAMER\"; Style: (FontSize: 16, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center); } } " +
                 "  Group { FlexWeight: 1; } " +
                 "}");
-            cmd.set("#ClaimBtn Label.Text", "RECLAMER");
             event.addEventBinding(CustomUIEventBindingType.Activating, "#ClaimBtn",
                 EventData.of("Action", "claimKit").append("KitId", kitId), false);
         }
