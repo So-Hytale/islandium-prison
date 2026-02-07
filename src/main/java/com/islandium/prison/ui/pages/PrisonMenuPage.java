@@ -55,61 +55,33 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         // Back button event
         event.addEventBinding(CustomUIEventBindingType.Activating, "#BackBtn", EventData.of("Action", "back"), false);
 
-        buildHub(cmd, event);
+        // Hub card events (grille definie dans le .ui)
+        event.addEventBinding(CustomUIEventBindingType.Activating, "#CardMines", EventData.of("Navigate", "mines"), false);
+        event.addEventBinding(CustomUIEventBindingType.Activating, "#CardRang", EventData.of("Navigate", "rang"), false);
+        event.addEventBinding(CustomUIEventBindingType.Activating, "#CardUpgrades", EventData.of("Navigate", "upgrades"), false);
+        event.addEventBinding(CustomUIEventBindingType.Activating, "#CardVendre", EventData.of("Navigate", "vendre"), false);
+        event.addEventBinding(CustomUIEventBindingType.Activating, "#CardClassement", EventData.of("Navigate", "classement"), false);
+        event.addEventBinding(CustomUIEventBindingType.Activating, "#CardCellule", EventData.of("Navigate", "cellule"), false);
+
+        // Hub visible par defaut, PageContent masque
+        showHub(cmd);
     }
 
     // =========================================
-    // HUB - Page d'accueil avec les 6 boutons
+    // HUB - Toggle visibilite
     // =========================================
 
-    private void buildHub(UICommandBuilder cmd, UIEventBuilder event) {
-        cmd.clear("#PageContent");
+    private void showHub(UICommandBuilder cmd) {
+        cmd.set("#HubGrid.Visible", true);
+        cmd.set("#PageContent.Visible", false);
         cmd.set("#HeaderTitle.Text", "PRISON");
         cmd.set("#BackBtn.Visible", false);
+    }
 
-        // 6 boutons
-        String[][] buttons = {
-            {"mines",      "MINES",       "Teleportation vers les mines",      "#4fc3f7"},
-            {"rang",       "RANG",        "Progression et rankup",             "#ffd700"},
-            {"upgrades",   "UPGRADES",    "Ameliorations de pioche",           "#ab47bc"},
-            {"vendre",     "VENDRE",      "Vendre les blocs de l'inventaire",  "#66bb6a"},
-            {"classement", "CLASSEMENT",  "Top joueurs",                       "#ef5350"},
-            {"cellule",    "CELLULE",     "Gestion de cellule",                "#8d6e63"},
-        };
-
-        for (int i = 0; i < buttons.length; i++) {
-            String id = buttons[i][0];
-            String label = buttons[i][1];
-            String desc = buttons[i][2];
-            String color = buttons[i][3];
-            String selector = "#PageContent[" + i + "]";
-
-            cmd.appendInline("#PageContent",
-                "Group { Anchor: (Height: 78); " +
-                "  Button #CardBtn { " +
-                "    Anchor: (Height: 70); " +
-                "    Background: (Color: #151d28); " +
-                "    Padding: (Horizontal: 15); " +
-                "    Label #CardName { " +
-                "      Anchor: (Height: 35, Top: 8); " +
-                "      Style: (FontSize: 16, RenderBold: true, RenderUppercase: true, VerticalAlignment: Center); " +
-                "    } " +
-                "    Label #CardDesc { " +
-                "      Anchor: (Height: 20, Top: 43); " +
-                "      Style: (FontSize: 12, TextColor: #7c8b99); " +
-                "    } " +
-                "  } " +
-                "}");
-
-            cmd.set(selector + " #CardBtn #CardName.Text", label);
-            cmd.set(selector + " #CardBtn #CardName.Style.TextColor", color);
-            cmd.set(selector + " #CardBtn #CardDesc.Text", desc);
-
-            event.addEventBinding(CustomUIEventBindingType.Activating,
-                selector + " #CardBtn",
-                EventData.of("Navigate", id),
-                false);
-        }
+    private void showSubPage(UICommandBuilder cmd) {
+        cmd.set("#HubGrid.Visible", false);
+        cmd.set("#PageContent.Visible", true);
+        cmd.set("#BackBtn.Visible", true);
     }
 
     // =========================================
@@ -117,9 +89,9 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
     // =========================================
 
     private void buildMinesPage(UICommandBuilder cmd, UIEventBuilder event) {
+        showSubPage(cmd);
         cmd.clear("#PageContent");
         cmd.set("#HeaderTitle.Text", "MINES");
-        cmd.set("#BackBtn.Visible", true);
 
         UUID uuid = playerRef.getUuid();
         String playerRank = plugin.getRankManager().getPlayerRank(uuid);
@@ -182,9 +154,9 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
     // =========================================
 
     private void buildRangPage(UICommandBuilder cmd, UIEventBuilder event) {
+        showSubPage(cmd);
         cmd.clear("#PageContent");
         cmd.set("#HeaderTitle.Text", "RANG");
-        cmd.set("#BackBtn.Visible", true);
 
         UUID uuid = playerRef.getUuid();
         String currentRank = plugin.getRankManager().getPlayerRank(uuid);
@@ -257,9 +229,9 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
     // =========================================
 
     private void buildUpgradesPage(UICommandBuilder cmd, UIEventBuilder event) {
+        showSubPage(cmd);
         cmd.clear("#PageContent");
         cmd.set("#HeaderTitle.Text", "UPGRADES");
-        cmd.set("#BackBtn.Visible", true);
 
         UUID uuid = playerRef.getUuid();
         PickaxeUpgradeManager upgradeManager = plugin.getUpgradeManager();
@@ -370,9 +342,9 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
     // =========================================
 
     private void buildClassementPage(UICommandBuilder cmd, UIEventBuilder event) {
+        showSubPage(cmd);
         cmd.clear("#PageContent");
         cmd.set("#HeaderTitle.Text", "CLASSEMENT");
-        cmd.set("#BackBtn.Visible", true);
 
         Map<UUID, PlayerStatsManager.PlayerStatsData> allStats = plugin.getStatsManager().getAllStats();
 
@@ -447,9 +419,9 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
     // =========================================
 
     private void buildCellulePage(UICommandBuilder cmd, UIEventBuilder event) {
+        showSubPage(cmd);
         cmd.clear("#PageContent");
         cmd.set("#HeaderTitle.Text", "CELLULE");
-        cmd.set("#BackBtn.Visible", true);
 
         UUID uuid = playerRef.getUuid();
         var cellManager = plugin.getCellManager();
@@ -533,7 +505,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         // Bouton retour
         if (data.action != null && data.action.equals("back")) {
             currentPage = "hub";
-            buildHub(cmd, event);
+            showHub(cmd);
             sendUpdate(cmd, event, false);
             return;
         }
