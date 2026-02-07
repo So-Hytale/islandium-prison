@@ -169,6 +169,19 @@ public class SellConfigPage extends InteractiveCustomUIPage<SellConfigPage.PageD
             case "showAdd" -> {
                 addMode = true;
                 cmd.set("#AddForm.Visible", true);
+                // Auto-fill block ID from main hand
+                var inv = player.getInventory();
+                if (inv != null) {
+                    var mainHand = inv.getItemInHand();
+                    if (mainHand != null && !mainHand.isEmpty()) {
+                        String itemId = mainHand.getItemId();
+                        // Remove "minecraft:" prefix for cleaner display
+                        if (itemId.startsWith("minecraft:")) {
+                            itemId = itemId.substring("minecraft:".length());
+                        }
+                        cmd.set("#NewBlockIdField.Value", itemId);
+                    }
+                }
                 sendUpdate(cmd, event, false);
                 return;
             }

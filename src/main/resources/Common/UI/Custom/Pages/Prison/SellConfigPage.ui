@@ -101,7 +101,7 @@ $C.@PageOverlay {
 
                 $C.@TextField #NewBlockIdField {
                     Anchor: (Width: 200, Height: 30);
-                    PlaceholderText: "minecraft:block_id";
+                    PlaceholderText: "block_id";
                 }
 
                 Label {

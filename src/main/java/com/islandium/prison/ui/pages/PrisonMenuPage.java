@@ -472,6 +472,26 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
             "}");
         cmd.set("#SellAllBtn.Text", "VENDRE TOUT");
         event.addEventBinding(CustomUIEventBindingType.Activating, "#SellAllBtn", EventData.of("Action", "sellAll"), false);
+
+        // Bouton admin config (visible uniquement pour les admins)
+        boolean isAdmin = false;
+        try {
+            var perms = com.hypixel.hytale.server.core.permissions.PermissionsModule.get();
+            isAdmin = perms.getGroupsForUser(uuid).contains("OP") || perms.hasPermission(uuid, "prison.admin");
+        } catch (Exception ignored) {}
+
+        if (isAdmin) {
+            cmd.appendInline("#PageContent",
+                "Group { Anchor: (Height: 40, Top: 5); LayoutMode: Left; " +
+                "  Group { FlexWeight: 1; } " +
+                "  TextButton #AdminConfigBtn { Anchor: (Width: 180, Height: 32); " +
+                "    Style: TextButtonStyle(Default: (Background: #2d4a5a, LabelStyle: (FontSize: 12, TextColor: #ffd700, RenderBold: true, VerticalAlignment: Center)), " +
+                "    Hovered: (Background: #3d5a6a, LabelStyle: (FontSize: 12, TextColor: #ffd700, RenderBold: true, VerticalAlignment: Center))); } " +
+                "  Group { FlexWeight: 1; } " +
+                "}");
+            cmd.set("#AdminConfigBtn.Text", "CONFIG ADMIN");
+            event.addEventBinding(CustomUIEventBindingType.Activating, "#AdminConfigBtn", EventData.of("Action", "openSellConfig"), false);
+        }
     }
 
     private Map<String, Integer> scanSellableInventory(Player player, Map<String, BigDecimal> blockValues) {
@@ -709,6 +729,10 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         // Actions
         if (data.action != null) {
             switch (data.action) {
+                case "openSellConfig" -> {
+                    plugin.getUIManager().openSellConfig(player);
+                    return;
+                }
                 case "sellAll" -> {
                     SellService.SellResult result = plugin.getSellService().sellFromInventory(uuid, player, null);
                     if (result.isEmpty()) {
