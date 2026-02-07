@@ -66,6 +66,12 @@ public class SellConfigPage extends InteractiveCustomUIPage<SellConfigPage.PageD
         event.addEventBinding(CustomUIEventBindingType.Activating, "#CancelAddBtn",
             EventData.of("Action", "cancelAdd"), false);
 
+        // Edit form events (fixed form in .ui)
+        event.addEventBinding(CustomUIEventBindingType.Activating, "#SaveEditBtn",
+            EventData.of("Action", "saveEdit").append("@EditPrice", "#EditPriceField.Value"), false);
+        event.addEventBinding(CustomUIEventBindingType.Activating, "#CancelEditBtn",
+            EventData.of("Action", "cancelEdit"), false);
+
         // Set initial multiplier value
         double currentMult = plugin.getConfig().getBlockSellMultiplier();
         cmd.set("#MultiplierField.Value", String.valueOf(currentMult));
@@ -101,59 +107,31 @@ public class SellConfigPage extends InteractiveCustomUIPage<SellConfigPage.PageD
             String blockId = entry.getKey();
             BigDecimal price = entry.getValue();
             boolean isEditing = blockId.equals(editingBlockId);
-            String bgColor = index % 2 == 0 ? "#111b27" : "#151d28";
+            String bgColor = isEditing ? "#1a2a3a" : (index % 2 == 0 ? "#111b27" : "#151d28");
+            String nameColor = isEditing ? "#4fc3f7" : "#ffffff";
             String rowId = "BlockRow" + index;
 
-            if (isEditing) {
-                // Mode edition: NumberField + boutons sauver/annuler
-                cmd.appendInline("#BlockList",
-                    "Group #" + rowId + " { Anchor: (Height: 35); LayoutMode: Left; Padding: (Horizontal: 5); Background: (Color: #1a2a3a); " +
-                    "  Label #BName { FlexWeight: 1; Style: (FontSize: 12, TextColor: #4fc3f7, RenderBold: true, VerticalAlignment: Center); } " +
-                    "  NumberField #EditPriceField { Anchor: (Width: 100, Height: 28); PlaceholderText: \"Prix\"; " +
-                    "    Style: TextFieldStyle(Default: (Background: #0a1a2a, LabelStyle: (FontSize: 12, TextColor: #ffffff, VerticalAlignment: Center)), " +
-                    "    Focused: (Background: #0a2a3a, LabelStyle: (FontSize: 12, TextColor: #ffffff, VerticalAlignment: Center))); } " +
-                    "  TextButton #SaveEditBtn { Anchor: (Width: 65, Left: 5, Height: 28); " +
-                    "    Style: TextButtonStyle(Default: (Background: #2d5a2d, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
-                    "    Hovered: (Background: #3d7a3d, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
-                    "  TextButton #CancelEditBtn { Anchor: (Width: 65, Left: 3, Height: 28); " +
-                    "    Style: TextButtonStyle(Default: (Background: #5a2d2d, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
-                    "    Hovered: (Background: #7a3d3d, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
-                    "}");
+            cmd.appendInline("#BlockList",
+                "Group #" + rowId + " { Anchor: (Height: 32); LayoutMode: Left; Padding: (Horizontal: 5); Background: (Color: " + bgColor + "); " +
+                "  Label #BName { FlexWeight: 1; Style: (FontSize: 12, TextColor: " + nameColor + ", VerticalAlignment: Center" + (isEditing ? ", RenderBold: true" : "") + "); } " +
+                "  Label #BPrice { Anchor: (Width: 100); Style: (FontSize: 12, TextColor: #66bb6a, RenderBold: true, VerticalAlignment: Center); } " +
+                "  TextButton #EditBtn { Anchor: (Width: 55, Left: 5, Height: 26); " +
+                "    Style: TextButtonStyle(Default: (Background: #2d4a5a, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
+                "    Hovered: (Background: #3d5a6a, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
+                "  TextButton #DeleteBtn { Anchor: (Width: 55, Left: 3, Height: 26); " +
+                "    Style: TextButtonStyle(Default: (Background: #5a2d2d, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
+                "    Hovered: (Background: #7a3d3d, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
+                "}");
 
-                cmd.set("#" + rowId + " #BName.Text", formatBlockName(blockId));
-                cmd.set("#" + rowId + " #EditPriceField.Value", price.doubleValue());
-                cmd.set("#" + rowId + " #SaveEditBtn.Text", "SAUVER");
-                cmd.set("#" + rowId + " #CancelEditBtn.Text", "ANNULER");
+            cmd.set("#" + rowId + " #BName.Text", formatBlockName(blockId) + (isEditing ? " [en edition]" : ""));
+            cmd.set("#" + rowId + " #BPrice.Text", price.setScale(2, RoundingMode.HALF_UP) + "$");
+            cmd.set("#" + rowId + " #EditBtn.Text", "EDIT");
+            cmd.set("#" + rowId + " #DeleteBtn.Text", "SUPPR");
 
-                event.addEventBinding(CustomUIEventBindingType.Activating, "#" + rowId + " #SaveEditBtn",
-                    EventData.of("Action", "saveEdit").append("BlockId", blockId)
-                        .append("@BlockPrice", "#" + rowId + " #EditPriceField.Value"), false);
-                event.addEventBinding(CustomUIEventBindingType.Activating, "#" + rowId + " #CancelEditBtn",
-                    EventData.of("Action", "cancelEdit"), false);
-            } else {
-                // Mode normal: nom, prix, boutons edit/suppr
-                cmd.appendInline("#BlockList",
-                    "Group #" + rowId + " { Anchor: (Height: 32); LayoutMode: Left; Padding: (Horizontal: 5); Background: (Color: " + bgColor + "); " +
-                    "  Label #BName { FlexWeight: 1; Style: (FontSize: 12, TextColor: #ffffff, VerticalAlignment: Center); } " +
-                    "  Label #BPrice { Anchor: (Width: 100); Style: (FontSize: 12, TextColor: #66bb6a, RenderBold: true, VerticalAlignment: Center); } " +
-                    "  TextButton #EditBtn { Anchor: (Width: 55, Left: 5, Height: 26); " +
-                    "    Style: TextButtonStyle(Default: (Background: #2d4a5a, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
-                    "    Hovered: (Background: #3d5a6a, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
-                    "  TextButton #DeleteBtn { Anchor: (Width: 55, Left: 3, Height: 26); " +
-                    "    Style: TextButtonStyle(Default: (Background: #5a2d2d, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
-                    "    Hovered: (Background: #7a3d3d, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
-                    "}");
-
-                cmd.set("#" + rowId + " #BName.Text", formatBlockName(blockId));
-                cmd.set("#" + rowId + " #BPrice.Text", price.setScale(2, RoundingMode.HALF_UP) + "$");
-                cmd.set("#" + rowId + " #EditBtn.Text", "EDIT");
-                cmd.set("#" + rowId + " #DeleteBtn.Text", "SUPPR");
-
-                event.addEventBinding(CustomUIEventBindingType.Activating, "#" + rowId + " #EditBtn",
-                    EventData.of("Action", "editBlock").append("BlockId", blockId), false);
-                event.addEventBinding(CustomUIEventBindingType.Activating, "#" + rowId + " #DeleteBtn",
-                    EventData.of("Action", "deleteBlock").append("BlockId", blockId), false);
-            }
+            event.addEventBinding(CustomUIEventBindingType.Activating, "#" + rowId + " #EditBtn",
+                EventData.of("Action", "editBlock").append("BlockId", blockId), false);
+            event.addEventBinding(CustomUIEventBindingType.Activating, "#" + rowId + " #DeleteBtn",
+                EventData.of("Action", "deleteBlock").append("BlockId", blockId), false);
 
             index++;
         }
@@ -234,6 +212,12 @@ public class SellConfigPage extends InteractiveCustomUIPage<SellConfigPage.PageD
             case "editBlock" -> {
                 if (data.blockId != null) {
                     editingBlockId = data.blockId;
+                    BigDecimal currentPrice = plugin.getConfig().getBlockValue(data.blockId);
+                    // Show the fixed edit form and fill it
+                    cmd.set("#EditForm.Visible", true);
+                    cmd.set("#EditBlockName.Text", formatBlockName(data.blockId));
+                    cmd.set("#EditPriceField.Value", currentPrice.toPlainString());
+                    // Highlight the row in the list
                     buildBlockList(cmd, event);
                     sendUpdate(cmd, event, false);
                 }
@@ -241,22 +225,24 @@ public class SellConfigPage extends InteractiveCustomUIPage<SellConfigPage.PageD
             }
             case "cancelEdit" -> {
                 editingBlockId = null;
+                cmd.set("#EditForm.Visible", false);
                 buildBlockList(cmd, event);
                 sendUpdate(cmd, event, false);
                 return;
             }
             case "saveEdit" -> {
-                if (data.blockId != null && data.blockPrice != null) {
+                if (editingBlockId != null && data.editPrice != null) {
                     try {
-                        double price = data.blockPrice;
+                        double price = Double.parseDouble(data.editPrice);
                         if (price <= 0) {
                             player.sendMessage(Message.raw("Le prix doit etre positif!"));
                             return;
                         }
-                        plugin.getConfig().setBlockValue(data.blockId, BigDecimal.valueOf(price));
+                        plugin.getConfig().setBlockValue(editingBlockId, BigDecimal.valueOf(price));
                         saveConfig(player);
+                        player.sendMessage(Message.raw("Prix de " + formatBlockName(editingBlockId) + " mis a jour: " + price + "$"));
                         editingBlockId = null;
-                        player.sendMessage(Message.raw("Prix de " + formatBlockName(data.blockId) + " mis a jour: " + price + "$"));
+                        cmd.set("#EditForm.Visible", false);
                         buildBlockList(cmd, event);
                         sendUpdate(cmd, event, false);
                     } catch (Exception e) {
@@ -319,7 +305,7 @@ public class SellConfigPage extends InteractiveCustomUIPage<SellConfigPage.PageD
         public static final BuilderCodec<PageData> CODEC = BuilderCodec.builder(PageData.class, PageData::new)
                 .addField(new KeyedCodec<>("Action", Codec.STRING), (d, v) -> d.action = v, d -> d.action)
                 .addField(new KeyedCodec<>("BlockId", Codec.STRING), (d, v) -> d.blockId = v, d -> d.blockId)
-                .addField(new KeyedCodec<>("@BlockPrice", Codec.DOUBLE), (d, v) -> d.blockPrice = v, d -> d.blockPrice)
+                .addField(new KeyedCodec<>("@EditPrice", Codec.STRING), (d, v) -> d.editPrice = v, d -> d.editPrice)
                 .addField(new KeyedCodec<>("@Multiplier", Codec.STRING), (d, v) -> d.multiplier = v, d -> d.multiplier)
                 .addField(new KeyedCodec<>("@NewBlockId", Codec.STRING), (d, v) -> d.newBlockId = v, d -> d.newBlockId)
                 .addField(new KeyedCodec<>("@NewBlockPrice", Codec.STRING), (d, v) -> d.newBlockPrice = v, d -> d.newBlockPrice)
@@ -327,7 +313,7 @@ public class SellConfigPage extends InteractiveCustomUIPage<SellConfigPage.PageD
 
         public String action;
         public String blockId;
-        public Double blockPrice;
+        public String editPrice;
         public String multiplier;
         public String newBlockId;
         public String newBlockPrice;

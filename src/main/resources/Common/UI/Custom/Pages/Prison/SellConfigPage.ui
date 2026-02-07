@@ -148,6 +148,63 @@ $C.@PageOverlay {
                 }
             }
 
+            // Formulaire edition (masque par defaut)
+            Group #EditForm {
+                Anchor: (Height: 45);
+                LayoutMode: Left;
+                Padding: (Horizontal: 20);
+                Background: (Color: #1a2a3a);
+                Visible: false;
+
+                Label #EditBlockName {
+                    Anchor: (Width: 180);
+                    Style: (FontSize: 12, TextColor: #4fc3f7, RenderBold: true, VerticalAlignment: Center);
+                }
+
+                Label {
+                    Anchor: (Width: 70);
+                    Text: "Nouveau prix:";
+                    Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center);
+                }
+
+                $C.@TextField #EditPriceField {
+                    Anchor: (Width: 100, Height: 30);
+                    PlaceholderText: "0.0";
+                }
+
+                TextButton #SaveEditBtn {
+                    Anchor: (Width: 70, Left: 10, Height: 30);
+                    Text: "SAUVER";
+                    Style: TextButtonStyle(
+                        Default: (
+                            Background: #2d5a2d,
+                            LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                        ),
+                        Hovered: (
+                            Background: #3d7a3d,
+                            LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                        ),
+                        Sounds: $C.@ButtonSounds,
+                    );
+                }
+
+                TextButton #CancelEditBtn {
+                    Anchor: (Width: 70, Left: 5, Height: 30);
+                    Text: "ANNULER";
+                    Style: TextButtonStyle(
+                        Default: (
+                            Background: #5a2d2d,
+                            LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                        ),
+                        Hovered: (
+                            Background: #7a3d3d,
+                            LabelStyle: (FontSize: 11, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)
+                        ),
+                        Sounds: $C.@ButtonSounds,
+                    );
+                }
+            }
+
             // Header colonnes
             Group #ColumnHeader {
                 Anchor: (Height: 25);
