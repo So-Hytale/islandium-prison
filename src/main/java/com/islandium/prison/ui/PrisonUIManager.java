@@ -25,7 +25,7 @@ public class PrisonUIManager {
 
     private static final String HUD_ID = "PrisonHud";
 
-    private static final long REFRESH_INTERVAL_SECONDS = 5;
+    private static final long REFRESH_INTERVAL_SECONDS = 1;
 
     private final PrisonPlugin plugin;
     private final Map<UUID, PrisonHud> activeHuds = new ConcurrentHashMap<>();
