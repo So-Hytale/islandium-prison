@@ -85,8 +85,11 @@ $C.@PageOverlay {
                                 Padding: (Full: 12);
 
                                 Group {
-                                    Anchor: (Width: 88, Height: 88, HCenter: 0);
-                                    Background: @IconMines;
+                                    Anchor: (Height: 88);
+                                    LayoutMode: Left;
+                                    Group { FlexWeight: 1; }
+                                    Group { Anchor: (Width: 88, Height: 88); Background: @IconMines; }
+                                    Group { FlexWeight: 1; }
                                 }
 
                                 Label {
@@ -117,8 +120,11 @@ $C.@PageOverlay {
                                 Padding: (Full: 12);
 
                                 Group {
-                                    Anchor: (Width: 88, Height: 88, HCenter: 0);
-                                    Background: @IconRang;
+                                    Anchor: (Height: 88);
+                                    LayoutMode: Left;
+                                    Group { FlexWeight: 1; }
+                                    Group { Anchor: (Width: 88, Height: 88); Background: @IconRang; }
+                                    Group { FlexWeight: 1; }
                                 }
 
                                 Label {
@@ -149,8 +155,11 @@ $C.@PageOverlay {
                                 Padding: (Full: 12);
 
                                 Group {
-                                    Anchor: (Width: 88, Height: 88, HCenter: 0);
-                                    Background: @IconUpgrades;
+                                    Anchor: (Height: 88);
+                                    LayoutMode: Left;
+                                    Group { FlexWeight: 1; }
+                                    Group { Anchor: (Width: 88, Height: 88); Background: @IconUpgrades; }
+                                    Group { FlexWeight: 1; }
                                 }
 
                                 Label {
@@ -187,8 +196,11 @@ $C.@PageOverlay {
                                 Padding: (Full: 12);
 
                                 Group {
-                                    Anchor: (Width: 88, Height: 88, HCenter: 0);
-                                    Background: @IconVendre;
+                                    Anchor: (Height: 88);
+                                    LayoutMode: Left;
+                                    Group { FlexWeight: 1; }
+                                    Group { Anchor: (Width: 88, Height: 88); Background: @IconVendre; }
+                                    Group { FlexWeight: 1; }
                                 }
 
                                 Label {
@@ -219,8 +231,11 @@ $C.@PageOverlay {
                                 Padding: (Full: 12);
 
                                 Group {
-                                    Anchor: (Width: 88, Height: 88, HCenter: 0);
-                                    Background: @IconClassement;
+                                    Anchor: (Height: 88);
+                                    LayoutMode: Left;
+                                    Group { FlexWeight: 1; }
+                                    Group { Anchor: (Width: 88, Height: 88); Background: @IconClassement; }
+                                    Group { FlexWeight: 1; }
                                 }
 
                                 Label {
@@ -251,8 +266,11 @@ $C.@PageOverlay {
                                 Padding: (Full: 12);
 
                                 Group {
-                                    Anchor: (Width: 88, Height: 88, HCenter: 0);
-                                    Background: @IconCellule;
+                                    Anchor: (Height: 88);
+                                    LayoutMode: Left;
+                                    Group { FlexWeight: 1; }
+                                    Group { Anchor: (Width: 88, Height: 88); Background: @IconCellule; }
+                                    Group { FlexWeight: 1; }
                                 }
 
                                 Label {
