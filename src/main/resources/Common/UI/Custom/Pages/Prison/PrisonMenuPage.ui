@@ -85,7 +85,7 @@ $C.@PageOverlay {
                                 Padding: (Full: 12);
 
                                 Group {
-                                    Anchor: (Height: 90);
+                                    Anchor: (Width: 88, Height: 88, HCenter: 0);
                                     Background: @IconMines;
                                 }
 
@@ -117,7 +117,7 @@ $C.@PageOverlay {
                                 Padding: (Full: 12);
 
                                 Group {
-                                    Anchor: (Height: 90);
+                                    Anchor: (Width: 88, Height: 88, HCenter: 0);
                                     Background: @IconRang;
                                 }
 
@@ -149,7 +149,7 @@ $C.@PageOverlay {
                                 Padding: (Full: 12);
 
                                 Group {
-                                    Anchor: (Height: 90);
+                                    Anchor: (Width: 88, Height: 88, HCenter: 0);
                                     Background: @IconUpgrades;
                                 }
 
@@ -187,7 +187,7 @@ $C.@PageOverlay {
                                 Padding: (Full: 12);
 
                                 Group {
-                                    Anchor: (Height: 90);
+                                    Anchor: (Width: 88, Height: 88, HCenter: 0);
                                     Background: @IconVendre;
                                 }
 
@@ -219,7 +219,7 @@ $C.@PageOverlay {
                                 Padding: (Full: 12);
 
                                 Group {
-                                    Anchor: (Height: 90);
+                                    Anchor: (Width: 88, Height: 88, HCenter: 0);
                                     Background: @IconClassement;
                                 }
 
@@ -251,7 +251,7 @@ $C.@PageOverlay {
                                 Padding: (Full: 12);
 
                                 Group {
-                                    Anchor: (Height: 90);
+                                    Anchor: (Width: 88, Height: 88, HCenter: 0);
                                     Background: @IconCellule;
                                 }
 
