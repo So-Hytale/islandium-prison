@@ -7,16 +7,18 @@ Group #PrisonHud {
   Padding: (Left: 12, Right: 12, Top: 8, Bottom: 8);
   Group #HeaderRow {
     LayoutMode: Left;
-    Anchor: (Height: 22);
+    Anchor: (Height: 28, Left: -12, Right: -12, Top: -8);
+    Background: (Color: #151d2a);
+    Padding: (Horizontal: 12);
     Label #Header {
       FlexWeight: 1;
       Text: "PRISON";
-      Style: (FontSize: 14, TextColor: #ffd700, RenderBold: true);
+      Style: (FontSize: 14, TextColor: #ffd700, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center);
     }
   }
   Group #Sep1 {
     Background: (Color: #2a3a5c);
-    Anchor: (Height: 1, Top: 4, Bottom: 4);
+    Anchor: (Height: 1, Top: 6, Bottom: 4);
   }
   Group #RankRow {
     LayoutMode: Left;
@@ -59,9 +61,9 @@ Group #PrisonHud {
     LayoutMode: Left;
     Anchor: (Height: 22);
     Label #BalanceLabel {
-      Anchor: (Width: 18);
-      Text: "$";
-      Style: (FontSize: 14, TextColor: #ffd700, VerticalAlignment: Center, RenderBold: true);
+      Anchor: (Width: 50);
+      Text: "Money:";
+      Style: (FontSize: 11, TextColor: #808080, VerticalAlignment: Center);
     }
     Label #BalanceValue {
       FlexWeight: 1;

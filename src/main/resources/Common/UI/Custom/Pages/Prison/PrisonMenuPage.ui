@@ -51,6 +51,16 @@ $C.@PageOverlay {
                         Sounds: $C.@ButtonSounds,
                     );
                 }
+
+                TextButton #CloseButton {
+                    Anchor: (Width: 40, Height: 36);
+                    Text: "X";
+                    Style: TextButtonStyle(
+                        Default: (Background: #2a1a1a, LabelStyle: (FontSize: 16, TextColor: #ff4444, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)),
+                        Hovered: (Background: #3a2a2a, LabelStyle: (FontSize: 16, TextColor: #ff6666, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)),
+                        Sounds: $C.@ButtonSounds
+                    );
+                }
             }
 
             // Dynamic content area (pour les sous-pages)

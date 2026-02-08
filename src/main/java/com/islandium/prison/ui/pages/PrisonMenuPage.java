@@ -56,6 +56,9 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         // Back button event
         event.addEventBinding(CustomUIEventBindingType.Activating, "#BackBtn", EventData.of("Action", "back"), false);
 
+        // Close button event
+        event.addEventBinding(CustomUIEventBindingType.Activating, "#CloseButton", EventData.of("Action", "close"), false);
+
         // Hub card events (grille definie dans le .ui)
         event.addEventBinding(CustomUIEventBindingType.Activating, "#CardMines", EventData.of("Navigate", "mines"), false);
         event.addEventBinding(CustomUIEventBindingType.Activating, "#CardRang", EventData.of("Navigate", "rang"), false);
@@ -75,7 +78,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
     private void showHub(UICommandBuilder cmd) {
         cmd.set("#HubGrid.Visible", true);
         cmd.set("#PageContent.Visible", false);
-        cmd.set("#HeaderTitle.Text", "PRISON");
+        cmd.set("#HeaderTitle.Text", "");
         cmd.set("#BackBtn.Visible", false);
     }
 
@@ -129,9 +132,9 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                 "    Label #MineStatus { Anchor: (Height: 18); Style: (FontSize: 11, TextColor: " + statusColor + "); } " +
                 "  } " +
                 (canAccess && mine.hasSpawn() ?
-                "  TextButton #TpBtn { Anchor: (Width: 80, Height: 32); " +
+                "  TextButton #TpBtn { Anchor: (Width: 80, Height: 32, Top: 7); " +
                 "    Style: TextButtonStyle(Default: (Background: #2a5f2a, LabelStyle: (FontSize: 12, TextColor: #ffffff, VerticalAlignment: Center)), " +
-                "    Hovered: (Background: #3a7f3a, LabelStyle: (FontSize: 12, TextColor: #ffffff, VerticalAlignment: Center))); } "
+                "    Hovered: (Background: #4a9f4a, LabelStyle: (FontSize: 13, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center))); } "
                 : "") +
                 "}");
 
@@ -564,9 +567,9 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
 
         Map<UUID, PlayerStatsManager.PlayerStatsData> allStats = plugin.getStatsManager().getAllStats();
 
-        // Top par argent gagne
+        // Titre
         cmd.appendInline("#PageContent",
-            "Label { Anchor: (Height: 30); Text: \"Top Richesse\"; " +
+            "Label { Anchor: (Height: 30); Text: \"Top Joueurs\"; " +
             "Style: (FontSize: 16, TextColor: #ffd700, RenderBold: true); }");
 
         // Header colonnes
@@ -579,9 +582,30 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
             "  Label { Anchor: (Width: 100); Text: \"Blocs mines\"; Style: (FontSize: 11, TextColor: #7c8b99, VerticalAlignment: Center); } " +
             "}");
 
-        // Trier par argent gagne
+        // Trier par rang > argent gagne > blocs mines > nom
+        var rankManager = plugin.getRankManager();
         List<Map.Entry<UUID, PlayerStatsManager.PlayerStatsData>> sorted = allStats.entrySet().stream()
-            .sorted((a, b) -> b.getValue().totalMoneyEarned.compareTo(a.getValue().totalMoneyEarned))
+            .sorted((a, b) -> {
+                // 1. Prestige + Rang combinés (décroissant : P1-A > P0-Z > P0-C > P0-A)
+                int prestigeA = rankManager.getPlayerPrestige(a.getKey());
+                int prestigeB = rankManager.getPlayerPrestige(b.getKey());
+                int rankIdxA = rankManager.getRankIndex(rankManager.getPlayerRank(a.getKey()));
+                int rankIdxB = rankManager.getRankIndex(rankManager.getPlayerRank(b.getKey()));
+                int scoreA = prestigeA * 100 + rankIdxA;
+                int scoreB = prestigeB * 100 + rankIdxB;
+                int cmp = Integer.compare(scoreB, scoreA);
+                if (cmp != 0) return cmp;
+                // 2. Argent gagné (décroissant)
+                cmp = b.getValue().totalMoneyEarned.compareTo(a.getValue().totalMoneyEarned);
+                if (cmp != 0) return cmp;
+                // 3. Blocs minés (décroissant)
+                cmp = Long.compare(b.getValue().blocksMined, a.getValue().blocksMined);
+                if (cmp != 0) return cmp;
+                // 4. Nom (alphabétique)
+                String nameA = a.getValue().playerName != null ? a.getValue().playerName : "";
+                String nameB = b.getValue().playerName != null ? b.getValue().playerName : "";
+                return nameA.compareToIgnoreCase(nameB);
+            })
             .limit(10)
             .collect(Collectors.toList());
 
@@ -735,6 +759,10 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         // Actions
         if (data.action != null) {
             switch (data.action) {
+                case "close" -> {
+                    close();
+                    return;
+                }
                 case "openSellConfig" -> {
                     plugin.getUIManager().openSellConfig(player);
                     return;

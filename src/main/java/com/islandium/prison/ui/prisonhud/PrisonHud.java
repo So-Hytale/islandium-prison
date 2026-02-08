@@ -442,15 +442,15 @@ public class PrisonHud extends CustomUIHud {
     private String formatCompact(BigDecimal amount) {
         double value = amount.doubleValue();
         if (value >= 1_000_000_000_000.0) {
-            return "$" + MULTIPLIER_FORMAT.format(value / 1_000_000_000_000.0) + "T";
+            return MULTIPLIER_FORMAT.format(value / 1_000_000_000_000.0) + "T$";
         } else if (value >= 1_000_000_000.0) {
-            return "$" + MULTIPLIER_FORMAT.format(value / 1_000_000_000.0) + "B";
+            return MULTIPLIER_FORMAT.format(value / 1_000_000_000.0) + "B$";
         } else if (value >= 1_000_000.0) {
-            return "$" + MULTIPLIER_FORMAT.format(value / 1_000_000.0) + "M";
+            return MULTIPLIER_FORMAT.format(value / 1_000_000.0) + "M$";
         } else if (value >= 1_000.0) {
-            return "$" + MULTIPLIER_FORMAT.format(value / 1_000.0) + "K";
+            return MULTIPLIER_FORMAT.format(value / 1_000.0) + "K$";
         } else {
-            return "$" + BALANCE_FORMAT.format(value);
+            return BALANCE_FORMAT.format(value) + "$";
         }
     }
 
