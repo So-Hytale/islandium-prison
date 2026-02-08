@@ -103,7 +103,11 @@ public class BreakBlockEventSystem extends EntityEventSystem<EntityStore, BreakB
         plugin.getStatsManager().incrementBlocksMined(uuid);
 
         // 1b. Challenge tracking
-        plugin.getChallengeTracker().onBlockMined(uuid, blockId);
+        try {
+            plugin.getChallengeTracker().onBlockMined(uuid, blockId);
+        } catch (Exception e) {
+            // Ne jamais laisser le challenge tracking casser le flux principal
+        }
 
         // 2. Calculer le fortune bonus
         int fortuneLevel = plugin.getStatsManager().getFortuneLevel(uuid);

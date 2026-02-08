@@ -148,7 +148,11 @@ public class ChallengeManager {
                 if (reward.compareTo(BigDecimal.ZERO) > 0) {
                     EconomyService eco = getEconomyService();
                     if (eco != null) {
-                        eco.addBalance(uuid, reward, "Challenge reward: " + def.getDisplayName()).join();
+                        try {
+                            eco.addBalance(uuid, reward, "Challenge reward: " + def.getDisplayName());
+                        } catch (Exception e) {
+                            plugin.log(Level.WARNING, "Failed to give challenge reward: " + e.getMessage());
+                        }
                     }
                 }
 
