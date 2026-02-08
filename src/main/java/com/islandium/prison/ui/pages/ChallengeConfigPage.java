@@ -118,8 +118,11 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
 
         if (challenges.isEmpty()) {
             cmd.appendInline("#PageContent",
-                "Label { Anchor: (Height: 30, Top: 10); Text: \"Aucun challenge defini pour ce rang.\"; " +
-                "Style: (FontSize: 13, TextColor: #808080); }");
+                "Group { Anchor: (Height: 30, Top: 10); LayoutMode: Left; " +
+                "  Group { FlexWeight: 1; } " +
+                "  Label { Anchor: (Width: 350); Text: \"Aucun challenge defini pour ce rang.\"; Style: (FontSize: 13, TextColor: #808080, VerticalAlignment: Center); } " +
+                "  Group { FlexWeight: 1; } " +
+                "}");
         } else {
             for (int i = 0; i < challenges.size(); i++) {
                 ChallengeDefinition def = challenges.get(i);
@@ -170,7 +173,11 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
         // Resume + Bouton nouveau
         cmd.appendInline("#PageContent",
             "Group { Anchor: (Height: 50, Top: 15); LayoutMode: Top; " +
-            "  Label #Summary { Anchor: (Height: 20); Style: (FontSize: 12, TextColor: #96a9be, VerticalAlignment: Center); } " +
+            "  Group { Anchor: (Height: 20); LayoutMode: Left; " +
+            "    Group { FlexWeight: 1; } " +
+            "    Label #Summary { Anchor: (Width: 300); Style: (FontSize: 12, TextColor: #96a9be, VerticalAlignment: Center); } " +
+            "    Group { FlexWeight: 1; } " +
+            "  } " +
             "  Group { Anchor: (Height: 35, Top: 5); LayoutMode: Left; " +
             "    Group { FlexWeight: 1; } " +
             "    TextButton #AddBtn { Anchor: (Width: 220, Height: 32); " +
@@ -197,19 +204,23 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
         cmd.appendInline("#PageContent",
             "Group { Anchor: (Height: 35, Top: 5); LayoutMode: Left; Padding: (Horizontal: 10); " +
             "  Label { Anchor: (Width: 100); Text: \"ID:\"; Style: (FontSize: 12, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); } " +
-            "  TextField #EditId { Anchor: (Height: 28); FlexWeight: 1; PlaceholderText: \"ex: A_1\"; " +
-            "    Style: TextFieldStyle(Default: (Background: #111b27, FontSize: 12, TextColor: #ffffff)); " +
-            (isEdit ? "    Interactable: false; " : "") +
-            "  } " +
+            (isEdit ?
+            "  Label #EditIdLabel { Anchor: (Height: 28); FlexWeight: 1; Style: (FontSize: 12, TextColor: #7c8b99, VerticalAlignment: Center); } " +
+            "  TextField #EditId { Anchor: (Width: 0, Height: 0); } "
+            :
+            "  TextField #EditId { Anchor: (Height: 28); FlexWeight: 1; PlaceholderText: \"ex: A_1\"; } "
+            ) +
             "}");
         cmd.set("#EditId.Value", formId);
+        if (isEdit) {
+            cmd.set("#EditIdLabel.Text", formId + "  (non modifiable)");
+        }
 
         // --- Nom ---
         cmd.appendInline("#PageContent",
             "Group { Anchor: (Height: 35, Top: 3); LayoutMode: Left; Padding: (Horizontal: 10); " +
             "  Label { Anchor: (Width: 100); Text: \"Nom:\"; Style: (FontSize: 12, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); } " +
-            "  TextField #EditName { Anchor: (Height: 28); FlexWeight: 1; PlaceholderText: \"Nom du challenge\"; " +
-            "    Style: TextFieldStyle(Default: (Background: #111b27, FontSize: 12, TextColor: #ffffff)); } " +
+            "  TextField #EditName { Anchor: (Height: 28); FlexWeight: 1; PlaceholderText: \"Nom du challenge\"; } " +
             "}");
         cmd.set("#EditName.Value", formName);
 
@@ -217,8 +228,7 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
         cmd.appendInline("#PageContent",
             "Group { Anchor: (Height: 35, Top: 3); LayoutMode: Left; Padding: (Horizontal: 10); " +
             "  Label { Anchor: (Width: 100); Text: \"Description:\"; Style: (FontSize: 12, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); } " +
-            "  TextField #EditDesc { Anchor: (Height: 28); FlexWeight: 1; PlaceholderText: \"Description\"; " +
-            "    Style: TextFieldStyle(Default: (Background: #111b27, FontSize: 12, TextColor: #ffffff)); } " +
+            "  TextField #EditDesc { Anchor: (Height: 28); FlexWeight: 1; PlaceholderText: \"Description\"; } " +
             "}");
         cmd.set("#EditDesc.Value", formDesc);
 
@@ -275,16 +285,16 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
             }
         }
 
-        // --- Bloc cible (visible seulement pour MINE_SPECIFIC) ---
+        // --- Bloc cible (seulement si MINE_SPECIFIC) ---
         boolean showBlock = selectedType == ChallengeType.MINE_SPECIFIC;
-        cmd.appendInline("#PageContent",
-            "Group #BlockRow { Anchor: (Height: 35, Top: 5); LayoutMode: Left; Padding: (Horizontal: 10); " +
-            "  Visible: " + showBlock + "; " +
-            "  Label { Anchor: (Width: 100); Text: \"Bloc cible:\"; Style: (FontSize: 12, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); } " +
-            "  TextField #EditBlock { Anchor: (Height: 28); FlexWeight: 1; PlaceholderText: \"ex: hytale:cobblestone\"; " +
-            "    Style: TextFieldStyle(Default: (Background: #111b27, FontSize: 12, TextColor: #ffffff)); } " +
-            "}");
-        cmd.set("#EditBlock.Value", formBlock);
+        if (showBlock) {
+            cmd.appendInline("#PageContent",
+                "Group #BlockRow { Anchor: (Height: 35, Top: 5); LayoutMode: Left; Padding: (Horizontal: 10); " +
+                "  Label { Anchor: (Width: 100); Text: \"Bloc cible:\"; Style: (FontSize: 12, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); } " +
+                "  TextField #EditBlock { Anchor: (Height: 28); FlexWeight: 1; PlaceholderText: \"ex: hytale:cobblestone\"; } " +
+                "}");
+            cmd.set("#EditBlock.Value", formBlock);
+        }
 
         // --- Paliers ---
         cmd.appendInline("#PageContent",
@@ -302,21 +312,16 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
             "  Label { Anchor: (Width: 200); Text: \"Recompense ($)\"; Style: (FontSize: 9, TextColor: #7c8b99, RenderBold: true, VerticalAlignment: Center); } " +
             "}");
 
-        // Lignes de paliers (5 max, visibles selon tierCount)
-        for (int i = 0; i < MAX_TIERS; i++) {
-            boolean visible = i < tierCount;
+        // Lignes de paliers (seulement celles visibles, pas de Visible: false inline)
+        for (int i = 0; i < tierCount; i++) {
             cmd.appendInline("#PageContent",
-                "Group #TierRow" + i + " { Anchor: (Height: 35, Top: 2); LayoutMode: Left; Padding: (Horizontal: 10); Visible: " + visible + "; " +
+                "Group #TierRow" + i + " { Anchor: (Height: 35, Top: 2); LayoutMode: Left; Padding: (Horizontal: 10); " +
                 "  Label { Anchor: (Width: 30); Text: \"" + (i + 1) + ".\"; Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center); } " +
-                "  NumberField #T" + i + "Target { Anchor: (Width: 200, Height: 28); PlaceholderText: \"Cible\"; " +
-                "    Style: NumberFieldStyle(Default: (Background: #111b27, FontSize: 12, TextColor: #ffffff)); } " +
-                "  NumberField #T" + i + "Reward { Anchor: (Width: 200, Height: 28, Left: 8); PlaceholderText: \"Recompense\"; " +
-                "    Style: NumberFieldStyle(Default: (Background: #111b27, FontSize: 12, TextColor: #66bb6a)); } " +
+                "  NumberField #T" + i + "Target { Anchor: (Width: 200, Height: 28); PlaceholderText: \"Cible\"; } " +
+                "  NumberField #T" + i + "Reward { Anchor: (Width: 200, Height: 28, Left: 8); PlaceholderText: \"Recompense\"; } " +
                 "}");
-            if (visible) {
-                if (formTierTargets[i] > 0) cmd.set("#T" + i + "Target.Value", (int) formTierTargets[i]);
-                if (formTierRewards[i] > 0) cmd.set("#T" + i + "Reward.Value", (int) formTierRewards[i]);
-            }
+            if (formTierTargets[i] > 0) cmd.set("#T" + i + "Target.Value", (int) formTierTargets[i]);
+            if (formTierRewards[i] > 0) cmd.set("#T" + i + "Reward.Value", (int) formTierRewards[i]);
         }
 
         // Boutons ajouter/retirer palier
@@ -341,8 +346,10 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
         saveFields.put("@EditId", "#EditId.Value");
         saveFields.put("@EditName", "#EditName.Value");
         saveFields.put("@EditDesc", "#EditDesc.Value");
-        saveFields.put("@EditBlock", "#EditBlock.Value");
-        for (int i = 0; i < MAX_TIERS; i++) {
+        if (showBlock) {
+            saveFields.put("@EditBlock", "#EditBlock.Value");
+        }
+        for (int i = 0; i < tierCount; i++) {
             saveFields.put("@T" + i + "Target", "#T" + i + "Target.Value");
             saveFields.put("@T" + i + "Reward", "#T" + i + "Reward.Value");
         }

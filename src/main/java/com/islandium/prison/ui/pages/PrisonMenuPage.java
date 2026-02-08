@@ -86,12 +86,14 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         cmd.set("#PageContent.Visible", false);
         cmd.set("#HeaderTitle.Text", "");
         cmd.set("#BackBtn.Visible", false);
+        cmd.set("#HeaderConfigBtn.Visible", false);
     }
 
     private void showSubPage(UICommandBuilder cmd) {
         cmd.set("#HubGrid.Visible", false);
         cmd.set("#PageContent.Visible", true);
         cmd.set("#BackBtn.Visible", true);
+        cmd.set("#HeaderConfigBtn.Visible", false);
     }
 
     // =========================================
@@ -513,16 +515,9 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         } catch (Exception ignored) {}
 
         if (isAdmin) {
-            cmd.appendInline("#PageContent",
-                "Group { Anchor: (Height: 40, Top: 5); LayoutMode: Left; " +
-                "  Group { FlexWeight: 1; } " +
-                "  TextButton #AdminConfigBtn { Anchor: (Width: 180, Height: 32); " +
-                "    Style: TextButtonStyle(Default: (Background: #2d4a5a, LabelStyle: (FontSize: 12, TextColor: #ffd700, RenderBold: true, VerticalAlignment: Center)), " +
-                "    Hovered: (Background: #3d5a6a, LabelStyle: (FontSize: 12, TextColor: #ffd700, RenderBold: true, VerticalAlignment: Center))); } " +
-                "  Group { FlexWeight: 1; } " +
-                "}");
-            cmd.set("#AdminConfigBtn.Text", "CONFIG ADMIN");
-            event.addEventBinding(CustomUIEventBindingType.Activating, "#AdminConfigBtn", EventData.of("Action", "openSellConfig"), false);
+            cmd.set("#HeaderConfigBtn.Visible", true);
+            cmd.set("#HeaderConfigBtn.Text", "CONFIG ADMIN");
+            event.addEventBinding(CustomUIEventBindingType.Activating, "#HeaderConfigBtn", EventData.of("Action", "openSellConfig"), false);
         }
     }
 
@@ -952,7 +947,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
             }
         }
 
-        // Bouton admin config challenges
+        // Bouton admin config challenges dans le header
         boolean isAdmin = false;
         try {
             var perms = com.hypixel.hytale.server.core.permissions.PermissionsModule.get();
@@ -962,16 +957,9 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         } catch (Exception ignored) {}
 
         if (isAdmin) {
-            cmd.appendInline("#PageContent",
-                "Group { Anchor: (Height: 35, Top: 5); LayoutMode: Left; " +
-                "  Group { FlexWeight: 1; } " +
-                "  TextButton #ChallengeConfigBtn { Anchor: (Width: 180, Height: 30); " +
-                "    Style: TextButtonStyle(Default: (Background: #2d4a5a, LabelStyle: (FontSize: 11, TextColor: #ffd700, RenderBold: true, VerticalAlignment: Center)), " +
-                "    Hovered: (Background: #3d5a6a, LabelStyle: (FontSize: 11, TextColor: #ffd700, RenderBold: true, VerticalAlignment: Center))); } " +
-                "  Group { FlexWeight: 1; } " +
-                "}");
-            cmd.set("#ChallengeConfigBtn.Text", "CONFIG CHALLENGES");
-            event.addEventBinding(CustomUIEventBindingType.Activating, "#ChallengeConfigBtn", EventData.of("Action", "openChallengeConfig"), false);
+            cmd.set("#HeaderConfigBtn.Visible", true);
+            cmd.set("#HeaderConfigBtn.Text", "CONFIG CHALLENGES");
+            event.addEventBinding(CustomUIEventBindingType.Activating, "#HeaderConfigBtn", EventData.of("Action", "openChallengeConfig"), false);
         }
     }
 
