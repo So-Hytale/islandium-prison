@@ -137,6 +137,9 @@ public class SellService {
 
             // Tracker les stats
             plugin.getStatsManager().addMoneyEarned(uuid, totalEarned);
+
+            // Challenge tracking
+            plugin.getChallengeTracker().onItemsSold(uuid, totalBlocksSold, totalEarned);
         }
 
         return new SellResult(totalEarned, totalBlocksSold, soldItems);
@@ -180,6 +183,9 @@ public class SellService {
                 eco.addBalance(uuid, earned, "Prison auto-sell").join();
             }
             plugin.getStatsManager().addMoneyEarned(uuid, earned);
+
+            // Challenge tracking
+            plugin.getChallengeTracker().onMoneyEarned(uuid, earned);
         }
 
         return earned;

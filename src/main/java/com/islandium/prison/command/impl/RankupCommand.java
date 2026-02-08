@@ -56,6 +56,10 @@ public class RankupCommand extends PrisonCommand {
             case MAX_RANK:
                 sendConfigMessage(ctx, "rankup.max-rank");
                 break;
+            case CHALLENGES_INCOMPLETE:
+                int completed = plugin.getChallengeManager().getCompletedCount(uuid, rankManager.getPlayerRank(uuid));
+                sendMessage(ctx, "&cDefis incomplets! (" + completed + "/9) - Complete tes defis pour rankup.");
+                break;
         }
 
         return complete();

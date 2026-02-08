@@ -7,6 +7,7 @@ $C = "../../Common.ui";
 @IconVendre = PatchStyle(TexturePath: "Icons/vendre.png");
 @IconClassement = PatchStyle(TexturePath: "Icons/classement.png");
 @IconCellule = PatchStyle(TexturePath: "Icons/cellule.png");
+@IconDefis = PatchStyle(TexturePath: "Icons/defis.png");
 
 $C.@PageOverlay {
     $C.@Container {
@@ -77,7 +78,7 @@ $C.@PageOverlay {
                 LayoutMode: Top;
                 Padding: (Full: 25);
 
-                // Ligne 1 - MINES | RANG | UPGRADES
+                // Ligne 1 - MINES | RANG | UPGRADES | DEFIS
                 Group #Row1 {
                     Anchor: (Height: 200);
                     LayoutMode: Left;
@@ -85,33 +86,33 @@ $C.@PageOverlay {
                     // Carte MINES
                     Group {
                         FlexWeight: 1;
-                        Padding: (Right: 10);
+                        Padding: (Right: 5);
 
                         Button #CardMines {
                             Style: ButtonStyle(Default: (Background: #151d28), Hovered: (Background: #1e2d3d));
 
                             Group {
                                 LayoutMode: Top;
-                                Padding: (Full: 12);
+                                Padding: (Full: 10);
 
                                 Group {
-                                    Anchor: (Height: 88);
+                                    Anchor: (Height: 75);
                                     LayoutMode: Left;
                                     Group { FlexWeight: 1; }
-                                    Group { Anchor: (Width: 88, Height: 88); Background: @IconMines; }
+                                    Group { Anchor: (Width: 75, Height: 75); Background: @IconMines; }
                                     Group { FlexWeight: 1; }
                                 }
 
                                 Label {
-                                    Anchor: (Height: 30, Top: 8);
+                                    Anchor: (Height: 28, Top: 6);
                                     Text: "MINES";
-                                    Style: (FontSize: 15, TextColor: #4fc3f7, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
+                                    Style: (FontSize: 14, TextColor: #4fc3f7, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
                                 }
 
                                 Label {
-                                    Anchor: (Height: 20);
-                                    Text: "Teleportation vers les mines";
-                                    Style: (FontSize: 11, TextColor: #7c8b99, HorizontalAlignment: Center);
+                                    Anchor: (Height: 18);
+                                    Text: "Teleportation";
+                                    Style: (FontSize: 10, TextColor: #7c8b99, HorizontalAlignment: Center);
                                 }
                             }
                         }
@@ -127,26 +128,26 @@ $C.@PageOverlay {
 
                             Group {
                                 LayoutMode: Top;
-                                Padding: (Full: 12);
+                                Padding: (Full: 10);
 
                                 Group {
-                                    Anchor: (Height: 88);
+                                    Anchor: (Height: 75);
                                     LayoutMode: Left;
                                     Group { FlexWeight: 1; }
-                                    Group { Anchor: (Width: 88, Height: 88); Background: @IconRang; }
+                                    Group { Anchor: (Width: 75, Height: 75); Background: @IconRang; }
                                     Group { FlexWeight: 1; }
                                 }
 
                                 Label {
-                                    Anchor: (Height: 30, Top: 8);
+                                    Anchor: (Height: 28, Top: 6);
                                     Text: "RANG";
-                                    Style: (FontSize: 15, TextColor: #ffd700, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
+                                    Style: (FontSize: 14, TextColor: #ffd700, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
                                 }
 
                                 Label {
-                                    Anchor: (Height: 20);
-                                    Text: "Progression et rankup";
-                                    Style: (FontSize: 11, TextColor: #7c8b99, HorizontalAlignment: Center);
+                                    Anchor: (Height: 18);
+                                    Text: "Progression";
+                                    Style: (FontSize: 10, TextColor: #7c8b99, HorizontalAlignment: Center);
                                 }
                             }
                         }
@@ -155,33 +156,68 @@ $C.@PageOverlay {
                     // Carte UPGRADES
                     Group {
                         FlexWeight: 1;
-                        Padding: (Left: 10);
+                        Padding: (Horizontal: 5);
 
                         Button #CardUpgrades {
                             Style: ButtonStyle(Default: (Background: #151d28), Hovered: (Background: #1e2d3d));
 
                             Group {
                                 LayoutMode: Top;
-                                Padding: (Full: 12);
+                                Padding: (Full: 10);
 
                                 Group {
-                                    Anchor: (Height: 88);
+                                    Anchor: (Height: 75);
                                     LayoutMode: Left;
                                     Group { FlexWeight: 1; }
-                                    Group { Anchor: (Width: 88, Height: 88); Background: @IconUpgrades; }
+                                    Group { Anchor: (Width: 75, Height: 75); Background: @IconUpgrades; }
                                     Group { FlexWeight: 1; }
                                 }
 
                                 Label {
-                                    Anchor: (Height: 30, Top: 8);
+                                    Anchor: (Height: 28, Top: 6);
                                     Text: "UPGRADES";
-                                    Style: (FontSize: 15, TextColor: #ab47bc, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
+                                    Style: (FontSize: 14, TextColor: #ab47bc, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
                                 }
 
                                 Label {
-                                    Anchor: (Height: 20);
-                                    Text: "Ameliorations de pioche";
-                                    Style: (FontSize: 11, TextColor: #7c8b99, HorizontalAlignment: Center);
+                                    Anchor: (Height: 18);
+                                    Text: "Pioche";
+                                    Style: (FontSize: 10, TextColor: #7c8b99, HorizontalAlignment: Center);
+                                }
+                            }
+                        }
+                    }
+
+                    // Carte DEFIS
+                    Group {
+                        FlexWeight: 1;
+                        Padding: (Left: 5);
+
+                        Button #CardDefis {
+                            Style: ButtonStyle(Default: (Background: #151d28), Hovered: (Background: #1e2d3d));
+
+                            Group {
+                                LayoutMode: Top;
+                                Padding: (Full: 10);
+
+                                Group {
+                                    Anchor: (Height: 75);
+                                    LayoutMode: Left;
+                                    Group { FlexWeight: 1; }
+                                    Group { Anchor: (Width: 75, Height: 75); Background: @IconDefis; }
+                                    Group { FlexWeight: 1; }
+                                }
+
+                                Label {
+                                    Anchor: (Height: 28, Top: 6);
+                                    Text: "DEFIS";
+                                    Style: (FontSize: 14, TextColor: #ff9800, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
+                                }
+
+                                Label {
+                                    Anchor: (Height: 18);
+                                    Text: "Challenges";
+                                    Style: (FontSize: 10, TextColor: #7c8b99, HorizontalAlignment: Center);
                                 }
                             }
                         }

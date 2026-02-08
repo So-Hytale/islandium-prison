@@ -3,6 +3,7 @@ package com.islandium.prison.upgrade;
 import com.islandium.core.api.IslandiumAPI;
 import com.islandium.core.api.economy.EconomyService;
 import com.islandium.prison.PrisonPlugin;
+import com.islandium.prison.challenge.ChallengeType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,6 +90,10 @@ public class PickaxeUpgradeManager {
         }
 
         plugin.getStatsManager().setFortuneLevel(uuid, level + 1);
+
+        // Challenge tracking
+        plugin.getChallengeTracker().onUpgradePurchased(uuid, ChallengeType.BUY_FORTUNE, level + 1, price);
+
         return UpgradeResult.SUCCESS;
     }
 
@@ -134,6 +139,10 @@ public class PickaxeUpgradeManager {
         }
 
         plugin.getStatsManager().setEfficiencyLevel(uuid, level + 1);
+
+        // Challenge tracking
+        plugin.getChallengeTracker().onUpgradePurchased(uuid, ChallengeType.BUY_EFFICIENCY, level + 1, price);
+
         return UpgradeResult.SUCCESS;
     }
 
@@ -168,6 +177,10 @@ public class PickaxeUpgradeManager {
 
         plugin.getStatsManager().setAutoSellLevel(uuid, 1);
         plugin.getStatsManager().toggleAutoSell(uuid); // Activer par défaut
+
+        // Challenge tracking
+        plugin.getChallengeTracker().onUpgradePurchased(uuid, ChallengeType.BUY_AUTOSELL, 1, AUTO_SELL_PRICE);
+
         return UpgradeResult.SUCCESS;
     }
 

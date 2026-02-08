@@ -13,6 +13,8 @@ import com.islandium.prison.stats.PlayerStatsManager;
 import com.islandium.prison.ui.PrisonUIManager;
 import com.islandium.prison.ui.pages.PrisonMenuPage;
 import com.islandium.prison.upgrade.PickaxeUpgradeManager;
+import com.islandium.prison.challenge.ChallengeManager;
+import com.islandium.prison.challenge.ChallengeTracker;
 import com.islandium.prison.event.BreakBlockEventSystem;
 import com.islandium.core.ui.IslandiumUIRegistry;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
@@ -41,6 +43,8 @@ public class PrisonPlugin extends JavaPlugin {
     private PrisonServiceManager serviceManager;
     private PrisonCommandManager commandManager;
     private PrisonListenerManager listenerManager;
+    private ChallengeManager challengeManager;
+    private ChallengeTracker challengeTracker;
     private PrisonUIManager uiManager;
 
     public PrisonPlugin(JavaPluginInit init) {
@@ -77,12 +81,15 @@ public class PrisonPlugin extends JavaPlugin {
             this.sellService = new SellService(this);
             this.upgradeManager = new PickaxeUpgradeManager(this);
             this.cellManager = new CellManager(this);
+            this.challengeManager = new ChallengeManager(this);
+            this.challengeTracker = new ChallengeTracker(this, challengeManager);
 
             // Load data
             mineManager.loadAll();
             rankManager.loadAll();
             statsManager.loadAll();
             cellManager.loadAll();
+            challengeManager.loadAll();
 
             // 5. Initialize UI Manager
             log(Level.INFO, "Initializing UI manager...");
@@ -136,6 +143,9 @@ public class PrisonPlugin extends JavaPlugin {
             }
             if (cellManager != null) {
                 cellManager.saveAll();
+            }
+            if (challengeManager != null) {
+                challengeManager.saveAll();
             }
             // Shutdown UI refresh timer
             if (uiManager != null) {
@@ -216,6 +226,16 @@ public class PrisonPlugin extends JavaPlugin {
     @NotNull
     public PrisonServiceManager getServiceManager() {
         return serviceManager;
+    }
+
+    @NotNull
+    public ChallengeManager getChallengeManager() {
+        return challengeManager;
+    }
+
+    @NotNull
+    public ChallengeTracker getChallengeTracker() {
+        return challengeTracker;
     }
 
     @NotNull

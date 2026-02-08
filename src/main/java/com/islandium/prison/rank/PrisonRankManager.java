@@ -147,6 +147,11 @@ public class PrisonRankManager {
             return RankupResult.MAX_RANK;
         }
 
+        // Verifier que tous les challenges du rang actuel sont completes
+        if (!plugin.getChallengeManager().areAllChallengesComplete(uuid, getPlayerRank(uuid))) {
+            return RankupResult.CHALLENGES_INCOMPLETE;
+        }
+
         EconomyService eco = getEconomyService();
         if (eco == null) {
             plugin.log(Level.WARNING, "EconomyService not available for rankup check");
@@ -208,8 +213,14 @@ public class PrisonRankManager {
         // Deduct money
         eco.removeBalance(uuid, price, "Prison rankup to " + nextRank.id).join();
 
+        // Challenge tracking - depense
+        plugin.getChallengeTracker().onMoneySpent(uuid, price);
+
         // Set new rank
         setPlayerRank(uuid, nextRank.id);
+
+        // Invalider le cache de rang du tracker
+        plugin.getChallengeTracker().invalidateRankCache(uuid);
 
         return RankupResult.SUCCESS;
     }
@@ -266,6 +277,10 @@ public class PrisonRankManager {
         // Reset rank to A
         setPlayerRank(uuid, DEFAULT_RANK);
 
+        // Reset tous les challenges
+        plugin.getChallengeManager().resetAllChallenges(uuid);
+        plugin.getChallengeTracker().invalidateRankCache(uuid);
+
         // Reset balance (optional - configurable)
         EconomyService eco = getEconomyService();
         if (eco != null) {
@@ -318,7 +333,8 @@ public class PrisonRankManager {
     public enum RankupResult {
         SUCCESS,
         NOT_ENOUGH_MONEY,
-        MAX_RANK
+        MAX_RANK,
+        CHALLENGES_INCOMPLETE
     }
 
     // === Data Class ===
