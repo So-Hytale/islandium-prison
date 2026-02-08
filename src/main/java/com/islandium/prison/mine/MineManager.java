@@ -178,13 +178,22 @@ public class MineManager {
     // === Mine Reset ===
 
     /**
+     * Retourne l'intervalle de reset effectif en minutes pour une mine.
+     * Utilise la valeur de la mine si > 0, sinon la valeur globale de la config.
+     */
+    public int getEffectiveResetInterval(@NotNull Mine mine) {
+        int mineInterval = mine.getResetIntervalMinutes();
+        return mineInterval > 0 ? mineInterval : plugin.getConfig().getMineResetInterval();
+    }
+
+    /**
      * Calcule le temps restant en secondes avant le prochain check de reset.
      * Retourne -1 si la mine n'a pas d'auto-reset actif.
      */
     public long getSecondsUntilNextCheck(@NotNull Mine mine) {
         if (!mine.isAutoReset() || !mine.isConfigured()) return -1;
 
-        long intervalMs = plugin.getConfig().getMineResetInterval() * 60L * 1000L;
+        long intervalMs = getEffectiveResetInterval(mine) * 60L * 1000L;
         long elapsed = System.currentTimeMillis() - mine.getLastResetTime();
         long remaining = intervalMs - elapsed;
 
@@ -200,7 +209,7 @@ public class MineManager {
 
         cancelResetTask(mine.getId());
 
-        int interval = plugin.getConfig().getMineResetInterval();
+        int interval = getEffectiveResetInterval(mine);
         ScheduledFuture<?> task = scheduler.scheduleAtFixedRate(
                 () -> checkAndResetMine(mine),
                 interval,
@@ -219,27 +228,25 @@ public class MineManager {
     }
 
     /**
-     * Vérifie et reset une mine si nécessaire.
+     * Vérifie et reset une mine.
+     * Le reset se déclenche toujours quand le timer expire (scheduleAtFixedRate).
      */
     private void checkAndResetMine(@NotNull Mine mine) {
-        int autoResetPercentage = plugin.getConfig().getAutoResetPercentage();
+        // Broadcast warning
+        if (plugin.getConfig().shouldBroadcastResetWarning()) {
+            int warningSeconds = plugin.getConfig().getWarningSecondsBeforeReset();
+            broadcastResetWarning(mine, warningSeconds);
 
-        if (mine.getRemainingPercentage() <= autoResetPercentage) {
-            // Broadcast warning
-            if (plugin.getConfig().shouldBroadcastResetWarning()) {
-                int warningSeconds = plugin.getConfig().getWarningSecondsBeforeReset();
-                broadcastResetWarning(mine, warningSeconds);
-
-                // Schedule actual reset
-                scheduler.schedule(() -> resetMine(mine), warningSeconds, TimeUnit.SECONDS);
-            } else {
-                resetMine(mine);
-            }
+            // Schedule actual reset after warning delay
+            scheduler.schedule(() -> resetMine(mine), warningSeconds, TimeUnit.SECONDS);
+        } else {
+            resetMine(mine);
         }
     }
 
     /**
      * Reset une mine immédiatement.
+     * Téléporte tous les joueurs dans la mine au spawn, attend 1 seconde, puis remplit les blocs.
      */
     public void resetMine(@NotNull Mine mine) {
         if (!mine.isConfigured()) {
@@ -249,16 +256,22 @@ public class MineManager {
 
         plugin.log(Level.INFO, "Resetting mine: " + mine.getId());
 
-        // Mettre à jour l'état immédiatement
-        mine.resetState();
-        saveAll();
+        // Téléporter tous les joueurs dans la mine vers le spawn
+        teleportMinePlayers(mine);
 
-        // Remplir les blocs en full async
-        fillMineBlocksAsync(mine).thenAccept(count -> {
-            plugin.log(Level.INFO, "Mine " + mine.getId() + " reset complete: " + count + " blocks placed");
-            String message = plugin.getConfig().getPrefixedMessage("mine.reset", "mine", mine.getDisplayName());
-            broadcastToMinePlayers(mine, message);
-        });
+        // Attendre 1 seconde puis remplir les blocs
+        scheduler.schedule(() -> {
+            // Mettre à jour l'état
+            mine.resetState();
+            saveAll();
+
+            // Remplir les blocs en full async
+            fillMineBlocksAsync(mine).thenAccept(count -> {
+                plugin.log(Level.INFO, "Mine " + mine.getId() + " reset complete: " + count + " blocks placed");
+                String message = plugin.getConfig().getPrefixedMessage("mine.reset", "mine", mine.getDisplayName());
+                broadcastToMinePlayers(mine, message);
+            });
+        }, 1, TimeUnit.SECONDS);
     }
 
     /**
@@ -1096,6 +1109,25 @@ public class MineManager {
         }
 
         return entries.isEmpty() ? "minecraft:stone" : entries.get(0).getKey();
+    }
+
+    /**
+     * Téléporte tous les joueurs dans la mine (zone mine) vers le spawn de la mine.
+     */
+    private void teleportMinePlayers(@NotNull Mine mine) {
+        if (!mine.hasSpawn()) return;
+
+        ServerLocation spawn = mine.getSpawnPoint();
+        for (IslandiumPlayer player : plugin.getCore().getPlayerManager().getOnlinePlayersLocal()) {
+            ServerLocation loc = player.getLocation();
+            if (loc != null && mine.contains(loc)) {
+                plugin.getCore().getTeleportService().teleportWithWarmup(
+                        player,
+                        spawn,
+                        () -> {}
+                );
+            }
+        }
     }
 
     private void broadcastResetWarning(@NotNull Mine mine, int seconds) {

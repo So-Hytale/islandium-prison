@@ -354,7 +354,7 @@ public class PrisonHud extends CustomUIHud {
     }
 
     /**
-     * Retourne la mine dans laquelle le joueur est actuellement, ou null.
+     * Retourne la mine dans laquelle le joueur est actuellement (mine ou village), ou null.
      */
     private Mine getCurrentMine() {
         try {
@@ -367,11 +367,20 @@ public class PrisonHud extends CustomUIHud {
             ServerLocation loc = islandiumPlayer.getLocation();
             if (loc == null) return null;
 
+            // D'abord vérifier si dans une mine
             for (Mine mine : plugin.getMineManager().getAllMines()) {
                 if (mine.contains(loc)) {
                     return mine;
                 }
             }
+
+            // Sinon vérifier si dans une zone village
+            for (Mine mine : plugin.getMineManager().getAllMines()) {
+                if (mine.containsVillage(loc)) {
+                    return mine;
+                }
+            }
+
             return null;
         } catch (Exception e) {
             return null;

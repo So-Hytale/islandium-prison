@@ -394,10 +394,21 @@ $C.@PageOverlay {
                             }
 
                             Label {
-                                FlexWeight: 1;
-                                Anchor: (Left: 8);
+                                Anchor: (Width: 130, Left: 8);
                                 Text: "Reset automatique";
                                 Style: (FontSize: 12, TextColor: #96a9be, VerticalAlignment: Center);
+                            }
+
+                            $C.@TextField #ResetIntervalField {
+                                Anchor: (Width: 45, Height: 24);
+                                PlaceholderText: "15";
+                            }
+
+                            Label {
+                                Anchor: (Left: 5);
+                                FlexWeight: 1;
+                                Text: "min (0=global)";
+                                Style: (FontSize: 9, TextColor: #606060, VerticalAlignment: Center);
                             }
                         }
 

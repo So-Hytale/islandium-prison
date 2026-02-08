@@ -179,6 +179,9 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
         cmd.set("#AutoResetCheck.Text", mine.isAutoReset() ? "X" : "");
         cmd.set("#UseLayersCheck.Text", mine.isUseLayerComposition() ? "X" : "");
 
+        // Reset Interval
+        cmd.set("#ResetIntervalField.Value", String.valueOf(mine.getResetIntervalMinutes()));
+
         // Village Margin
         cmd.set("#VillageMarginField.Value", String.valueOf(mine.getVillageMargin()));
 
@@ -212,6 +215,7 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
         event.addEventBinding(CustomUIEventBindingType.Activating, "#UseLayersCheckbox", EventData.of("Toggle", "useLayers"), false);
         event.addEventBinding(CustomUIEventBindingType.ValueChanged, "#DisplayNameField", EventData.of("@DisplayName", "#DisplayNameField.Value"), false);
         event.addEventBinding(CustomUIEventBindingType.ValueChanged, "#RequiredRankField", EventData.of("@RequiredRank", "#RequiredRankField.Value"), false);
+        event.addEventBinding(CustomUIEventBindingType.ValueChanged, "#ResetIntervalField", EventData.of("@ResetInterval", "#ResetIntervalField.Value"), false);
         event.addEventBinding(CustomUIEventBindingType.ValueChanged, "#VillageMarginField", EventData.of("@VillageMargin", "#VillageMarginField.Value"), false);
 
         // Events actions
@@ -567,6 +571,21 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                     double adj = Double.parseDouble(data.radiusAdjust.replace(",", "."));
                     if (Math.abs(adj - mine.getRadiusAdjust()) > 0.001) {
                         mine.setRadiusAdjust(adj);
+                        plugin.getMineManager().saveMine(mine);
+                    }
+                } catch (NumberFormatException ignored) {}
+            }
+            return;
+        }
+
+        // Modification du resetInterval (via ValueChanged sur #ResetIntervalField)
+        if (data.resetInterval != null && !data.resetInterval.isBlank() && selectedMineId != null && data.action == null) {
+            Mine mine = plugin.getMineManager().getMine(selectedMineId);
+            if (mine != null) {
+                try {
+                    int interval = Integer.parseInt(data.resetInterval);
+                    if (interval != mine.getResetIntervalMinutes() && interval >= 0) {
+                        mine.setResetIntervalMinutes(interval);
                         plugin.getMineManager().saveMine(mine);
                     }
                 } catch (NumberFormatException ignored) {}
@@ -1461,6 +1480,8 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                 .addField(new KeyedCodec<>("@RadiusAdjust", Codec.STRING), (d, v) -> d.radiusAdjust = v, d -> d.radiusAdjust)
                 // Village
                 .addField(new KeyedCodec<>("@VillageMargin", Codec.STRING), (d, v) -> d.villageMargin = v, d -> d.villageMargin)
+                // Reset interval
+                .addField(new KeyedCodec<>("@ResetInterval", Codec.STRING), (d, v) -> d.resetInterval = v, d -> d.resetInterval)
                 .build();
 
         public String action;
@@ -1487,6 +1508,8 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
         public String radiusAdjust;
         // Village
         public String villageMargin;
+        // Reset interval
+        public String resetInterval;
     }
 }
 

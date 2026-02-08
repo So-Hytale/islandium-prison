@@ -56,6 +56,7 @@ public class Mine {
     private int remainingBlocks;
     private long lastResetTime;
     private boolean autoReset = true;
+    private int resetIntervalMinutes = 0; // 0 = utiliser la valeur globale de PrisonConfig
 
     public Mine(@NotNull String id) {
         this.id = id;
@@ -575,6 +576,14 @@ public class Mine {
         this.autoReset = autoReset;
     }
 
+    public int getResetIntervalMinutes() {
+        return resetIntervalMinutes;
+    }
+
+    public void setResetIntervalMinutes(int resetIntervalMinutes) {
+        this.resetIntervalMinutes = resetIntervalMinutes;
+    }
+
     // === Utility Methods ===
 
     /**
@@ -809,6 +818,7 @@ public class Mine {
         data.remainingBlocks = remainingBlocks;
         data.lastResetTime = lastResetTime;
         data.autoReset = autoReset;
+        data.resetIntervalMinutes = resetIntervalMinutes;
         return data;
     }
 
@@ -857,6 +867,7 @@ public class Mine {
         mine.remainingBlocks = data.remainingBlocks;
         mine.lastResetTime = data.lastResetTime;
         mine.autoReset = data.autoReset;
+        mine.resetIntervalMinutes = data.resetIntervalMinutes;
         return mine;
     }
 
@@ -890,5 +901,6 @@ public class Mine {
         public int remainingBlocks;
         public long lastResetTime;
         public boolean autoReset;
+        public int resetIntervalMinutes;
     }
 }
