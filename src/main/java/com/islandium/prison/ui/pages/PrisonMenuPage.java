@@ -742,17 +742,8 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         int completedCount = challengeManager.getCompletedCount(uuid, currentRank);
         int totalCount = challenges.size();
 
-        cmd.set("#HeaderTitle.Text", "DEFIS - RANG " + currentRank);
-
-        // Header avec compteur
-        cmd.appendInline("#PageContent",
-            "Group { Anchor: (Height: 30); Background: (Color: #151d28); Padding: (Horizontal: 15); LayoutMode: Left; " +
-            "  Label { FlexWeight: 1; Text: \"Challenges du rang " + currentRank + "\"; Style: (FontSize: 13, TextColor: #ff9800, RenderBold: true, VerticalAlignment: Center); } " +
-            "  Label #DefiCounter { Anchor: (Width: 120); Style: (FontSize: 13, RenderBold: true, VerticalAlignment: Center); } " +
-            "}");
-        String counterColor = completedCount >= totalCount ? "#66bb6a" : "#ffffff";
-        cmd.set("#DefiCounter.Text", completedCount + "/" + totalCount + " TERMINE");
-        cmd.set("#DefiCounter.Style.TextColor", counterColor);
+        String counterText = completedCount + "/" + totalCount;
+        cmd.set("#HeaderTitle.Text", "DEFIS - RANG " + currentRank + "  " + counterText);
 
         // Grille 3x3 de challenges
         if (challenges.isEmpty()) {
@@ -765,7 +756,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         // Build 3 rows of 3 challenges each
         for (int row = 0; row < 3; row++) {
             StringBuilder rowContent = new StringBuilder();
-            rowContent.append("Group #DefiRow").append(row).append(" { Anchor: (Height: 95, Top: 5); LayoutMode: Left; ");
+            rowContent.append("Group #DefiRow").append(row).append(" { Anchor: (Height: 100, Top: 6); LayoutMode: Left; ");
 
             for (int col = 0; col < 3; col++) {
                 int idx = row * 3 + col;
@@ -810,13 +801,13 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                     : "";
 
                 rowContent.append("Group #").append(cardId)
-                    .append(" { FlexWeight: 1; Background: (Color: ").append(cardBg).append("); Padding: (Horizontal: 8, Vertical: 5); LayoutMode: Top; ")
-                    .append("  Label #Title { Anchor: (Height: 18); Style: (FontSize: 11, TextColor: ").append(titleColor).append(", RenderBold: true); } ")
-                    .append("  Label #Desc { Anchor: (Height: 16); Style: (FontSize: 9, TextColor: #7c8b99); } ")
-                    .append("  Label #Bar { Anchor: (Height: 18, Top: 2); Style: (FontSize: 10, TextColor: #96a9be); } ")
-                    .append("  Group { Anchor: (Height: 16); LayoutMode: Left; ")
-                    .append("    Label #Prog { FlexWeight: 1; Style: (FontSize: 9, TextColor: #ffffff, VerticalAlignment: Center); } ")
-                    .append("    Label #Rew { Anchor: (Width: 75); Style: (FontSize: 9, TextColor: #66bb6a, VerticalAlignment: Center); } ")
+                    .append(" { FlexWeight: 1; Background: (Color: ").append(cardBg).append("); Padding: (Horizontal: 10, Vertical: 6); LayoutMode: Top; ")
+                    .append("  Label #Title { Anchor: (Height: 22); Style: (FontSize: 13, TextColor: ").append(titleColor).append(", RenderBold: true); } ")
+                    .append("  Label #Desc { Anchor: (Height: 18); Style: (FontSize: 11, TextColor: #7c8b99); } ")
+                    .append("  Label #Bar { Anchor: (Height: 20, Top: 2); Style: (FontSize: 12, TextColor: #96a9be); } ")
+                    .append("  Group { Anchor: (Height: 20); LayoutMode: Left; ")
+                    .append("    Label #Prog { FlexWeight: 1; Style: (FontSize: 11, TextColor: #ffffff, VerticalAlignment: Center); } ")
+                    .append("    Label #Rew { Anchor: (Width: 85); Style: (FontSize: 11, TextColor: #66bb6a, VerticalAlignment: Center); } ")
                     .append("  } ")
                     .append("} ");
 
@@ -871,10 +862,10 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
      */
     private String buildProgressBar(long current, long target, boolean complete) {
         if (complete) {
-            return "[##########] 100%";
+            return "[##########]";
         }
         if (target <= 0) {
-            return "[----------] 0%";
+            return "[----------]";
         }
         int percent = (int) Math.min(100, (current * 100) / target);
         int filled = percent / 10;
@@ -882,7 +873,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         for (int i = 0; i < 10; i++) {
             sb.append(i < filled ? "#" : "-");
         }
-        sb.append("] ").append(percent).append("%");
+        sb.append("]");
         return sb.toString();
     }
 
