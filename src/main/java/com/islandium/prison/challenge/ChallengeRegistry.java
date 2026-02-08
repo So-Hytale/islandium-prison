@@ -1,36 +1,297 @@
 package com.islandium.prison.challenge;
 
+import com.islandium.core.database.SQLExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigDecimal;
 import java.util.*;
+import java.util.logging.Level;
 
 /**
- * Registre statique de tous les challenges par rang.
- * Chaque rang (A-Z, FREE) a 9 challenges.
+ * Registre de tous les challenges par rang.
+ * Charge depuis SQL au demarrage, avec seed des valeurs par defaut si la table est vide.
+ * L'API statique est conservee pour compatibilite avec le reste du code.
  */
 public class ChallengeRegistry {
 
     private static final Map<String, List<ChallengeDefinition>> CHALLENGES = new LinkedHashMap<>();
     private static final Map<String, ChallengeDefinition> BY_ID = new HashMap<>();
 
-    static {
-        registerRankA();
-        registerRankB();
-        registerRankC();
-        registerRankD();
-        registerRankE();
-        // Rangs F-Z : generes automatiquement avec des cibles croissantes
-        for (char c = 'F'; c <= 'Z'; c++) {
-            registerScaledRank(String.valueOf(c), c - 'A');
-        }
-        registerFree();
+    // =============================================
+    // Public API (statique, utilisee partout)
+    // =============================================
+
+    @NotNull
+    public static List<ChallengeDefinition> getChallengesForRank(@NotNull String rankId) {
+        return CHALLENGES.getOrDefault(rankId.toUpperCase(), List.of());
+    }
+
+    @Nullable
+    public static ChallengeDefinition getChallenge(@NotNull String challengeId) {
+        return BY_ID.get(challengeId);
+    }
+
+    public static boolean hasRank(@NotNull String rankId) {
+        return CHALLENGES.containsKey(rankId.toUpperCase());
+    }
+
+    /**
+     * Retourne tous les rangs qui ont des challenges definis.
+     */
+    @NotNull
+    public static Set<String> getAllRanks() {
+        return Collections.unmodifiableSet(CHALLENGES.keySet());
     }
 
     // =============================================
-    // Rang A - Debutant
+    // SQL Loading
     // =============================================
-    private static void registerRankA() {
+
+    /**
+     * Cree les tables SQL pour les definitions de challenges.
+     */
+    public static void runMigrations(@NotNull SQLExecutor sql) {
+        try {
+            sql.execute("""
+                CREATE TABLE IF NOT EXISTS prison_challenge_definitions (
+                    challenge_id VARCHAR(64) PRIMARY KEY,
+                    rank_id VARCHAR(8) NOT NULL,
+                    challenge_index INT NOT NULL,
+                    display_name VARCHAR(64) NOT NULL,
+                    type VARCHAR(32) NOT NULL,
+                    description VARCHAR(255) DEFAULT '',
+                    target_block_id VARCHAR(128),
+                    INDEX idx_rank (rank_id),
+                    INDEX idx_rank_index (rank_id, challenge_index)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            """).join();
+
+            sql.execute("""
+                CREATE TABLE IF NOT EXISTS prison_challenge_tiers (
+                    challenge_id VARCHAR(64) NOT NULL,
+                    tier_index INT NOT NULL,
+                    target BIGINT NOT NULL,
+                    reward DECIMAL(15,2) NOT NULL,
+                    PRIMARY KEY (challenge_id, tier_index),
+                    FOREIGN KEY (challenge_id) REFERENCES prison_challenge_definitions(challenge_id) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            """).join();
+        } catch (Exception e) {
+            System.err.println("[ChallengeRegistry] Failed to create tables: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Charge toutes les definitions depuis SQL. Si la table est vide, seed les valeurs par defaut.
+     */
+    public static void loadFromSQL(@NotNull SQLExecutor sql) {
+        try {
+            // Verifier si la table a des donnees
+            long count = sql.queryLong("SELECT COUNT(*) FROM prison_challenge_definitions").join();
+
+            if (count == 0) {
+                // Seed les valeurs par defaut
+                seedDefaults(sql);
+            }
+
+            // Charger les definitions
+            List<DefRow> defRows = sql.queryList(
+                "SELECT challenge_id, rank_id, challenge_index, display_name, type, description, target_block_id FROM prison_challenge_definitions ORDER BY rank_id, challenge_index",
+                rs -> {
+                    try {
+                        return new DefRow(
+                            rs.getString("challenge_id"),
+                            rs.getString("rank_id"),
+                            rs.getInt("challenge_index"),
+                            rs.getString("display_name"),
+                            rs.getString("type"),
+                            rs.getString("description"),
+                            rs.getString("target_block_id")
+                        );
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            ).join();
+
+            // Charger les tiers
+            List<TierRow> tierRows = sql.queryList(
+                "SELECT challenge_id, tier_index, target, reward FROM prison_challenge_tiers ORDER BY challenge_id, tier_index",
+                rs -> {
+                    try {
+                        return new TierRow(
+                            rs.getString("challenge_id"),
+                            rs.getInt("tier_index"),
+                            rs.getLong("target"),
+                            rs.getBigDecimal("reward")
+                        );
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            ).join();
+
+            // Grouper les tiers par challenge_id
+            Map<String, List<ChallengeDefinition.ChallengeTier>> tiersByChallenge = new LinkedHashMap<>();
+            for (TierRow tr : tierRows) {
+                tiersByChallenge.computeIfAbsent(tr.challengeId, k -> new ArrayList<>())
+                    .add(new ChallengeDefinition.ChallengeTier(tr.target, tr.reward));
+            }
+
+            // Reconstruire le registre
+            CHALLENGES.clear();
+            BY_ID.clear();
+
+            Map<String, List<ChallengeDefinition>> tempMap = new LinkedHashMap<>();
+            for (DefRow dr : defRows) {
+                List<ChallengeDefinition.ChallengeTier> tiers = tiersByChallenge.getOrDefault(dr.challengeId, List.of());
+                ChallengeDefinition def = new ChallengeDefinition.Builder(dr.rankId, dr.challengeIndex, dr.challengeId, dr.displayName, ChallengeType.valueOf(dr.type))
+                    .description(dr.description != null ? dr.description : "")
+                    .targetBlock(dr.targetBlockId)
+                    .tiers(tiers)
+                    .build();
+
+                tempMap.computeIfAbsent(dr.rankId.toUpperCase(), k -> new ArrayList<>()).add(def);
+                BY_ID.put(def.getId(), def);
+            }
+
+            // Convertir en listes immutables
+            for (Map.Entry<String, List<ChallengeDefinition>> entry : tempMap.entrySet()) {
+                CHALLENGES.put(entry.getKey(), List.copyOf(entry.getValue()));
+            }
+
+            System.out.println("[ChallengeRegistry] Loaded " + BY_ID.size() + " challenges for " + CHALLENGES.size() + " ranks from SQL.");
+        } catch (Exception e) {
+            System.err.println("[ChallengeRegistry] Failed to load from SQL: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // =============================================
+    // Modification API (pour la page admin)
+    // =============================================
+
+    /**
+     * Met a jour un challenge en SQL et recharge le registre.
+     */
+    public static void updateChallenge(@NotNull SQLExecutor sql, @NotNull ChallengeDefinition def) {
+        try {
+            // Update definition
+            sql.execute("""
+                UPDATE prison_challenge_definitions
+                SET display_name = ?, type = ?, description = ?, target_block_id = ?
+                WHERE challenge_id = ?
+            """, def.getDisplayName(), def.getType().name(), def.getDescription(), def.getTargetBlockId(), def.getId()).join();
+
+            // Delete old tiers
+            sql.execute("DELETE FROM prison_challenge_tiers WHERE challenge_id = ?", def.getId()).join();
+
+            // Insert new tiers
+            for (int i = 0; i < def.getTiers().size(); i++) {
+                ChallengeDefinition.ChallengeTier tier = def.getTiers().get(i);
+                sql.execute("""
+                    INSERT INTO prison_challenge_tiers (challenge_id, tier_index, target, reward) VALUES (?, ?, ?, ?)
+                """, def.getId(), i, tier.target(), tier.reward()).join();
+            }
+
+            // Reload
+            loadFromSQL(sql);
+        } catch (Exception e) {
+            System.err.println("[ChallengeRegistry] Failed to update challenge: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Supprime un challenge en SQL et recharge le registre.
+     */
+    public static void deleteChallenge(@NotNull SQLExecutor sql, @NotNull String challengeId) {
+        try {
+            sql.execute("DELETE FROM prison_challenge_definitions WHERE challenge_id = ?", challengeId).join();
+            loadFromSQL(sql);
+        } catch (Exception e) {
+            System.err.println("[ChallengeRegistry] Failed to delete challenge: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Ajoute un challenge en SQL et recharge le registre.
+     */
+    public static void addChallenge(@NotNull SQLExecutor sql, @NotNull ChallengeDefinition def) {
+        try {
+            sql.execute("""
+                INSERT INTO prison_challenge_definitions (challenge_id, rank_id, challenge_index, display_name, type, description, target_block_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, def.getId(), def.getRankId(), def.getIndex(), def.getDisplayName(), def.getType().name(), def.getDescription(), def.getTargetBlockId()).join();
+
+            for (int i = 0; i < def.getTiers().size(); i++) {
+                ChallengeDefinition.ChallengeTier tier = def.getTiers().get(i);
+                sql.execute("""
+                    INSERT INTO prison_challenge_tiers (challenge_id, tier_index, target, reward) VALUES (?, ?, ?, ?)
+                """, def.getId(), i, tier.target(), tier.reward()).join();
+            }
+
+            loadFromSQL(sql);
+        } catch (Exception e) {
+            System.err.println("[ChallengeRegistry] Failed to add challenge: " + e.getMessage());
+        }
+    }
+
+    // =============================================
+    // Seed (valeurs par defaut)
+    // =============================================
+
+    private static void seedDefaults(@NotNull SQLExecutor sql) {
+        System.out.println("[ChallengeRegistry] Seeding default challenges...");
+
+        List<ChallengeDefinition> allDefaults = new ArrayList<>();
+        allDefaults.addAll(defaultRankA());
+        allDefaults.addAll(defaultRankB());
+        allDefaults.addAll(defaultRankC());
+        allDefaults.addAll(defaultRankD());
+        allDefaults.addAll(defaultRankE());
+        for (char c = 'F'; c <= 'Z'; c++) {
+            allDefaults.addAll(defaultScaledRank(String.valueOf(c), c - 'A'));
+        }
+        allDefaults.addAll(defaultFree());
+
+        // Batch insert definitions
+        String defSql = "INSERT INTO prison_challenge_definitions (challenge_id, rank_id, challenge_index, display_name, type, description, target_block_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        List<Object[]> defBatch = new ArrayList<>();
+        for (ChallengeDefinition def : allDefaults) {
+            defBatch.add(new Object[]{def.getId(), def.getRankId(), def.getIndex(), def.getDisplayName(), def.getType().name(), def.getDescription(), def.getTargetBlockId()});
+        }
+
+        try {
+            sql.executeBatch(defSql, defBatch).join();
+        } catch (Exception e) {
+            System.err.println("[ChallengeRegistry] Failed to seed definitions: " + e.getMessage());
+            return;
+        }
+
+        // Batch insert tiers
+        String tierSql = "INSERT INTO prison_challenge_tiers (challenge_id, tier_index, target, reward) VALUES (?, ?, ?, ?)";
+        List<Object[]> tierBatch = new ArrayList<>();
+        for (ChallengeDefinition def : allDefaults) {
+            for (int i = 0; i < def.getTiers().size(); i++) {
+                ChallengeDefinition.ChallengeTier tier = def.getTiers().get(i);
+                tierBatch.add(new Object[]{def.getId(), i, tier.target(), tier.reward()});
+            }
+        }
+
+        try {
+            sql.executeBatch(tierSql, tierBatch).join();
+            System.out.println("[ChallengeRegistry] Seeded " + allDefaults.size() + " challenges with " + tierBatch.size() + " tiers.");
+        } catch (Exception e) {
+            System.err.println("[ChallengeRegistry] Failed to seed tiers: " + e.getMessage());
+        }
+    }
+
+    // =============================================
+    // Default challenge definitions (seed data)
+    // =============================================
+
+    private static List<ChallengeDefinition> defaultRankA() {
         List<ChallengeDefinition> list = new ArrayList<>();
         list.add(new ChallengeDefinition.Builder("A", 0, "A_1", "Mineur Debutant", ChallengeType.MINE_BLOCKS)
                 .description("Mine des blocs dans les mines")
@@ -61,13 +322,10 @@ public class ChallengeRegistry {
         list.add(new ChallengeDefinition.Builder("A", 8, "A_9", "Depensier", ChallengeType.SPEND_MONEY)
                 .description("Depense des coins")
                 .tier(3000, 500).build());
-        register("A", list);
+        return list;
     }
 
-    // =============================================
-    // Rang B
-    // =============================================
-    private static void registerRankB() {
+    private static List<ChallengeDefinition> defaultRankB() {
         List<ChallengeDefinition> list = new ArrayList<>();
         list.add(new ChallengeDefinition.Builder("B", 0, "B_1", "Mineur Confirme", ChallengeType.MINE_BLOCKS)
                 .description("Mine encore plus de blocs")
@@ -98,13 +356,10 @@ public class ChallengeRegistry {
         list.add(new ChallengeDefinition.Builder("B", 8, "B_9", "Gros Depensier", ChallengeType.SPEND_MONEY)
                 .description("Depense encore plus")
                 .tier(10000, 1500).build());
-        register("B", list);
+        return list;
     }
 
-    // =============================================
-    // Rang C
-    // =============================================
-    private static void registerRankC() {
+    private static List<ChallengeDefinition> defaultRankC() {
         List<ChallengeDefinition> list = new ArrayList<>();
         list.add(new ChallengeDefinition.Builder("C", 0, "C_1", "Mineur Expert", ChallengeType.MINE_BLOCKS)
                 .description("Deviens un expert du minage")
@@ -135,13 +390,10 @@ public class ChallengeRegistry {
         list.add(new ChallengeDefinition.Builder("C", 8, "C_9", "Investisseur", ChallengeType.SPEND_MONEY)
                 .description("Investis dans tes upgrades")
                 .tier(30000, 3000).build());
-        register("C", list);
+        return list;
     }
 
-    // =============================================
-    // Rang D
-    // =============================================
-    private static void registerRankD() {
+    private static List<ChallengeDefinition> defaultRankD() {
         List<ChallengeDefinition> list = new ArrayList<>();
         list.add(new ChallengeDefinition.Builder("D", 0, "D_1", "Mineur Veteran", ChallengeType.MINE_BLOCKS)
                 .description("Mine comme un pro")
@@ -171,13 +423,10 @@ public class ChallengeRegistry {
         list.add(new ChallengeDefinition.Builder("D", 8, "D_9", "Magnat", ChallengeType.SPEND_MONEY)
                 .description("Depense comme un roi")
                 .tier(80000, 8000).build());
-        register("D", list);
+        return list;
     }
 
-    // =============================================
-    // Rang E
-    // =============================================
-    private static void registerRankE() {
+    private static List<ChallengeDefinition> defaultRankE() {
         List<ChallengeDefinition> list = new ArrayList<>();
         list.add(new ChallengeDefinition.Builder("E", 0, "E_1", "Mineur Legendaire", ChallengeType.MINE_BLOCKS)
                 .description("Deviens une legende")
@@ -207,14 +456,11 @@ public class ChallengeRegistry {
         list.add(new ChallengeDefinition.Builder("E", 8, "E_9", "Dilapidateur", ChallengeType.SPEND_MONEY)
                 .description("Depense sans compter")
                 .tier(200000, 20000).build());
-        register("E", list);
+        return list;
     }
 
-    // =============================================
-    // Rangs F-Z : generes avec multiplicateur
-    // =============================================
-    private static void registerScaledRank(String rankId, int rankIndex) {
-        double scale = 1.0 + (rankIndex - 5) * 0.5; // F=1.5x, G=2x, H=2.5x, etc.
+    private static List<ChallengeDefinition> defaultScaledRank(String rankId, int rankIndex) {
+        double scale = 1.0 + (rankIndex - 5) * 0.5;
         List<ChallengeDefinition> list = new ArrayList<>();
 
         list.add(new ChallengeDefinition.Builder(rankId, 0, rankId + "_1", "Mineur " + rankId, ChallengeType.MINE_BLOCKS)
@@ -253,13 +499,10 @@ public class ChallengeRegistry {
                 .description("Depense des coins")
                 .tier(scaled(300000, scale), scaled(25000, scale)).build());
 
-        register(rankId, list);
+        return list;
     }
 
-    // =============================================
-    // Rang FREE
-    // =============================================
-    private static void registerFree() {
+    private static List<ChallengeDefinition> defaultFree() {
         List<ChallengeDefinition> list = new ArrayList<>();
         list.add(new ChallengeDefinition.Builder("FREE", 0, "FREE_1", "Legende Vivante", ChallengeType.MINE_BLOCKS)
                 .description("Le defi ultime du minage")
@@ -289,12 +532,8 @@ public class ChallengeRegistry {
         list.add(new ChallengeDefinition.Builder("FREE", 8, "FREE_9", "Sans Limites", ChallengeType.SPEND_MONEY)
                 .description("Depense sans aucune limite")
                 .tier(20000000, 2000000).build());
-        register("FREE", list);
+        return list;
     }
-
-    // =============================================
-    // Helpers
-    // =============================================
 
     private static long scaled(long base, double scale) {
         return Math.round(base * scale);
@@ -304,28 +543,10 @@ public class ChallengeRegistry {
         return Math.round(base * scale);
     }
 
-    private static void register(String rankId, List<ChallengeDefinition> definitions) {
-        CHALLENGES.put(rankId.toUpperCase(), List.copyOf(definitions));
-        for (ChallengeDefinition def : definitions) {
-            BY_ID.put(def.getId(), def);
-        }
-    }
-
     // =============================================
-    // Public API
+    // Data rows (for SQL loading)
     // =============================================
 
-    @NotNull
-    public static List<ChallengeDefinition> getChallengesForRank(@NotNull String rankId) {
-        return CHALLENGES.getOrDefault(rankId.toUpperCase(), List.of());
-    }
-
-    @Nullable
-    public static ChallengeDefinition getChallenge(@NotNull String challengeId) {
-        return BY_ID.get(challengeId);
-    }
-
-    public static boolean hasRank(@NotNull String rankId) {
-        return CHALLENGES.containsKey(rankId.toUpperCase());
-    }
+    private record DefRow(String challengeId, String rankId, int challengeIndex, String displayName, String type, String description, String targetBlockId) {}
+    private record TierRow(String challengeId, int tierIndex, long target, BigDecimal reward) {}
 }

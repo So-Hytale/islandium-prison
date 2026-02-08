@@ -91,6 +91,11 @@ public class ChallengeDefinition {
             return this;
         }
 
+        public Builder tiers(List<ChallengeTier> tiers) {
+            this.tiers.addAll(tiers);
+            return this;
+        }
+
         public ChallengeDefinition build() {
             return new ChallengeDefinition(this);
         }

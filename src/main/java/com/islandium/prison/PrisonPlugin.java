@@ -14,6 +14,7 @@ import com.islandium.prison.ui.PrisonUIManager;
 import com.islandium.prison.ui.pages.PrisonMenuPage;
 import com.islandium.prison.upgrade.PickaxeUpgradeManager;
 import com.islandium.prison.challenge.ChallengeManager;
+import com.islandium.prison.challenge.ChallengeRegistry;
 import com.islandium.prison.challenge.ChallengeTracker;
 import com.islandium.prison.event.BreakBlockEventSystem;
 import com.islandium.core.ui.IslandiumUIRegistry;
@@ -84,7 +85,10 @@ public class PrisonPlugin extends JavaPlugin {
             this.challengeManager = new ChallengeManager(this);
             this.challengeTracker = new ChallengeTracker(this, challengeManager);
 
-            // Run challenge SQL migrations
+            // Run challenge SQL migrations (definitions + progress)
+            var sql = corePlugin.getDatabaseManager().getExecutor();
+            ChallengeRegistry.runMigrations(sql);
+            ChallengeRegistry.loadFromSQL(sql);
             challengeManager.runMigrations();
 
             // Load data
