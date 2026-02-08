@@ -899,6 +899,80 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                 cmd.set(cardSelector + " #Rew.Text", rewardText);
             }
         }
+
+        // Bouton RANKUP en bas (seulement pour le rang actuel)
+        if (isCurrentRank) {
+            PrisonConfig.RankInfo nextRank = plugin.getRankManager().getNextRankInfo(uuid);
+            boolean allChallengesDone = completedCount >= totalCount;
+
+            if (nextRank != null) {
+                BigDecimal rankupPrice = plugin.getRankManager().getRankupPrice(uuid, nextRank);
+                String priceText = "Prix: " + SellService.formatMoney(rankupPrice);
+                String btnBg = allChallengesDone ? "#2a5f2a" : "#3a2a2a";
+                String btnHover = allChallengesDone ? "#3a7f3a" : "#4a3a3a";
+                String btnTextColor = allChallengesDone ? "#ffffff" : "#ff6666";
+
+                cmd.appendInline("#PageContent",
+                    "Group { Anchor: (Height: 55, Top: 10); LayoutMode: Top; " +
+                    "  Group { Anchor: (Height: 20); LayoutMode: Left; " +
+                    "    Group { FlexWeight: 1; } " +
+                    "    Label #RankupPrice { Anchor: (Width: 250); Style: (FontSize: 12, TextColor: #96a9be, VerticalAlignment: Center); } " +
+                    "    Group { FlexWeight: 1; } " +
+                    "  } " +
+                    "  Group { Anchor: (Height: 40, Top: 2); LayoutMode: Left; " +
+                    "    Group { FlexWeight: 1; } " +
+                    "    TextButton #DefiRankupBtn { Anchor: (Width: 200, Height: 38); " +
+                    "      Style: TextButtonStyle(Default: (Background: " + btnBg + ", LabelStyle: (FontSize: 15, TextColor: " + btnTextColor + ", RenderBold: true, VerticalAlignment: Center)), " +
+                    "      Hovered: (Background: " + btnHover + ", LabelStyle: (FontSize: 15, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center))); } " +
+                    "    Group { FlexWeight: 1; } " +
+                    "  } " +
+                    "}");
+
+                cmd.set("#RankupPrice.Text", priceText);
+                cmd.set("#DefiRankupBtn.Text", allChallengesDone ? "RANKUP" : "DEFIS INCOMPLETS");
+                event.addEventBinding(CustomUIEventBindingType.Activating, "#DefiRankupBtn", EventData.of("Action", "defiRankup"), false);
+            } else if (plugin.getRankManager().canPrestige(uuid)) {
+                cmd.appendInline("#PageContent",
+                    "Group { Anchor: (Height: 50, Top: 10); LayoutMode: Left; " +
+                    "  Group { FlexWeight: 1; } " +
+                    "  TextButton #DefiPrestigeBtn { Anchor: (Width: 200, Height: 42); " +
+                    "    Style: TextButtonStyle(Default: (Background: #5f2a5f, LabelStyle: (FontSize: 15, TextColor: #ff80ff, RenderBold: true, VerticalAlignment: Center)), " +
+                    "    Hovered: (Background: #7f3a7f, LabelStyle: (FontSize: 15, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center))); } " +
+                    "  Group { FlexWeight: 1; } " +
+                    "}");
+                cmd.set("#DefiPrestigeBtn.Text", "PRESTIGE");
+                event.addEventBinding(CustomUIEventBindingType.Activating, "#DefiPrestigeBtn", EventData.of("Action", "defiPrestige"), false);
+            } else {
+                cmd.appendInline("#PageContent",
+                    "Group { Anchor: (Height: 30, Top: 10); LayoutMode: Left; " +
+                    "  Group { FlexWeight: 1; } " +
+                    "  Label { Anchor: (Width: 250); Text: \"Rang maximum atteint!\"; Style: (FontSize: 14, TextColor: #ffd700, RenderBold: true, VerticalAlignment: Center); } " +
+                    "  Group { FlexWeight: 1; } " +
+                    "}");
+            }
+        }
+
+        // Bouton admin config challenges
+        boolean isAdmin = false;
+        try {
+            var perms = com.hypixel.hytale.server.core.permissions.PermissionsModule.get();
+            isAdmin = perms.getGroupsForUser(uuid).contains("OP")
+                || perms.hasPermission(uuid, "prison.admin")
+                || perms.hasPermission(uuid, "*");
+        } catch (Exception ignored) {}
+
+        if (isAdmin) {
+            cmd.appendInline("#PageContent",
+                "Group { Anchor: (Height: 35, Top: 5); LayoutMode: Left; " +
+                "  Group { FlexWeight: 1; } " +
+                "  TextButton #ChallengeConfigBtn { Anchor: (Width: 180, Height: 30); " +
+                "    Style: TextButtonStyle(Default: (Background: #2d4a5a, LabelStyle: (FontSize: 11, TextColor: #ffd700, RenderBold: true, VerticalAlignment: Center)), " +
+                "    Hovered: (Background: #3d5a6a, LabelStyle: (FontSize: 11, TextColor: #ffd700, RenderBold: true, VerticalAlignment: Center))); } " +
+                "  Group { FlexWeight: 1; } " +
+                "}");
+            cmd.set("#ChallengeConfigBtn.Text", "CONFIG CHALLENGES");
+            event.addEventBinding(CustomUIEventBindingType.Activating, "#ChallengeConfigBtn", EventData.of("Action", "openChallengeConfig"), false);
+        }
     }
 
     /**
@@ -1005,6 +1079,10 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                     plugin.getUIManager().openSellConfig(player);
                     return;
                 }
+                case "openChallengeConfig" -> {
+                    plugin.getUIManager().openChallengeConfig(player);
+                    return;
+                }
                 case "sellAll" -> {
                     SellService.SellResult result = plugin.getSellService().sellFromInventory(uuid, player, null);
                     if (result.isEmpty()) {
@@ -1052,6 +1130,35 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                         } else {
                             player.sendMessage(Message.raw("Impossible de rankup (pas assez d'argent ou rang max)!"));
                         }
+                    }
+                    return;
+                }
+                case "defiRankup" -> {
+                    PrisonRankManager.RankupResult result = plugin.getRankManager().rankup(uuid);
+                    switch (result) {
+                        case SUCCESS -> {
+                            String newRank = plugin.getRankManager().getPlayerRank(uuid);
+                            player.sendMessage(Message.raw("Rankup! Tu es maintenant rang " + newRank + "!"));
+                            buildDefisPage(cmd, event);
+                            sendUpdate(cmd, event, false);
+                        }
+                        case NOT_ENOUGH_MONEY -> player.sendMessage(Message.raw("Pas assez d'argent!"));
+                        case MAX_RANK -> player.sendMessage(Message.raw("Tu es deja au rang maximum!"));
+                        case CHALLENGES_INCOMPLETE -> {
+                            int completed = plugin.getChallengeManager().getCompletedCount(uuid, plugin.getRankManager().getPlayerRank(uuid));
+                            player.sendMessage(Message.raw("Defis incomplets! (" + completed + "/9) - Complete tes defis pour rankup."));
+                        }
+                    }
+                    return;
+                }
+                case "defiPrestige" -> {
+                    if (plugin.getRankManager().prestige(uuid)) {
+                        int newPrestige = plugin.getRankManager().getPlayerPrestige(uuid);
+                        player.sendMessage(Message.raw("Prestige! Tu es maintenant Prestige " + newPrestige + "!"));
+                        buildDefisPage(cmd, event);
+                        sendUpdate(cmd, event, false);
+                    } else {
+                        player.sendMessage(Message.raw("Tu dois etre rang FREE pour prestige!"));
                     }
                     return;
                 }

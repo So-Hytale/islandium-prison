@@ -1,74 +1,159 @@
 package com.islandium.prison.challenge;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.islandium.core.api.IslandiumAPI;
 import com.islandium.core.api.economy.EconomyService;
+import com.islandium.core.database.SQLExecutor;
 import com.islandium.prison.PrisonPlugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 /**
  * Manager central pour le systeme de challenges.
- * Gere la persistence, le suivi de progression et la completion.
+ * Stockage SQL avec cache en memoire pour les performances.
+ * Les donnees sont chargees au demarrage et persistees de maniere async.
  */
 public class ChallengeManager {
 
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-
     private final PrisonPlugin plugin;
-    private final Path dataFile;
 
+    // Cache en memoire : UUID -> (challengeId -> ProgressData)
     private final Map<UUID, PlayerChallengeProgress> playerProgress = new ConcurrentHashMap<>();
 
     public ChallengeManager(@NotNull PrisonPlugin plugin) {
         this.plugin = plugin;
-        this.dataFile = plugin.getDataFolder().toPath().resolve("player_challenges.json");
+    }
+
+    private SQLExecutor getSql() {
+        return plugin.getCore().getDatabaseManager().getExecutor();
     }
 
     // ===========================
-    // Persistence
+    // Migrations & Loading
     // ===========================
 
-    public void loadAll() {
+    /**
+     * Cree la table SQL si elle n'existe pas.
+     */
+    public void runMigrations() {
         try {
-            if (Files.exists(dataFile)) {
-                String content = Files.readString(dataFile);
-                ChallengeFileData data = GSON.fromJson(content, ChallengeFileData.class);
-
-                if (data != null && data.players != null) {
-                    for (Map.Entry<String, PlayerChallengeProgress> entry : data.players.entrySet()) {
-                        playerProgress.put(UUID.fromString(entry.getKey()), entry.getValue());
-                    }
-                }
-
-                plugin.log(Level.INFO, "Loaded " + playerProgress.size() + " player challenge progress records");
-            }
+            getSql().execute("""
+                CREATE TABLE IF NOT EXISTS prison_challenge_progress (
+                    player_uuid CHAR(36) NOT NULL,
+                    challenge_id VARCHAR(64) NOT NULL,
+                    current_value BIGINT DEFAULT 0,
+                    completed_tier INT DEFAULT 0,
+                    updated_at BIGINT NOT NULL,
+                    PRIMARY KEY (player_uuid, challenge_id),
+                    INDEX idx_player (player_uuid)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            """).join();
+            plugin.log(Level.INFO, "Challenge table migration completed.");
         } catch (Exception e) {
-            plugin.log(Level.SEVERE, "Failed to load challenge data: " + e.getMessage());
+            plugin.log(Level.SEVERE, "Failed to run challenge migrations: " + e.getMessage());
         }
     }
 
-    public void saveAll() {
+    /**
+     * Charge toutes les donnees de progression depuis SQL vers le cache memoire.
+     * Appele au demarrage du serveur.
+     */
+    public void loadAll() {
         try {
-            ChallengeFileData data = new ChallengeFileData();
-            data.players = new HashMap<>();
+            List<ProgressRow> rows = getSql().queryList(
+                "SELECT player_uuid, challenge_id, current_value, completed_tier FROM prison_challenge_progress",
+                rs -> {
+                    try {
+                        return new ProgressRow(
+                            rs.getString("player_uuid"),
+                            rs.getString("challenge_id"),
+                            rs.getLong("current_value"),
+                            rs.getInt("completed_tier")
+                        );
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            ).join();
 
-            for (Map.Entry<UUID, PlayerChallengeProgress> entry : playerProgress.entrySet()) {
-                data.players.put(entry.getKey().toString(), entry.getValue());
+            for (ProgressRow row : rows) {
+                UUID uuid = UUID.fromString(row.playerUuid);
+                PlayerChallengeProgress progress = playerProgress.computeIfAbsent(uuid, k -> new PlayerChallengeProgress());
+                PlayerChallengeProgress.ChallengeProgressData data = progress.getOrCreate(row.challengeId);
+                data.currentValue = row.currentValue;
+                data.completedTier = row.completedTier;
             }
 
-            Files.createDirectories(dataFile.getParent());
-            Files.writeString(dataFile, GSON.toJson(data));
-        } catch (IOException e) {
-            plugin.log(Level.SEVERE, "Failed to save challenge data: " + e.getMessage());
+            plugin.log(Level.INFO, "Loaded challenge progress for " + playerProgress.size() + " players from SQL.");
+        } catch (Exception e) {
+            plugin.log(Level.SEVERE, "Failed to load challenge data from SQL: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Sauvegarde toute la progression en memoire vers SQL (batch).
+     * Appele a l'arret du serveur.
+     */
+    public void saveAll() {
+        try {
+            String sql = """
+                INSERT INTO prison_challenge_progress (player_uuid, challenge_id, current_value, completed_tier, updated_at)
+                VALUES (?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    current_value = VALUES(current_value),
+                    completed_tier = VALUES(completed_tier),
+                    updated_at = VALUES(updated_at)
+            """;
+
+            List<Object[]> batchParams = new ArrayList<>();
+            long now = System.currentTimeMillis();
+
+            for (Map.Entry<UUID, PlayerChallengeProgress> entry : playerProgress.entrySet()) {
+                String uuidStr = entry.getKey().toString();
+                for (Map.Entry<String, PlayerChallengeProgress.ChallengeProgressData> cEntry : entry.getValue().challenges.entrySet()) {
+                    PlayerChallengeProgress.ChallengeProgressData data = cEntry.getValue();
+                    batchParams.add(new Object[]{
+                        uuidStr,
+                        cEntry.getKey(),
+                        data.currentValue,
+                        data.completedTier,
+                        now
+                    });
+                }
+            }
+
+            if (!batchParams.isEmpty()) {
+                getSql().executeBatch(sql, batchParams).join();
+                plugin.log(Level.INFO, "Saved " + batchParams.size() + " challenge progress records to SQL.");
+            }
+        } catch (Exception e) {
+            plugin.log(Level.SEVERE, "Failed to save challenge data to SQL: " + e.getMessage());
+        }
+    }
+
+    // ===========================
+    // Async SQL persistence (per-record)
+    // ===========================
+
+    /**
+     * Persiste un seul record de progression de maniere async.
+     * Appele apres chaque changement de progression.
+     */
+    private void persistAsync(@NotNull UUID uuid, @NotNull String challengeId, @NotNull PlayerChallengeProgress.ChallengeProgressData data) {
+        try {
+            getSql().execute("""
+                INSERT INTO prison_challenge_progress (player_uuid, challenge_id, current_value, completed_tier, updated_at)
+                VALUES (?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    current_value = VALUES(current_value),
+                    completed_tier = VALUES(completed_tier),
+                    updated_at = VALUES(updated_at)
+            """, uuid.toString(), challengeId, data.currentValue, data.completedTier, System.currentTimeMillis());
+        } catch (Exception e) {
+            plugin.log(Level.WARNING, "Failed to persist challenge progress: " + e.getMessage());
         }
     }
 
@@ -107,7 +192,9 @@ public class ChallengeManager {
         }
 
         data.currentValue += amount;
-        return checkAndRewardTiers(uuid, def, data);
+        boolean result = checkAndRewardTiers(uuid, def, data);
+        persistAsync(uuid, challengeId, data);
+        return result;
     }
 
     /**
@@ -125,7 +212,15 @@ public class ChallengeManager {
             return false;
         }
 
+        long oldValue = data.currentValue;
         data.currentValue = Math.max(data.currentValue, value);
+
+        if (data.currentValue != oldValue) {
+            boolean result = checkAndRewardTiers(uuid, def, data);
+            persistAsync(uuid, challengeId, data);
+            return result;
+        }
+
         return checkAndRewardTiers(uuid, def, data);
     }
 
@@ -219,8 +314,22 @@ public class ChallengeManager {
     public void resetChallengesForRank(@NotNull UUID uuid, @NotNull String rankId) {
         List<ChallengeDefinition> challenges = ChallengeRegistry.getChallengesForRank(rankId);
         PlayerChallengeProgress progress = getProgress(uuid);
+        List<String> challengeIds = new ArrayList<>();
         for (ChallengeDefinition def : challenges) {
             progress.challenges.remove(def.getId());
+            challengeIds.add(def.getId());
+        }
+
+        // Supprimer en SQL aussi
+        for (String challengeId : challengeIds) {
+            try {
+                getSql().execute(
+                    "DELETE FROM prison_challenge_progress WHERE player_uuid = ? AND challenge_id = ?",
+                    uuid.toString(), challengeId
+                );
+            } catch (Exception e) {
+                plugin.log(Level.WARNING, "Failed to delete challenge progress from SQL: " + e.getMessage());
+            }
         }
     }
 
@@ -229,6 +338,16 @@ public class ChallengeManager {
      */
     public void resetAllChallenges(@NotNull UUID uuid) {
         playerProgress.remove(uuid);
+
+        // Supprimer en SQL aussi
+        try {
+            getSql().execute(
+                "DELETE FROM prison_challenge_progress WHERE player_uuid = ?",
+                uuid.toString()
+            );
+        } catch (Exception e) {
+            plugin.log(Level.WARNING, "Failed to delete all challenge progress from SQL: " + e.getMessage());
+        }
     }
 
     // ===========================
@@ -241,10 +360,8 @@ public class ChallengeManager {
     }
 
     // ===========================
-    // Data Class
+    // Data Row (for loading)
     // ===========================
 
-    private static class ChallengeFileData {
-        Map<String, PlayerChallengeProgress> players;
-    }
+    private record ProgressRow(String playerUuid, String challengeId, long currentValue, int completedTier) {}
 }

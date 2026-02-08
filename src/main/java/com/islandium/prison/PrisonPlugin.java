@@ -84,6 +84,9 @@ public class PrisonPlugin extends JavaPlugin {
             this.challengeManager = new ChallengeManager(this);
             this.challengeTracker = new ChallengeTracker(this, challengeManager);
 
+            // Run challenge SQL migrations
+            challengeManager.runMigrations();
+
             // Load data
             mineManager.loadAll();
             rankManager.loadAll();
