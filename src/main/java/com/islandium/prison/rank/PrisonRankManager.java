@@ -214,13 +214,13 @@ public class PrisonRankManager {
         eco.removeBalance(uuid, price, "Prison rankup to " + nextRank.id).join();
 
         // Challenge tracking - depense
-        plugin.getChallengeTracker().onMoneySpent(uuid, price);
+        try { plugin.getChallengeTracker().onMoneySpent(uuid, price); } catch (Exception ignored) {}
 
         // Set new rank
         setPlayerRank(uuid, nextRank.id);
 
         // Invalider le cache de rang du tracker
-        plugin.getChallengeTracker().invalidateRankCache(uuid);
+        try { plugin.getChallengeTracker().invalidateRankCache(uuid); } catch (Exception ignored) {}
 
         return RankupResult.SUCCESS;
     }
@@ -278,8 +278,8 @@ public class PrisonRankManager {
         setPlayerRank(uuid, DEFAULT_RANK);
 
         // Reset tous les challenges
-        plugin.getChallengeManager().resetAllChallenges(uuid);
-        plugin.getChallengeTracker().invalidateRankCache(uuid);
+        try { plugin.getChallengeManager().resetAllChallenges(uuid); } catch (Exception ignored) {}
+        try { plugin.getChallengeTracker().invalidateRankCache(uuid); } catch (Exception ignored) {}
 
         // Reset balance (optional - configurable)
         EconomyService eco = getEconomyService();

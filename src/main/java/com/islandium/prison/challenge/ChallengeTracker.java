@@ -145,16 +145,30 @@ public class ChallengeTracker {
 
     private void checkBalanceChallenge(@NotNull UUID uuid, @NotNull String rankId,
                                         @NotNull List<ChallengeDefinition> challenges) {
+        // Verifier si on a des challenges ACCUMULATE_BALANCE avant de faire l'appel eco
+        boolean hasBalanceChallenge = false;
+        for (ChallengeDefinition def : challenges) {
+            if (def.getType() == ChallengeType.ACCUMULATE_BALANCE) {
+                hasBalanceChallenge = true;
+                break;
+            }
+        }
+        if (!hasBalanceChallenge) return;
+
         EconomyService eco = getEconomyService();
         if (eco == null) return;
 
+        // Non-bloquant : on ne fait PAS .join() pour ne pas bloquer le thread ECS
         try {
-            BigDecimal balance = eco.getBalance(uuid).join();
-            for (ChallengeDefinition def : challenges) {
-                if (def.getType() == ChallengeType.ACCUMULATE_BALANCE) {
-                    challengeManager.setProgress(uuid, def.getId(), balance.longValue());
-                }
-            }
+            eco.getBalance(uuid).thenAccept(balance -> {
+                try {
+                    for (ChallengeDefinition def : challenges) {
+                        if (def.getType() == ChallengeType.ACCUMULATE_BALANCE) {
+                            challengeManager.setProgress(uuid, def.getId(), balance.longValue());
+                        }
+                    }
+                } catch (Exception ignored) {}
+            });
         } catch (Exception ignored) {}
     }
 

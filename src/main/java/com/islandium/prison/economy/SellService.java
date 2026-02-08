@@ -139,7 +139,9 @@ public class SellService {
             plugin.getStatsManager().addMoneyEarned(uuid, totalEarned);
 
             // Challenge tracking
-            plugin.getChallengeTracker().onItemsSold(uuid, totalBlocksSold, totalEarned);
+            try {
+                plugin.getChallengeTracker().onItemsSold(uuid, totalBlocksSold, totalEarned);
+            } catch (Exception ignored) {}
         }
 
         return new SellResult(totalEarned, totalBlocksSold, soldItems);
@@ -185,7 +187,9 @@ public class SellService {
             plugin.getStatsManager().addMoneyEarned(uuid, earned);
 
             // Challenge tracking
-            plugin.getChallengeTracker().onMoneyEarned(uuid, earned);
+            try {
+                plugin.getChallengeTracker().onMoneyEarned(uuid, earned);
+            } catch (Exception ignored) {}
         }
 
         return earned;

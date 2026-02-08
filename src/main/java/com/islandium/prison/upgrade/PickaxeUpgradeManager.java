@@ -92,7 +92,7 @@ public class PickaxeUpgradeManager {
         plugin.getStatsManager().setFortuneLevel(uuid, level + 1);
 
         // Challenge tracking
-        plugin.getChallengeTracker().onUpgradePurchased(uuid, ChallengeType.BUY_FORTUNE, level + 1, price);
+        try { plugin.getChallengeTracker().onUpgradePurchased(uuid, ChallengeType.BUY_FORTUNE, level + 1, price); } catch (Exception ignored) {}
 
         return UpgradeResult.SUCCESS;
     }
@@ -141,7 +141,7 @@ public class PickaxeUpgradeManager {
         plugin.getStatsManager().setEfficiencyLevel(uuid, level + 1);
 
         // Challenge tracking
-        plugin.getChallengeTracker().onUpgradePurchased(uuid, ChallengeType.BUY_EFFICIENCY, level + 1, price);
+        try { plugin.getChallengeTracker().onUpgradePurchased(uuid, ChallengeType.BUY_EFFICIENCY, level + 1, price); } catch (Exception ignored) {}
 
         return UpgradeResult.SUCCESS;
     }
@@ -179,7 +179,7 @@ public class PickaxeUpgradeManager {
         plugin.getStatsManager().toggleAutoSell(uuid); // Activer par défaut
 
         // Challenge tracking
-        plugin.getChallengeTracker().onUpgradePurchased(uuid, ChallengeType.BUY_AUTOSELL, 1, AUTO_SELL_PRICE);
+        try { plugin.getChallengeTracker().onUpgradePurchased(uuid, ChallengeType.BUY_AUTOSELL, 1, AUTO_SELL_PRICE); } catch (Exception ignored) {}
 
         return UpgradeResult.SUCCESS;
     }
