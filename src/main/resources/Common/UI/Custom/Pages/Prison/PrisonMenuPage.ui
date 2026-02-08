@@ -78,7 +78,7 @@ $C.@PageOverlay {
                         Padding: (Right: 10);
 
                         Button #CardMines {
-                            Background: (Color: #151d28);
+                            Style: ButtonStyle(Default: (Background: #151d28), Hovered: (Background: #1e2d3d));
 
                             Group {
                                 LayoutMode: Top;
@@ -113,7 +113,7 @@ $C.@PageOverlay {
                         Padding: (Horizontal: 5);
 
                         Button #CardRang {
-                            Background: (Color: #151d28);
+                            Style: ButtonStyle(Default: (Background: #151d28), Hovered: (Background: #1e2d3d));
 
                             Group {
                                 LayoutMode: Top;
@@ -148,7 +148,7 @@ $C.@PageOverlay {
                         Padding: (Left: 10);
 
                         Button #CardUpgrades {
-                            Background: (Color: #151d28);
+                            Style: ButtonStyle(Default: (Background: #151d28), Hovered: (Background: #1e2d3d));
 
                             Group {
                                 LayoutMode: Top;
@@ -189,7 +189,7 @@ $C.@PageOverlay {
                         Padding: (Right: 10);
 
                         Button #CardVendre {
-                            Background: (Color: #151d28);
+                            Style: ButtonStyle(Default: (Background: #151d28), Hovered: (Background: #1e2d3d));
 
                             Group {
                                 LayoutMode: Top;
@@ -224,7 +224,7 @@ $C.@PageOverlay {
                         Padding: (Horizontal: 5);
 
                         Button #CardClassement {
-                            Background: (Color: #151d28);
+                            Style: ButtonStyle(Default: (Background: #151d28), Hovered: (Background: #1e2d3d));
 
                             Group {
                                 LayoutMode: Top;
@@ -259,7 +259,7 @@ $C.@PageOverlay {
                         Padding: (Left: 10);
 
                         Button #CardCellule {
-                            Background: (Color: #151d28);
+                            Style: ButtonStyle(Default: (Background: #151d28), Hovered: (Background: #1e2d3d));
 
                             Group {
                                 LayoutMode: Top;
