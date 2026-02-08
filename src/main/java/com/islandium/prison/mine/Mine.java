@@ -662,11 +662,31 @@ public class Mine {
     }
 
     /**
+     * Retourne le nom du monde de la mine, ou null si non configurée.
+     */
+    @Nullable
+    private String getMineWorld() {
+        if (isCylindrical() && center != null) {
+            return center.world();
+        }
+        if (corner1 != null) {
+            return corner1.world();
+        }
+        return null;
+    }
+
+    /**
      * Vérifie si une position est dans la mine.
      * Utilise une grille (2*radius+1) x (2*radius+1) avec formule d'ellipse ajustée.
      */
     public boolean contains(@NotNull ServerLocation location) {
         if (!isConfigured()) return false;
+
+        // Vérifier que le joueur est dans le même monde que la mine
+        String mineWorld = getMineWorld();
+        if (mineWorld != null && !mineWorld.equals(location.world())) {
+            return false;
+        }
 
         // Cylindre prioritaire
         if (isCylindrical()) {
@@ -724,6 +744,12 @@ public class Mine {
      */
     public boolean containsVillage(@NotNull ServerLocation location) {
         if (!isConfigured() || villageMargin <= 0) return false;
+
+        // Vérifier que le joueur est dans le même monde que la mine
+        String mineWorld = getMineWorld();
+        if (mineWorld != null && !mineWorld.equals(location.world())) {
+            return false;
+        }
 
         if (isCylindrical()) {
             int cx = (int) Math.floor(center.x());
