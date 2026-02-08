@@ -85,13 +85,16 @@ public class PrisonPlugin extends JavaPlugin {
             this.challengeManager = new ChallengeManager(this);
             this.challengeTracker = new ChallengeTracker(this, challengeManager);
 
-            // Run challenge SQL migrations (definitions + progress)
+            // Run SQL migrations (toutes les tables)
             var sql = corePlugin.getDatabaseManager().getExecutor();
+            rankManager.runMigrations();
+            statsManager.runMigrations();
+            cellManager.runMigrations();
             ChallengeRegistry.runMigrations(sql);
             ChallengeRegistry.loadFromSQL(sql);
             challengeManager.runMigrations();
 
-            // Load data
+            // Load data from SQL
             mineManager.loadAll();
             rankManager.loadAll();
             statsManager.loadAll();

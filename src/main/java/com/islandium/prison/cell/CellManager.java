@@ -1,20 +1,15 @@
 package com.islandium.prison.cell;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import com.islandium.core.api.IslandiumAPI;
 import com.islandium.core.api.economy.EconomyService;
+import com.islandium.core.api.location.ServerLocation;
 import com.islandium.core.api.player.IslandiumPlayer;
+import com.islandium.core.database.SQLExecutor;
 import com.islandium.prison.PrisonPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -22,59 +17,166 @@ import java.util.stream.Collectors;
 
 /**
  * Gestionnaire des cellules Prison.
+ * Stockage SQL avec cache en memoire.
  */
 public class CellManager {
 
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-
     private final PrisonPlugin plugin;
-    private final Path cellsFile;
     private final Map<String, Cell> cells = new ConcurrentHashMap<>();
 
     public CellManager(@NotNull PrisonPlugin plugin) {
         this.plugin = plugin;
-        this.cellsFile = plugin.getDataFolder().toPath().resolve("cells.json");
+    }
+
+    private SQLExecutor getSql() {
+        return plugin.getCore().getDatabaseManager().getExecutor();
+    }
+
+    // ===========================
+    // Migrations & Loading
+    // ===========================
+
+    /**
+     * Cree la table SQL si elle n'existe pas.
+     */
+    public void runMigrations() {
+        try {
+            getSql().execute("""
+                CREATE TABLE IF NOT EXISTS prison_cells (
+                    cell_id VARCHAR(64) PRIMARY KEY,
+                    owner_uuid CHAR(36),
+                    owner_name VARCHAR(32),
+                    spawn_point VARCHAR(255),
+                    corner1 VARCHAR(255),
+                    corner2 VARCHAR(255),
+                    purchase_time BIGINT DEFAULT 0,
+                    expiration_time BIGINT DEFAULT 0,
+                    locked BOOLEAN DEFAULT false,
+                    INDEX idx_owner (owner_uuid)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            """).join();
+            plugin.log(Level.INFO, "Cells table migration completed.");
+        } catch (Exception e) {
+            plugin.log(Level.SEVERE, "Failed to run cells migrations: " + e.getMessage());
+        }
     }
 
     /**
-     * Charge toutes les cellules.
+     * Charge toutes les cellules depuis SQL.
      */
     public void loadAll() {
         try {
-            if (Files.exists(cellsFile)) {
-                String content = Files.readString(cellsFile);
-                Type type = new TypeToken<List<Cell.CellData>>() {}.getType();
-                List<Cell.CellData> dataList = GSON.fromJson(content, type);
-
-                if (dataList != null) {
-                    for (Cell.CellData data : dataList) {
-                        Cell cell = Cell.fromData(data);
-                        cells.put(cell.getId().toLowerCase(), cell);
+            List<CellRow> rows = getSql().queryList(
+                "SELECT cell_id, owner_uuid, owner_name, spawn_point, corner1, corner2, purchase_time, expiration_time, locked FROM prison_cells",
+                rs -> {
+                    try {
+                        return new CellRow(
+                            rs.getString("cell_id"),
+                            rs.getString("owner_uuid"),
+                            rs.getString("owner_name"),
+                            rs.getString("spawn_point"),
+                            rs.getString("corner1"),
+                            rs.getString("corner2"),
+                            rs.getLong("purchase_time"),
+                            rs.getLong("expiration_time"),
+                            rs.getBoolean("locked")
+                        );
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
                     }
                 }
+            ).join();
 
-                plugin.log(Level.INFO, "Loaded " + cells.size() + " cells");
+            for (CellRow row : rows) {
+                Cell cell = new Cell(row.cellId);
+                if (row.ownerUuid != null && !row.ownerUuid.isEmpty()) {
+                    cell.setOwner(UUID.fromString(row.ownerUuid));
+                }
+                cell.setOwnerName(row.ownerName);
+                cell.setSpawnPoint(row.spawnPoint != null ? ServerLocation.deserialize(row.spawnPoint) : null);
+                cell.setCorner1(row.corner1 != null ? ServerLocation.deserialize(row.corner1) : null);
+                cell.setCorner2(row.corner2 != null ? ServerLocation.deserialize(row.corner2) : null);
+                cell.setPurchaseTime(row.purchaseTime);
+                cell.setExpirationTime(row.expirationTime);
+                cell.setLocked(row.locked);
+                cells.put(cell.getId().toLowerCase(), cell);
             }
+
+            plugin.log(Level.INFO, "Loaded " + cells.size() + " cells from SQL.");
         } catch (Exception e) {
             plugin.log(Level.SEVERE, "Failed to load cells: " + e.getMessage());
         }
     }
 
     /**
-     * Sauvegarde toutes les cellules.
+     * Sauvegarde toutes les cellules en batch vers SQL (shutdown).
      */
     public void saveAll() {
         try {
-            List<Cell.CellData> dataList = new ArrayList<>();
+            String sql = """
+                INSERT INTO prison_cells (cell_id, owner_uuid, owner_name, spawn_point, corner1, corner2, purchase_time, expiration_time, locked)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    owner_uuid = VALUES(owner_uuid),
+                    owner_name = VALUES(owner_name),
+                    spawn_point = VALUES(spawn_point),
+                    corner1 = VALUES(corner1),
+                    corner2 = VALUES(corner2),
+                    purchase_time = VALUES(purchase_time),
+                    expiration_time = VALUES(expiration_time),
+                    locked = VALUES(locked)
+            """;
+
+            List<Object[]> batchParams = new ArrayList<>();
             for (Cell cell : cells.values()) {
-                dataList.add(cell.toData());
+                batchParams.add(cellToParams(cell));
             }
 
-            Files.createDirectories(cellsFile.getParent());
-            Files.writeString(cellsFile, GSON.toJson(dataList));
-        } catch (IOException e) {
+            if (!batchParams.isEmpty()) {
+                getSql().executeBatch(sql, batchParams).join();
+                plugin.log(Level.INFO, "Saved " + batchParams.size() + " cells to SQL.");
+            }
+        } catch (Exception e) {
             plugin.log(Level.SEVERE, "Failed to save cells: " + e.getMessage());
         }
+    }
+
+    /**
+     * Persiste une cellule de maniere async.
+     */
+    private void persistAsync(@NotNull Cell cell) {
+        Object[] params = cellToParams(cell);
+        try {
+            getSql().execute("""
+                INSERT INTO prison_cells (cell_id, owner_uuid, owner_name, spawn_point, corner1, corner2, purchase_time, expiration_time, locked)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    owner_uuid = VALUES(owner_uuid),
+                    owner_name = VALUES(owner_name),
+                    spawn_point = VALUES(spawn_point),
+                    corner1 = VALUES(corner1),
+                    corner2 = VALUES(corner2),
+                    purchase_time = VALUES(purchase_time),
+                    expiration_time = VALUES(expiration_time),
+                    locked = VALUES(locked)
+            """, params);
+        } catch (Exception e) {
+            plugin.log(Level.WARNING, "Failed to persist cell " + cell.getId() + ": " + e.getMessage());
+        }
+    }
+
+    private Object[] cellToParams(Cell cell) {
+        return new Object[]{
+            cell.getId(),
+            cell.getOwner() != null ? cell.getOwner().toString() : null,
+            cell.getOwnerName(),
+            cell.getSpawnPoint() != null ? cell.getSpawnPoint().serialize() : null,
+            cell.getCorner1() != null ? cell.getCorner1().serialize() : null,
+            cell.getCorner2() != null ? cell.getCorner2().serialize() : null,
+            cell.getPurchaseTime(),
+            cell.getExpirationTime(),
+            cell.isLocked()
+        };
     }
 
     // === Cell CRUD ===
@@ -90,12 +192,12 @@ public class CellManager {
     }
 
     /**
-     * Crée une nouvelle cellule.
+     * Cree une nouvelle cellule.
      */
     public Cell createCell(@NotNull String id) {
         Cell cell = new Cell(id);
         cells.put(id.toLowerCase(), cell);
-        saveAll();
+        persistAsync(cell);
         return cell;
     }
 
@@ -105,7 +207,11 @@ public class CellManager {
     public boolean deleteCell(@NotNull String id) {
         Cell removed = cells.remove(id.toLowerCase());
         if (removed != null) {
-            saveAll();
+            try {
+                getSql().execute("DELETE FROM prison_cells WHERE cell_id = ?", id);
+            } catch (Exception e) {
+                plugin.log(Level.WARNING, "Failed to delete cell from SQL: " + e.getMessage());
+            }
             return true;
         }
         return false;
@@ -113,9 +219,6 @@ public class CellManager {
 
     // === Player Cell Management ===
 
-    /**
-     * Obtient la cellule d'un joueur.
-     */
     @Nullable
     public Cell getPlayerCell(@NotNull UUID uuid) {
         return cells.values().stream()
@@ -124,25 +227,16 @@ public class CellManager {
                 .orElse(null);
     }
 
-    /**
-     * Vérifie si un joueur possède une cellule.
-     */
     public boolean hasCell(@NotNull UUID uuid) {
         return getPlayerCell(uuid) != null;
     }
 
-    /**
-     * Compte le nombre de cellules d'un joueur.
-     */
     public int getPlayerCellCount(@NotNull UUID uuid) {
         return (int) cells.values().stream()
                 .filter(cell -> uuid.equals(cell.getOwner()))
                 .count();
     }
 
-    /**
-     * Obtient toutes les cellules disponibles (sans propriétaire).
-     */
     @NotNull
     public List<Cell> getAvailableCells() {
         return cells.values().stream()
@@ -152,18 +246,12 @@ public class CellManager {
 
     // === Cell Purchase ===
 
-    /**
-     * Obtient le service économique.
-     */
     @Nullable
     private EconomyService getEconomyService() {
         IslandiumAPI api = IslandiumAPI.get();
         return api != null ? api.getEconomyService() : null;
     }
 
-    /**
-     * Résultat d'un achat de cellule.
-     */
     public enum PurchaseResult {
         SUCCESS,
         NOT_ENOUGH_MONEY,
@@ -172,17 +260,12 @@ public class CellManager {
         CELL_NOT_AVAILABLE
     }
 
-    /**
-     * Achète une cellule pour un joueur via UUID.
-     */
     public PurchaseResult purchaseCell(@NotNull UUID uuid, @NotNull String playerName) {
-        // Check if player already has max cells
         int maxCells = plugin.getConfig().getMaxCellsPerPlayer();
         if (getPlayerCellCount(uuid) >= maxCells) {
             return PurchaseResult.ALREADY_HAS_CELL;
         }
 
-        // Find available cell
         List<Cell> available = getAvailableCells();
         if (available.isEmpty()) {
             return PurchaseResult.NO_CELLS_AVAILABLE;
@@ -192,29 +275,20 @@ public class CellManager {
         return purchaseSpecificCell(uuid, playerName, cell);
     }
 
-    /**
-     * Achète une cellule pour un joueur (legacy).
-     */
     public PurchaseResult purchaseCell(@NotNull IslandiumPlayer player) {
         return purchaseCell(player.getUniqueId(), player.getName());
     }
 
-    /**
-     * Achète une cellule spécifique pour un joueur via UUID.
-     */
     public PurchaseResult purchaseSpecificCell(@NotNull UUID uuid, @NotNull String playerName, @NotNull Cell cell) {
-        // Check if player already has max cells
         int maxCells = plugin.getConfig().getMaxCellsPerPlayer();
         if (getPlayerCellCount(uuid) >= maxCells) {
             return PurchaseResult.ALREADY_HAS_CELL;
         }
 
-        // Check if cell is available
         if (cell.hasOwner()) {
             return PurchaseResult.CELL_NOT_AVAILABLE;
         }
 
-        // Check balance via EconomyService
         BigDecimal price = plugin.getConfig().getDefaultCellPrice();
         EconomyService eco = getEconomyService();
         if (eco == null) {
@@ -227,68 +301,51 @@ public class CellManager {
                 return PurchaseResult.NOT_ENOUGH_MONEY;
             }
 
-            // Deduct money
             eco.removeBalance(uuid, price, "Prison cell purchase").join();
         } catch (Exception e) {
             plugin.log(Level.WARNING, "Failed to process cell purchase: " + e.getMessage());
             return PurchaseResult.NOT_ENOUGH_MONEY;
         }
 
-        // Assign cell
         cell.setOwner(uuid);
         cell.setOwnerName(playerName);
         cell.setPurchaseTime(System.currentTimeMillis());
 
-        // Set expiration if applicable
         int rentDays = plugin.getConfig().getCellRentDurationDays();
         if (rentDays > 0) {
             cell.setExpirationTime(System.currentTimeMillis() + (rentDays * 24L * 60L * 60L * 1000L));
         }
 
-        saveAll();
+        persistAsync(cell);
 
         return PurchaseResult.SUCCESS;
     }
 
-    /**
-     * Achète une cellule spécifique pour un joueur (legacy).
-     */
     public PurchaseResult purchaseSpecificCell(@NotNull IslandiumPlayer player, @NotNull Cell cell) {
         return purchaseSpecificCell(player.getUniqueId(), player.getName(), cell);
     }
 
-    /**
-     * Libère la cellule d'un joueur.
-     */
     public boolean releaseCell(@NotNull UUID uuid) {
         Cell cell = getPlayerCell(uuid);
         if (cell == null) return false;
 
         cell.reset();
-        saveAll();
+        persistAsync(cell);
         return true;
     }
 
-    /**
-     * Vérifie et nettoie les cellules expirées.
-     */
     public int cleanupExpiredCells() {
         int count = 0;
         for (Cell cell : cells.values()) {
             if (cell.hasOwner() && cell.isExpired()) {
                 cell.reset();
+                persistAsync(cell);
                 count++;
             }
-        }
-        if (count > 0) {
-            saveAll();
         }
         return count;
     }
 
-    /**
-     * Téléporte un joueur à sa cellule.
-     */
     public boolean teleportToCell(@NotNull IslandiumPlayer player) {
         Cell cell = getPlayerCell(player.getUniqueId());
         if (cell == null || cell.getSpawnPoint() == null) {
@@ -304,4 +361,10 @@ public class CellManager {
 
         return true;
     }
+
+    // === Data Row ===
+
+    private record CellRow(String cellId, String ownerUuid, String ownerName, String spawnPoint,
+                           String corner1, String corner2, long purchaseTime, long expirationTime,
+                           boolean locked) {}
 }
