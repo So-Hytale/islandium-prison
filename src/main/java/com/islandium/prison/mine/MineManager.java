@@ -59,6 +59,7 @@ public class MineManager {
                     for (Mine.MineData data : dataList) {
                         Mine mine = Mine.fromData(data);
                         mines.put(mine.getId().toLowerCase(), mine);
+                        plugin.log(Level.INFO, "[MineReset] Loaded mine " + mine.getId() + ": autoReset=" + mine.isAutoReset() + " configured=" + mine.isConfigured() + " lastResetTime=" + mine.getLastResetTime() + " resetIntervalMin=" + mine.getResetIntervalMinutes());
                         scheduleReset(mine);
                     }
                 }
@@ -206,18 +207,39 @@ public class MineManager {
 
     /**
      * Planifie le reset automatique d'une mine.
+     * Le délai initial est synchronisé avec lastResetTime pour que le scheduler
+     * se déclenche au bon moment (pas un intervalle complet après le démarrage).
      */
     private void scheduleReset(@NotNull Mine mine) {
-        if (!mine.isAutoReset() || !mine.isConfigured()) return;
+        if (!mine.isAutoReset() || !mine.isConfigured()) {
+            plugin.log(Level.INFO, "[MineReset] scheduleReset(" + mine.getId() + ") SKIP: autoReset=" + mine.isAutoReset() + " configured=" + mine.isConfigured());
+            return;
+        }
 
         cancelResetTask(mine.getId());
 
-        int interval = getEffectiveResetInterval(mine);
+        int intervalMinutes = getEffectiveResetInterval(mine);
+        long intervalMs = intervalMinutes * 60L * 1000L;
+
+        // Calculer le délai initial basé sur lastResetTime
+        long elapsed = System.currentTimeMillis() - mine.getLastResetTime();
+        long remainingMs = intervalMs - (elapsed % intervalMs);
+
+        // Si le remaining est très petit (< 5s), on lance dans 5s pour éviter un reset immédiat au boot
+        if (remainingMs < 5000) {
+            remainingMs = 5000;
+        }
+
+        long initialDelaySeconds = remainingMs / 1000;
+        long intervalSeconds = intervalMinutes * 60L;
+
+        plugin.log(Level.INFO, "[MineReset] scheduleReset(" + mine.getId() + ") interval=" + intervalMinutes + "min, initialDelay=" + initialDelaySeconds + "s, lastResetTime=" + mine.getLastResetTime() + ", elapsed=" + (elapsed / 1000) + "s");
+
         ScheduledFuture<?> task = scheduler.scheduleAtFixedRate(
                 () -> checkAndResetMine(mine),
-                interval,
-                interval,
-                TimeUnit.MINUTES
+                initialDelaySeconds,
+                intervalSeconds,
+                TimeUnit.SECONDS
         );
 
         resetTasks.put(mine.getId().toLowerCase(), task);
@@ -235,14 +257,18 @@ public class MineManager {
      * Le reset se déclenche toujours quand le timer expire (scheduleAtFixedRate).
      */
     private void checkAndResetMine(@NotNull Mine mine) {
+        plugin.log(Level.INFO, "[MineReset] checkAndResetMine(" + mine.getId() + ") TRIGGERED! autoReset=" + mine.isAutoReset() + " configured=" + mine.isConfigured());
+
         // Broadcast warning
         if (plugin.getConfig().shouldBroadcastResetWarning()) {
             int warningSeconds = plugin.getConfig().getWarningSecondsBeforeReset();
+            plugin.log(Level.INFO, "[MineReset] Broadcasting warning for mine " + mine.getId() + ", reset in " + warningSeconds + "s");
             broadcastResetWarning(mine, warningSeconds);
 
             // Schedule actual reset after warning delay
             scheduler.schedule(() -> resetMine(mine), warningSeconds, TimeUnit.SECONDS);
         } else {
+            plugin.log(Level.INFO, "[MineReset] No warning configured, resetting mine " + mine.getId() + " immediately");
             resetMine(mine);
         }
     }
@@ -253,26 +279,33 @@ public class MineManager {
      */
     public void resetMine(@NotNull Mine mine) {
         if (!mine.isConfigured()) {
-            plugin.log(Level.WARNING, "Cannot reset mine " + mine.getId() + ": not configured");
+            plugin.log(Level.WARNING, "[MineReset] Cannot reset mine " + mine.getId() + ": not configured");
             return;
         }
 
-        plugin.log(Level.INFO, "Resetting mine: " + mine.getId());
+        plugin.log(Level.INFO, "[MineReset] resetMine(" + mine.getId() + ") START - hasSpawn=" + mine.hasSpawn());
 
         // Téléporter tous les joueurs dans la mine vers le spawn
         teleportMinePlayers(mine);
 
         // Attendre 1 seconde puis remplir les blocs
         scheduler.schedule(() -> {
+            plugin.log(Level.INFO, "[MineReset] resetMine(" + mine.getId() + ") filling blocks after 1s delay...");
+
             // Mettre à jour l'état
             mine.resetState();
             saveAll();
+            plugin.log(Level.INFO, "[MineReset] resetMine(" + mine.getId() + ") state reset, lastResetTime=" + mine.getLastResetTime());
 
             // Remplir les blocs en full async
             fillMineBlocksAsync(mine).thenAccept(count -> {
-                plugin.log(Level.INFO, "Mine " + mine.getId() + " reset complete: " + count + " blocks placed");
+                plugin.log(Level.INFO, "[MineReset] Mine " + mine.getId() + " reset COMPLETE: " + count + " blocks placed");
                 String message = plugin.getConfig().getPrefixedMessage("mine.reset", "mine", mine.getDisplayName());
                 broadcastToMinePlayers(mine, message);
+            }).exceptionally(ex -> {
+                plugin.log(Level.SEVERE, "[MineReset] Mine " + mine.getId() + " reset FAILED: " + ex.getMessage());
+                ex.printStackTrace();
+                return null;
             });
         }, 1, TimeUnit.SECONDS);
     }
@@ -1118,19 +1151,26 @@ public class MineManager {
      * Téléporte tous les joueurs dans la mine (zone mine) vers le spawn de la mine.
      */
     private void teleportMinePlayers(@NotNull Mine mine) {
-        if (!mine.hasSpawn()) return;
+        if (!mine.hasSpawn()) {
+            plugin.log(Level.WARNING, "[MineReset] teleportMinePlayers(" + mine.getId() + ") SKIP: no spawn point set");
+            return;
+        }
 
         ServerLocation spawn = mine.getSpawnPoint();
+        int count = 0;
         for (IslandiumPlayer player : plugin.getCore().getPlayerManager().getOnlinePlayersLocal()) {
             ServerLocation loc = player.getLocation();
             if (loc != null && mine.contains(loc)) {
+                plugin.log(Level.INFO, "[MineReset] Teleporting player " + player.getName() + " out of mine " + mine.getId());
                 plugin.getCore().getTeleportService().teleportWithWarmup(
                         player,
                         spawn,
                         () -> {}
                 );
+                count++;
             }
         }
+        plugin.log(Level.INFO, "[MineReset] teleportMinePlayers(" + mine.getId() + ") teleported " + count + " players");
     }
 
     private void broadcastResetWarning(@NotNull Mine mine, int seconds) {
