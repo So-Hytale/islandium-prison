@@ -43,11 +43,9 @@ public class PrisonHud extends CustomUIHud {
     protected void build(UICommandBuilder cmd) {
         cmd.append("Pages/Prison/PrisonHud.ui");
 
-        // Rang (displayName au lieu du simple ID)
+        // Rang (juste l'ID/lettre, le label "Rang:" est déjà dans le HUD)
         String rankId = plugin.getRankManager().getPlayerRank(playerUuid);
-        PrisonConfig.RankInfo rankInfo = plugin.getConfig().getRank(rankId);
-        String rankDisplay = rankInfo != null ? rankInfo.displayName : rankId;
-        cmd.set("#RankValue.Text", rankDisplay);
+        cmd.set("#RankValue.Text", rankId);
 
         // Prestige
         int prestige = plugin.getRankManager().getPlayerPrestige(playerUuid);
@@ -203,11 +201,9 @@ public class PrisonHud extends CustomUIHud {
         try {
             UICommandBuilder cmd = new UICommandBuilder();
 
-            // Rang
+            // Rang (juste l'ID/lettre)
             String rankId = plugin.getRankManager().getPlayerRank(playerUuid);
-            PrisonConfig.RankInfo rankInfo = plugin.getConfig().getRank(rankId);
-            String rankDisplay = rankInfo != null ? rankInfo.displayName : rankId;
-            cmd.set("#RankValue.TextSpans", Message.raw(rankDisplay));
+            cmd.set("#RankValue.TextSpans", Message.raw(rankId));
 
             // Prestige
             int prestige = plugin.getRankManager().getPlayerPrestige(playerUuid);
