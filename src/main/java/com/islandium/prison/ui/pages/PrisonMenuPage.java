@@ -746,9 +746,9 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
 
         // Header avec compteur
         cmd.appendInline("#PageContent",
-            "Group { Anchor: (Height: 40); Background: (Color: #151d28); Padding: (Horizontal: 15); LayoutMode: Left; " +
-            "  Label { FlexWeight: 1; Text: \"Challenges du rang " + currentRank + "\"; Style: (FontSize: 14, TextColor: #ff9800, RenderBold: true, VerticalAlignment: Center); } " +
-            "  Label #DefiCounter { Anchor: (Width: 120); Style: (FontSize: 14, RenderBold: true, VerticalAlignment: Center); } " +
+            "Group { Anchor: (Height: 30); Background: (Color: #151d28); Padding: (Horizontal: 15); LayoutMode: Left; " +
+            "  Label { FlexWeight: 1; Text: \"Challenges du rang " + currentRank + "\"; Style: (FontSize: 13, TextColor: #ff9800, RenderBold: true, VerticalAlignment: Center); } " +
+            "  Label #DefiCounter { Anchor: (Width: 120); Style: (FontSize: 13, RenderBold: true, VerticalAlignment: Center); } " +
             "}");
         String counterColor = completedCount >= totalCount ? "#66bb6a" : "#ffffff";
         cmd.set("#DefiCounter.Text", completedCount + "/" + totalCount + " TERMINE");
@@ -765,14 +765,14 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         // Build 3 rows of 3 challenges each
         for (int row = 0; row < 3; row++) {
             StringBuilder rowContent = new StringBuilder();
-            rowContent.append("Group #DefiRow").append(row).append(" { Anchor: (Height: 120, Top: 8); LayoutMode: Left; ");
+            rowContent.append("Group #DefiRow").append(row).append(" { Anchor: (Height: 95, Top: 5); LayoutMode: Left; ");
 
             for (int col = 0; col < 3; col++) {
                 int idx = row * 3 + col;
                 if (idx >= challenges.size()) {
                     // Empty spacer
                     rowContent.append("Group { FlexWeight: 1; } ");
-                    if (col < 2) rowContent.append("Group { Anchor: (Width: 8); } ");
+                    if (col < 2) rowContent.append("Group { Anchor: (Width: 5); } ");
                     continue;
                 }
 
@@ -810,17 +810,17 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                     : "";
 
                 rowContent.append("Group #").append(cardId)
-                    .append(" { FlexWeight: 1; Background: (Color: ").append(cardBg).append("); Padding: (Full: 8); LayoutMode: Top; ")
-                    .append("  Label #Title { Anchor: (Height: 22); Style: (FontSize: 12, TextColor: ").append(titleColor).append(", RenderBold: true); } ")
-                    .append("  Label #Desc { Anchor: (Height: 18); Style: (FontSize: 10, TextColor: #7c8b99); } ")
-                    .append("  Label #Bar { Anchor: (Height: 20, Top: 4); Style: (FontSize: 11, TextColor: #96a9be); } ")
-                    .append("  Group { Anchor: (Height: 18); LayoutMode: Left; ")
-                    .append("    Label #Prog { FlexWeight: 1; Style: (FontSize: 10, TextColor: #ffffff); } ")
-                    .append("    Label #Rew { Anchor: (Width: 80); Style: (FontSize: 10, TextColor: #66bb6a); } ")
+                    .append(" { FlexWeight: 1; Background: (Color: ").append(cardBg).append("); Padding: (Horizontal: 8, Vertical: 5); LayoutMode: Top; ")
+                    .append("  Label #Title { Anchor: (Height: 18); Style: (FontSize: 11, TextColor: ").append(titleColor).append(", RenderBold: true); } ")
+                    .append("  Label #Desc { Anchor: (Height: 16); Style: (FontSize: 9, TextColor: #7c8b99); } ")
+                    .append("  Label #Bar { Anchor: (Height: 18, Top: 2); Style: (FontSize: 10, TextColor: #96a9be); } ")
+                    .append("  Group { Anchor: (Height: 16); LayoutMode: Left; ")
+                    .append("    Label #Prog { FlexWeight: 1; Style: (FontSize: 9, TextColor: #ffffff, VerticalAlignment: Center); } ")
+                    .append("    Label #Rew { Anchor: (Width: 75); Style: (FontSize: 9, TextColor: #66bb6a, VerticalAlignment: Center); } ")
                     .append("  } ")
                     .append("} ");
 
-                if (col < 2) rowContent.append("Group { Anchor: (Width: 8); } ");
+                if (col < 2) rowContent.append("Group { Anchor: (Width: 5); } ");
             }
 
             rowContent.append("}");
