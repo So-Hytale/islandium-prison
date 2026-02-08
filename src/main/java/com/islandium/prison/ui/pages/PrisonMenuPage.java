@@ -46,6 +46,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
     private final PrisonPlugin plugin;
     private final PlayerRef playerRef;
     private String currentPage = "hub";
+    private String viewingDefiRank = null; // Rang actuellement affiché dans la page defis
 
     public PrisonMenuPage(@Nonnull PlayerRef playerRef, PrisonPlugin plugin) {
         super(playerRef, CustomPageLifetime.CanDismiss, PageData.CODEC);
@@ -731,19 +732,62 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
     // =========================================
 
     private void buildDefisPage(UICommandBuilder cmd, UIEventBuilder event) {
+        buildDefisPageForRank(cmd, event, null);
+    }
+
+    private void buildDefisPageForRank(UICommandBuilder cmd, UIEventBuilder event, String rankOverride) {
         showSubPage(cmd);
         cmd.clear("#PageContent");
 
         UUID uuid = playerRef.getUuid();
-        String currentRank = plugin.getRankManager().getPlayerRank(uuid);
-        List<ChallengeDefinition> challenges = ChallengeRegistry.getChallengesForRank(currentRank);
+        String playerRank = plugin.getRankManager().getPlayerRank(uuid);
+
+        // Determiner le rang a afficher
+        String displayRank = rankOverride != null ? rankOverride : playerRank;
+        viewingDefiRank = displayRank;
+
+        List<ChallengeDefinition> challenges = ChallengeRegistry.getChallengesForRank(displayRank);
         ChallengeManager challengeManager = plugin.getChallengeManager();
 
-        int completedCount = challengeManager.getCompletedCount(uuid, currentRank);
+        int completedCount = challengeManager.getCompletedCount(uuid, displayRank);
         int totalCount = challenges.size();
 
         String counterText = completedCount + "/" + totalCount;
-        cmd.set("#HeaderTitle.Text", "DEFIS - RANG " + currentRank + "  " + counterText);
+        boolean isCurrentRank = displayRank.equals(playerRank);
+        cmd.set("#HeaderTitle.Text", "DEFIS - RANG " + displayRank + "  " + counterText + (isCurrentRank ? "  (actuel)" : ""));
+
+        // Boutons navigation entre rangs
+        int displayRankIndex = plugin.getRankManager().getRankIndex(displayRank);
+        boolean hasPrev = displayRankIndex > 0;
+        boolean hasNext = displayRankIndex < plugin.getRankManager().getRankIndex(playerRank);
+
+        cmd.appendInline("#PageContent",
+            "Group { Anchor: (Height: 32); LayoutMode: Left; " +
+            (hasPrev ?
+            "  TextButton #DefiPrev { Anchor: (Width: 120, Height: 28); " +
+            "    Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 12, TextColor: #96a9be, VerticalAlignment: Center)), " +
+            "    Hovered: (Background: #253545, LabelStyle: (FontSize: 12, TextColor: #ffffff, VerticalAlignment: Center))); } "
+            : "") +
+            "  Group { FlexWeight: 1; } " +
+            "  Label #RangIndicator { Anchor: (Width: 150); Style: (FontSize: 13, TextColor: " + (isCurrentRank ? "#ff9800" : "#96a9be") + ", RenderBold: true, VerticalAlignment: Center); } " +
+            "  Group { FlexWeight: 1; } " +
+            (hasNext ?
+            "  TextButton #DefiNext { Anchor: (Width: 120, Height: 28); " +
+            "    Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 12, TextColor: #96a9be, VerticalAlignment: Center)), " +
+            "    Hovered: (Background: #253545, LabelStyle: (FontSize: 12, TextColor: #ffffff, VerticalAlignment: Center))); } "
+            : "") +
+            "}");
+
+        cmd.set("#RangIndicator.Text", "Rang " + displayRank);
+
+        if (hasPrev) {
+            cmd.set("#DefiPrev.Text", "< Precedent");
+            event.addEventBinding(CustomUIEventBindingType.Activating, "#DefiPrev", EventData.of("Action", "defiPrev"), false);
+        }
+        if (hasNext) {
+            cmd.set("#DefiNext.Text", "Suivant >");
+            event.addEventBinding(CustomUIEventBindingType.Activating, "#DefiNext", EventData.of("Action", "defiNext"), false);
+        }
 
         // Grille 3x3 de challenges
         if (challenges.isEmpty()) {
@@ -943,6 +987,20 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                     close();
                     return;
                 }
+                case "defiPrev", "defiNext" -> {
+                    if (viewingDefiRank != null) {
+                        int idx = plugin.getRankManager().getRankIndex(viewingDefiRank);
+                        int newIdx = data.action.equals("defiPrev") ? idx - 1 : idx + 1;
+                        String playerRankNow = plugin.getRankManager().getPlayerRank(uuid);
+                        int maxIdx = plugin.getRankManager().getRankIndex(playerRankNow);
+                        if (newIdx >= 0 && newIdx <= maxIdx) {
+                            String newRank = rankFromIndex(newIdx);
+                            buildDefisPageForRank(cmd, event, newRank);
+                            sendUpdate(cmd, event, false);
+                        }
+                    }
+                    return;
+                }
                 case "openSellConfig" -> {
                     plugin.getUIManager().openSellConfig(player);
                     return;
@@ -1097,6 +1155,12 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
             if (i < max - 1) sb.append(" ");
         }
         return "[" + sb + "] " + current + "/" + max;
+    }
+
+    private String rankFromIndex(int index) {
+        if (index == 26) return "FREE";
+        if (index >= 0 && index <= 25) return String.valueOf((char) ('A' + index));
+        return "A";
     }
 
     private String formatNumber(long number) {
