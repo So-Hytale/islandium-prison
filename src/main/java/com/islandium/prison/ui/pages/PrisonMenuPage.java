@@ -125,108 +125,44 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
             .collect(Collectors.toList());
 
         // Grille de cartes 3 par ligne (style hub Prison)
+        // Utilise cmd.append() avec template .ui pour que TexturePath fonctionne
         int cols = 3;
         int rows = (sortedMines.size() + cols - 1) / cols;
 
         for (int row = 0; row < rows; row++) {
-            StringBuilder rowContent = new StringBuilder();
-            rowContent.append("Group #MineRow").append(row)
-                .append(" { Anchor: (Height: 210")
-                .append(row > 0 ? ", Top: 10" : "")
-                .append("); LayoutMode: Left; ");
+            // Creer le conteneur de ligne
+            cmd.appendInline("#PageContent",
+                "Group #MineRow" + row + " { Anchor: (Height: 210" + (row > 0 ? ", Top: 10" : "") + "); LayoutMode: Left; }");
 
             for (int col = 0; col < cols; col++) {
                 int idx = row * cols + col;
-
-                // Padding entre les cartes
-                if (col == 0) {
-                    // Premiere colonne : padding a droite
-                } else if (col == cols - 1) {
-                    // Derniere colonne : padding a gauche
-                }
+                String rowSelector = "#MineRow" + row;
 
                 if (idx >= sortedMines.size()) {
                     // Espace vide pour remplir la ligne
-                    rowContent.append("Group { FlexWeight: 1; ");
-                    if (col == 0) rowContent.append("Padding: (Right: 10); ");
-                    else if (col == cols - 1) rowContent.append("Padding: (Left: 10); ");
-                    else rowContent.append("Padding: (Horizontal: 5); ");
-                    rowContent.append("} ");
+                    cmd.appendInline(rowSelector, "Group { FlexWeight: 1; }");
                     continue;
                 }
 
                 Mine mine = sortedMines.get(idx);
                 boolean canAccess = plugin.getMineManager().canAccess(uuid, mine);
-                String cardId = "Mine" + idx;
-                String cardBg = canAccess ? "#151d28" : "#1a1520";
-                String cardHover = canAccess ? "#1e2d3d" : "#251e30";
-                String titleColor = canAccess ? "#4fc3f7" : "#ef5350";
-                String statusText = canAccess ? "Accessible" : "Rang " + mine.getRequiredRank() + " requis";
-                String statusColor = canAccess ? "#66bb6a" : "#ef5350";
-                // Icone par mine : chemin complet depuis Common/UI/Custom/
-                String iconPath = "Pages/Prison/Icons/mine_" + mine.getId().toLowerCase() + ".png";
 
-                // Padding selon position
-                String padding;
-                if (col == 0) padding = "Padding: (Right: 10); ";
-                else if (col == cols - 1) padding = "Padding: (Left: 10); ";
-                else padding = "Padding: (Horizontal: 5); ";
+                // Append le template .ui (avec TexturePath baked-in)
+                String template = canAccess
+                    ? "Pages/Prison/MineCard.ui"
+                    : "Pages/Prison/MineCardLocked.ui";
+                cmd.append(rowSelector, template);
 
-                rowContent.append("Group { FlexWeight: 1; ").append(padding);
-                rowContent.append("  Button #").append(cardId).append(" { ");
-                rowContent.append("    Style: ButtonStyle(Default: (Background: ").append(cardBg).append("), Hovered: (Background: ").append(cardHover).append(")); ");
-                rowContent.append("    Group { LayoutMode: Top; Padding: (Full: 12); ");
+                // Le template est ajoute a l'index col dans la row
+                String cardSelector = rowSelector + "[" + col + "]";
 
-                // Icone centree
-                rowContent.append("      Group { Anchor: (Height: 80); LayoutMode: Left; ");
-                rowContent.append("        Group { FlexWeight: 1; } ");
-                rowContent.append("        Group { Anchor: (Width: 80, Height: 80); Background: PatchStyle(TexturePath: \"").append(iconPath).append("\"); } ");
-                rowContent.append("        Group { FlexWeight: 1; } ");
-                rowContent.append("      } ");
-
-                // Nom de la mine centre
-                rowContent.append("      Label #MTitle { Anchor: (Height: 28, Top: 6); ");
-                rowContent.append("        Style: (FontSize: 15, TextColor: ").append(titleColor).append(", RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center); } ");
-
-                // Statut centre
-                rowContent.append("      Label #MStatus { Anchor: (Height: 18); ");
-                rowContent.append("        Style: (FontSize: 11, TextColor: ").append(statusColor).append(", HorizontalAlignment: Center); } ");
-
-                // Bouton TP centre (seulement si accessible avec spawn)
-                if (canAccess && mine.hasSpawn()) {
-                    rowContent.append("      Group { Anchor: (Height: 32, Top: 4); LayoutMode: Left; ");
-                    rowContent.append("        Group { FlexWeight: 1; } ");
-                    rowContent.append("        TextButton #TpBtn { Anchor: (Width: 90, Height: 28); ");
-                    rowContent.append("          Style: TextButtonStyle(");
-                    rowContent.append("            Default: (Background: #2a5f2a, LabelStyle: (FontSize: 12, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), ");
-                    rowContent.append("            Hovered: (Background: #4a9f4a, LabelStyle: (FontSize: 12, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center))); } ");
-                    rowContent.append("        Group { FlexWeight: 1; } ");
-                    rowContent.append("      } ");
-                }
-
-                rowContent.append("    } "); // fin Group interne
-                rowContent.append("  } "); // fin Button
-                rowContent.append("} "); // fin Group wrapper
-            }
-
-            rowContent.append("}"); // fin Row
-            cmd.appendInline("#PageContent", rowContent.toString());
-
-            // Setter les valeurs pour chaque carte de cette ligne
-            for (int col = 0; col < cols; col++) {
-                int idx = row * cols + col;
-                if (idx >= sortedMines.size()) continue;
-
-                Mine mine = sortedMines.get(idx);
-                boolean canAccess = plugin.getMineManager().canAccess(uuid, mine);
-                String cardSelector = "#MineRow" + row + " #Mine" + idx;
-
+                // Set les textes dynamiques
                 cmd.set(cardSelector + " #MTitle.Text", mine.getDisplayName());
                 cmd.set(cardSelector + " #MStatus.Text",
                     canAccess ? "Accessible" : "Rang " + mine.getRequiredRank() + " requis");
 
                 if (canAccess && mine.hasSpawn()) {
-                    cmd.set(cardSelector + " #TpBtn.Text", "TP");
+                    cmd.set(cardSelector + " #TpZone.Visible", true);
                     event.addEventBinding(CustomUIEventBindingType.Activating,
                         cardSelector + " #TpBtn",
                         EventData.of("TpMine", mine.getId()),

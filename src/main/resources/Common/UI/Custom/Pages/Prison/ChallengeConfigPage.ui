@@ -17,23 +17,23 @@ $C.@PageOverlay {
 
             // Header bar
             Group #HeaderBar {
-                Anchor: (Height: 45);
-                Background: (Color: #16212f);
+                Anchor: (Height: 50);
+                Background: (Color: #0d1520);
                 LayoutMode: Left;
-                Padding: (Horizontal: 15);
+                Padding: (Horizontal: 20);
 
                 Label #HeaderTitle {
                     FlexWeight: 1;
                     Text: "CHALLENGES ADMIN";
-                    Style: (FontSize: 14, TextColor: #ffd700, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
+                    Style: (FontSize: 18, TextColor: #ffd700, RenderBold: true, RenderUppercase: true, VerticalAlignment: Center);
                 }
 
                 TextButton #CloseBtn {
-                    Anchor: (Width: 40, Height: 36);
+                    Anchor: (Width: 44, Height: 40);
                     Text: "X";
                     Style: TextButtonStyle(
-                        Default: (Background: #2a1a1a, LabelStyle: (FontSize: 16, TextColor: #ff4444, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)),
-                        Hovered: (Background: #3a2a2a, LabelStyle: (FontSize: 16, TextColor: #ff6666, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)),
+                        Default: (Background: #3a1a1a, LabelStyle: (FontSize: 18, TextColor: #ff4444, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)),
+                        Hovered: (Background: #5a2a2a, LabelStyle: (FontSize: 18, TextColor: #ff6666, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true)),
                         Sounds: $C.@ButtonSounds
                     );
                 }
@@ -44,179 +44,206 @@ $C.@PageOverlay {
                 FlexWeight: 1;
                 LayoutMode: TopScrolling;
                 ScrollbarStyle: $C.@DefaultScrollbarStyle;
-                Padding: (Full: 15);
+                Padding: (Horizontal: 30, Vertical: 20);
                 Visible: false;
 
-                // --- ID ---
-                Group {
-                    Anchor: (Height: 35, Top: 5);
-                    LayoutMode: Left;
-                    Padding: (Horizontal: 10);
+                // --- Section Infos generales ---
+                Group #InfoSection {
+                    Anchor: (Height: 210);
+                    LayoutMode: Top;
+                    Background: (Color: #111b27);
+                    Padding: (Full: 20);
 
-                    Label { Anchor: (Width: 100); Text: "ID:"; Style: (FontSize: 12, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); }
-                    Label #EditIdLabel { Anchor: (Width: 300, Height: 28); Style: (FontSize: 12, TextColor: #7c8b99, VerticalAlignment: Center); Visible: false; }
-                    TextField #EditId { Anchor: (Height: 28); FlexWeight: 1; PlaceholderText: "ex: A_1"; }
+                    Label {
+                        Anchor: (Height: 28);
+                        Text: "INFORMATIONS GENERALES";
+                        Style: (FontSize: 14, TextColor: #4fc3f7, RenderBold: true);
+                    }
+
+                    // --- ID ---
+                    Group {
+                        Anchor: (Height: 45, Top: 10);
+                        LayoutMode: Left;
+
+                        Label { Anchor: (Width: 140); Text: "ID:"; Style: (FontSize: 14, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); }
+                        Label #EditIdLabel { Anchor: (Width: 400, Height: 36); Style: (FontSize: 14, TextColor: #7c8b99, VerticalAlignment: Center); Visible: false; }
+                        TextField #EditId { Anchor: (Height: 36); FlexWeight: 1; PlaceholderText: "ex: A_1"; }
+                    }
+
+                    // --- Nom ---
+                    Group {
+                        Anchor: (Height: 45, Top: 5);
+                        LayoutMode: Left;
+
+                        Label { Anchor: (Width: 140); Text: "Nom:"; Style: (FontSize: 14, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); }
+                        TextField #EditName { Anchor: (Height: 36); FlexWeight: 1; PlaceholderText: "Nom du challenge"; }
+                    }
+
+                    // --- Description ---
+                    Group {
+                        Anchor: (Height: 45, Top: 5);
+                        LayoutMode: Left;
+
+                        Label { Anchor: (Width: 140); Text: "Description:"; Style: (FontSize: 14, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); }
+                        TextField #EditDesc { Anchor: (Height: 36); FlexWeight: 1; PlaceholderText: "Description du challenge"; }
+                    }
                 }
 
-                // --- Nom ---
-                Group {
-                    Anchor: (Height: 35, Top: 3);
-                    LayoutMode: Left;
-                    Padding: (Horizontal: 10);
+                // --- Section Type ---
+                Group #TypeSection {
+                    Anchor: (Height: 150, Top: 15);
+                    LayoutMode: Top;
+                    Background: (Color: #111b27);
+                    Padding: (Full: 20);
 
-                    Label { Anchor: (Width: 100); Text: "Nom:"; Style: (FontSize: 12, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); }
-                    TextField #EditName { Anchor: (Height: 28); FlexWeight: 1; PlaceholderText: "Nom du challenge"; }
-                }
+                    Label {
+                        Anchor: (Height: 28);
+                        Text: "TYPE DE CHALLENGE";
+                        Style: (FontSize: 14, TextColor: #4fc3f7, RenderBold: true);
+                    }
 
-                // --- Description ---
-                Group {
-                    Anchor: (Height: 35, Top: 3);
-                    LayoutMode: Left;
-                    Padding: (Horizontal: 10);
+                    // --- Type boutons ligne 1 ---
+                    Group #TypeRow1 {
+                        Anchor: (Height: 38, Top: 10);
+                        LayoutMode: Left;
 
-                    Label { Anchor: (Width: 100); Text: "Description:"; Style: (FontSize: 12, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); }
-                    TextField #EditDesc { Anchor: (Height: 28); FlexWeight: 1; PlaceholderText: "Description"; }
-                }
+                        TextButton #TypeBtn0 { Anchor: (Width: 160, Height: 34); Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 12, TextColor: #4fc3f7, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Hovered: (Background: #253545, LabelStyle: (FontSize: 12, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Sounds: $C.@ButtonSounds); }
+                        TextButton #TypeBtn1 { Anchor: (Width: 160, Height: 34, Left: 8); Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 12, TextColor: #4fc3f7, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Hovered: (Background: #253545, LabelStyle: (FontSize: 12, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Sounds: $C.@ButtonSounds); }
+                        TextButton #TypeBtn2 { Anchor: (Width: 160, Height: 34, Left: 8); Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 12, TextColor: #66bb6a, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Hovered: (Background: #253545, LabelStyle: (FontSize: 12, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Sounds: $C.@ButtonSounds); }
+                        TextButton #TypeBtn3 { Anchor: (Width: 160, Height: 34, Left: 8); Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 12, TextColor: #66bb6a, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Hovered: (Background: #253545, LabelStyle: (FontSize: 12, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Sounds: $C.@ButtonSounds); }
+                        TextButton #TypeBtn4 { Anchor: (Width: 160, Height: 34, Left: 8); Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 12, TextColor: #ff9800, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Hovered: (Background: #253545, LabelStyle: (FontSize: 12, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Sounds: $C.@ButtonSounds); }
+                    }
 
-                // --- Type label ---
-                Group {
-                    Anchor: (Height: 20, Top: 8);
-                    Padding: (Horizontal: 10);
-                    Label { Text: "Type:"; Style: (FontSize: 12, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); }
-                }
+                    // --- Type boutons ligne 2 ---
+                    Group #TypeRow2 {
+                        Anchor: (Height: 38, Top: 5);
+                        LayoutMode: Left;
 
-                // --- Type boutons ligne 1 ---
-                Group #TypeRow1 {
-                    Anchor: (Height: 30, Top: 2);
-                    LayoutMode: Left;
-                    Padding: (Horizontal: 10);
-
-                    TextButton #TypeBtn0 { Anchor: (Width: 130, Height: 26); Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 9, TextColor: #4fc3f7, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Hovered: (Background: #253545, LabelStyle: (FontSize: 9, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center))); }
-                    TextButton #TypeBtn1 { Anchor: (Width: 130, Height: 26); Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 9, TextColor: #4fc3f7, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Hovered: (Background: #253545, LabelStyle: (FontSize: 9, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center))); }
-                    TextButton #TypeBtn2 { Anchor: (Width: 130, Height: 26); Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 9, TextColor: #66bb6a, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Hovered: (Background: #253545, LabelStyle: (FontSize: 9, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center))); }
-                    TextButton #TypeBtn3 { Anchor: (Width: 130, Height: 26); Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 9, TextColor: #66bb6a, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Hovered: (Background: #253545, LabelStyle: (FontSize: 9, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center))); }
-                    TextButton #TypeBtn4 { Anchor: (Width: 130, Height: 26); Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 9, TextColor: #ff9800, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Hovered: (Background: #253545, LabelStyle: (FontSize: 9, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center))); }
-                }
-
-                // --- Type boutons ligne 2 ---
-                Group #TypeRow2 {
-                    Anchor: (Height: 30, Top: 2);
-                    LayoutMode: Left;
-                    Padding: (Horizontal: 10);
-
-                    TextButton #TypeBtn5 { Anchor: (Width: 130, Height: 26); Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 9, TextColor: #ab47bc, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Hovered: (Background: #253545, LabelStyle: (FontSize: 9, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center))); }
-                    TextButton #TypeBtn6 { Anchor: (Width: 130, Height: 26); Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 9, TextColor: #ab47bc, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Hovered: (Background: #253545, LabelStyle: (FontSize: 9, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center))); }
-                    TextButton #TypeBtn7 { Anchor: (Width: 130, Height: 26); Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 9, TextColor: #ab47bc, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Hovered: (Background: #253545, LabelStyle: (FontSize: 9, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center))); }
-                    TextButton #TypeBtn8 { Anchor: (Width: 130, Height: 26); Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 9, TextColor: #ef5350, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Hovered: (Background: #253545, LabelStyle: (FontSize: 9, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center))); }
+                        TextButton #TypeBtn5 { Anchor: (Width: 160, Height: 34); Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 12, TextColor: #ab47bc, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Hovered: (Background: #253545, LabelStyle: (FontSize: 12, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Sounds: $C.@ButtonSounds); }
+                        TextButton #TypeBtn6 { Anchor: (Width: 160, Height: 34, Left: 8); Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 12, TextColor: #ab47bc, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Hovered: (Background: #253545, LabelStyle: (FontSize: 12, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Sounds: $C.@ButtonSounds); }
+                        TextButton #TypeBtn7 { Anchor: (Width: 160, Height: 34, Left: 8); Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 12, TextColor: #ab47bc, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Hovered: (Background: #253545, LabelStyle: (FontSize: 12, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Sounds: $C.@ButtonSounds); }
+                        TextButton #TypeBtn8 { Anchor: (Width: 160, Height: 34, Left: 8); Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 12, TextColor: #ef5350, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Hovered: (Background: #253545, LabelStyle: (FontSize: 12, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Sounds: $C.@ButtonSounds); }
+                    }
                 }
 
                 // --- Bloc cible (masque, visible si MINE_SPECIFIC) ---
                 Group #BlockRow {
-                    Anchor: (Height: 35, Top: 5);
+                    Anchor: (Height: 65, Top: 15);
                     LayoutMode: Left;
-                    Padding: (Horizontal: 10);
+                    Background: (Color: #111b27);
+                    Padding: (Full: 15);
                     Visible: false;
 
-                    Label { Anchor: (Width: 100); Text: "Bloc cible:"; Style: (FontSize: 12, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); }
-                    TextField #EditBlock { Anchor: (Height: 28); FlexWeight: 1; PlaceholderText: "ex: hytale:cobblestone"; }
+                    Label { Anchor: (Width: 140); Text: "Bloc cible:"; Style: (FontSize: 14, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); }
+                    TextField #EditBlock { Anchor: (Height: 36); FlexWeight: 1; PlaceholderText: "ex: hytale:cobblestone"; }
                 }
 
-                // --- Paliers header ---
-                Group {
-                    Anchor: (Height: 25, Top: 8);
-                    LayoutMode: Left;
-                    Padding: (Horizontal: 10);
+                // --- Section Paliers ---
+                Group #TierSection {
+                    Anchor: (Height: 350, Top: 15);
+                    LayoutMode: Top;
+                    Background: (Color: #111b27);
+                    Padding: (Full: 20);
 
-                    Label { Anchor: (Width: 100); Text: "Paliers:"; Style: (FontSize: 12, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); }
-                    Label #TierInfo { FlexWeight: 1; Style: (FontSize: 10, TextColor: #7c8b99, VerticalAlignment: Center); }
-                }
+                    // Header paliers
+                    Group {
+                        Anchor: (Height: 30);
+                        LayoutMode: Left;
 
-                // --- Paliers colonnes ---
-                Group {
-                    Anchor: (Height: 22, Top: 2);
-                    LayoutMode: Left;
-                    Padding: (Horizontal: 10);
-
-                    Label { Anchor: (Width: 30); Text: "#"; Style: (FontSize: 9, TextColor: #7c8b99, RenderBold: true, VerticalAlignment: Center); }
-                    Label { Anchor: (Width: 200); Text: "Cible (nombre)"; Style: (FontSize: 9, TextColor: #7c8b99, RenderBold: true, VerticalAlignment: Center); }
-                    Label { Anchor: (Width: 200); Text: "Recompense"; Style: (FontSize: 9, TextColor: #7c8b99, RenderBold: true, VerticalAlignment: Center); }
-                }
-
-                // --- Tier rows ---
-                Group #TierRow0 { Anchor: (Height: 35, Top: 2); LayoutMode: Left; Padding: (Horizontal: 10);
-                    Label { Anchor: (Width: 30); Text: "1."; Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center); }
-                    NumberField #T0Target { Anchor: (Width: 200, Height: 28); }
-                    NumberField #T0Reward { Anchor: (Width: 200, Height: 28, Left: 8); }
-                }
-                Group #TierRow1 { Anchor: (Height: 35, Top: 2); LayoutMode: Left; Padding: (Horizontal: 10); Visible: false;
-                    Label { Anchor: (Width: 30); Text: "2."; Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center); }
-                    NumberField #T1Target { Anchor: (Width: 200, Height: 28); }
-                    NumberField #T1Reward { Anchor: (Width: 200, Height: 28, Left: 8); }
-                }
-                Group #TierRow2 { Anchor: (Height: 35, Top: 2); LayoutMode: Left; Padding: (Horizontal: 10); Visible: false;
-                    Label { Anchor: (Width: 30); Text: "3."; Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center); }
-                    NumberField #T2Target { Anchor: (Width: 200, Height: 28); }
-                    NumberField #T2Reward { Anchor: (Width: 200, Height: 28, Left: 8); }
-                }
-                Group #TierRow3 { Anchor: (Height: 35, Top: 2); LayoutMode: Left; Padding: (Horizontal: 10); Visible: false;
-                    Label { Anchor: (Width: 30); Text: "4."; Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center); }
-                    NumberField #T3Target { Anchor: (Width: 200, Height: 28); }
-                    NumberField #T3Reward { Anchor: (Width: 200, Height: 28, Left: 8); }
-                }
-                Group #TierRow4 { Anchor: (Height: 35, Top: 2); LayoutMode: Left; Padding: (Horizontal: 10); Visible: false;
-                    Label { Anchor: (Width: 30); Text: "5."; Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center); }
-                    NumberField #T4Target { Anchor: (Width: 200, Height: 28); }
-                    NumberField #T4Reward { Anchor: (Width: 200, Height: 28, Left: 8); }
-                }
-
-                // --- Boutons + / - palier ---
-                Group {
-                    Anchor: (Height: 32, Top: 5);
-                    LayoutMode: Left;
-                    Padding: (Horizontal: 10);
-
-                    TextButton #AddTierBtn {
-                        Anchor: (Width: 140, Height: 28);
-                        Text: "+ PALIER";
-                        Style: TextButtonStyle(
-                            Default: (Background: #1a3a1a, LabelStyle: (FontSize: 10, TextColor: #66bb6a, HorizontalAlignment: Center, VerticalAlignment: Center)),
-                            Hovered: (Background: #2a5a2a, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)),
-                            Sounds: $C.@ButtonSounds
-                        );
+                        Label {
+                            Anchor: (Width: 200);
+                            Text: "PALIERS";
+                            Style: (FontSize: 14, TextColor: #4fc3f7, RenderBold: true, VerticalAlignment: Center);
+                        }
+                        Label #TierInfo { FlexWeight: 1; Style: (FontSize: 13, TextColor: #7c8b99, VerticalAlignment: Center); }
                     }
-                    TextButton #RemTierBtn {
-                        Anchor: (Width: 140, Height: 28, Left: 8);
-                        Text: "- PALIER";
-                        Style: TextButtonStyle(
-                            Default: (Background: #3a1a1a, LabelStyle: (FontSize: 10, TextColor: #ef5350, HorizontalAlignment: Center, VerticalAlignment: Center)),
-                            Hovered: (Background: #4a2a2a, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center)),
-                            Sounds: $C.@ButtonSounds
-                        );
+
+                    // --- Paliers colonnes header ---
+                    Group {
+                        Anchor: (Height: 30, Top: 10);
+                        LayoutMode: Left;
+                        Background: (Color: #0d1520);
+                        Padding: (Horizontal: 15);
+
+                        Label { Anchor: (Width: 50); Text: "#"; Style: (FontSize: 13, TextColor: #7c8b99, RenderBold: true, VerticalAlignment: Center); }
+                        Label { Anchor: (Width: 300); Text: "Cible (nombre)"; Style: (FontSize: 13, TextColor: #7c8b99, RenderBold: true, VerticalAlignment: Center); }
+                        Label { Anchor: (Width: 300); Text: "Recompense"; Style: (FontSize: 13, TextColor: #7c8b99, RenderBold: true, VerticalAlignment: Center); }
+                    }
+
+                    // --- Tier rows ---
+                    Group #TierRow0 { Anchor: (Height: 42, Top: 5); LayoutMode: Left; Padding: (Horizontal: 15); Background: (Color: #151d28);
+                        Label { Anchor: (Width: 50); Text: "1."; Style: (FontSize: 14, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); }
+                        NumberField #T0Target { Anchor: (Width: 300, Height: 34); }
+                        NumberField #T0Reward { Anchor: (Width: 300, Height: 34, Left: 10); }
+                    }
+                    Group #TierRow1 { Anchor: (Height: 42, Top: 3); LayoutMode: Left; Padding: (Horizontal: 15); Background: (Color: #131a25); Visible: false;
+                        Label { Anchor: (Width: 50); Text: "2."; Style: (FontSize: 14, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); }
+                        NumberField #T1Target { Anchor: (Width: 300, Height: 34); }
+                        NumberField #T1Reward { Anchor: (Width: 300, Height: 34, Left: 10); }
+                    }
+                    Group #TierRow2 { Anchor: (Height: 42, Top: 3); LayoutMode: Left; Padding: (Horizontal: 15); Background: (Color: #151d28); Visible: false;
+                        Label { Anchor: (Width: 50); Text: "3."; Style: (FontSize: 14, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); }
+                        NumberField #T2Target { Anchor: (Width: 300, Height: 34); }
+                        NumberField #T2Reward { Anchor: (Width: 300, Height: 34, Left: 10); }
+                    }
+                    Group #TierRow3 { Anchor: (Height: 42, Top: 3); LayoutMode: Left; Padding: (Horizontal: 15); Background: (Color: #131a25); Visible: false;
+                        Label { Anchor: (Width: 50); Text: "4."; Style: (FontSize: 14, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); }
+                        NumberField #T3Target { Anchor: (Width: 300, Height: 34); }
+                        NumberField #T3Reward { Anchor: (Width: 300, Height: 34, Left: 10); }
+                    }
+                    Group #TierRow4 { Anchor: (Height: 42, Top: 3); LayoutMode: Left; Padding: (Horizontal: 15); Background: (Color: #151d28); Visible: false;
+                        Label { Anchor: (Width: 50); Text: "5."; Style: (FontSize: 14, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); }
+                        NumberField #T4Target { Anchor: (Width: 300, Height: 34); }
+                        NumberField #T4Reward { Anchor: (Width: 300, Height: 34, Left: 10); }
+                    }
+
+                    // --- Boutons + / - palier ---
+                    Group {
+                        Anchor: (Height: 40, Top: 10);
+                        LayoutMode: Left;
+
+                        TextButton #AddTierBtn {
+                            Anchor: (Width: 160, Height: 36);
+                            Text: "+ PALIER";
+                            Style: TextButtonStyle(
+                                Default: (Background: #1a3a1a, LabelStyle: (FontSize: 13, TextColor: #66bb6a, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)),
+                                Hovered: (Background: #2a5a2a, LabelStyle: (FontSize: 13, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)),
+                                Sounds: $C.@ButtonSounds
+                            );
+                        }
+                        TextButton #RemTierBtn {
+                            Anchor: (Width: 160, Height: 36, Left: 10);
+                            Text: "- PALIER";
+                            Style: TextButtonStyle(
+                                Default: (Background: #3a1a1a, LabelStyle: (FontSize: 13, TextColor: #ef5350, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)),
+                                Hovered: (Background: #4a2a2a, LabelStyle: (FontSize: 13, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)),
+                                Sounds: $C.@ButtonSounds
+                            );
+                        }
                     }
                 }
 
                 // --- Sauvegarder / Annuler ---
                 Group {
-                    Anchor: (Height: 50, Top: 15);
+                    Anchor: (Height: 60, Top: 20);
                     LayoutMode: Left;
-                    Padding: (Horizontal: 10);
 
                     Group { FlexWeight: 1; }
                     TextButton #SaveBtn {
-                        Anchor: (Width: 180, Height: 40);
+                        Anchor: (Width: 220, Height: 48);
                         Text: "SAUVEGARDER";
                         Style: TextButtonStyle(
-                            Default: (Background: #2a5f2a, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)),
-                            Hovered: (Background: #3a7f3a, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)),
+                            Default: (Background: #2a5f2a, LabelStyle: (FontSize: 16, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)),
+                            Hovered: (Background: #3a7f3a, LabelStyle: (FontSize: 16, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)),
                             Sounds: $C.@ButtonSounds
                         );
                     }
                     TextButton #CancelBtn {
-                        Anchor: (Width: 140, Height: 40, Left: 15);
+                        Anchor: (Width: 180, Height: 48, Left: 20);
                         Text: "ANNULER";
                         Style: TextButtonStyle(
-                            Default: (Background: #3a2a2a, LabelStyle: (FontSize: 14, TextColor: #ff6666, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)),
-                            Hovered: (Background: #4a3a3a, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)),
+                            Default: (Background: #3a2a2a, LabelStyle: (FontSize: 16, TextColor: #ff6666, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)),
+                            Hovered: (Background: #4a3a3a, LabelStyle: (FontSize: 16, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)),
                             Sounds: $C.@ButtonSounds
                         );
                     }
@@ -229,7 +256,7 @@ $C.@PageOverlay {
                 FlexWeight: 1;
                 LayoutMode: TopScrolling;
                 ScrollbarStyle: $C.@DefaultScrollbarStyle;
-                Padding: (Full: 15);
+                Padding: (Horizontal: 20, Vertical: 15);
             }
         }
     }
