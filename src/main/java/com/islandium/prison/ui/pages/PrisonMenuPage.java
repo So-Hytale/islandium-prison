@@ -163,8 +163,8 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                 String titleColor = canAccess ? "#4fc3f7" : "#ef5350";
                 String statusText = canAccess ? "Accessible" : "Rang " + mine.getRequiredRank() + " requis";
                 String statusColor = canAccess ? "#66bb6a" : "#ef5350";
-                // Icone par mine : Icons/mine_<id>.png, fallback sur Icons/mines.png
-                String iconPath = "Icons/mine_" + mine.getId().toLowerCase() + ".png";
+                // Icone par mine : chemin complet depuis Common/UI/Custom/
+                String iconPath = "Pages/Prison/Icons/mine_" + mine.getId().toLowerCase() + ".png";
 
                 // Padding selon position
                 String padding;
