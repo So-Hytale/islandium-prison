@@ -125,7 +125,7 @@ public class PrisonPlugin extends JavaPlugin {
                     "PRISON",
                     "Mines, rangs, upgrades et plus",
                     "#ff9800",
-                    "Pages/Islandium/Icons/prison.png",
+                    "Pages/Islandium/MenuCardPrison.ui",
                     playerRef -> new PrisonMenuPage(playerRef, this),
                     false
             ));
