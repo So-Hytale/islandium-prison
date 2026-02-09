@@ -86,14 +86,14 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
         cmd.appendInline("#PageContent",
             "Group { Anchor: (Height: 35); LayoutMode: Left; " +
             "  TextButton #PrevRank { Anchor: (Width: 100, Height: 30); " +
-            "    Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 12, TextColor: #96a9be, VerticalAlignment: Center)), " +
-            "    Hovered: (Background: #253545, LabelStyle: (FontSize: 12, TextColor: #ffffff, VerticalAlignment: Center))); } " +
+            "    Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 12, TextColor: #96a9be, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
+            "    Hovered: (Background: #253545, LabelStyle: (FontSize: 12, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
             "  Group { FlexWeight: 1; } " +
-            "  Label #RankLabel { Anchor: (Width: 120); Style: (FontSize: 16, TextColor: #ffd700, RenderBold: true, VerticalAlignment: Center); } " +
+            "  Label #RankLabel { Anchor: (Width: 120); Style: (FontSize: 16, TextColor: #ffd700, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center); } " +
             "  Group { FlexWeight: 1; } " +
             "  TextButton #NextRank { Anchor: (Width: 100, Height: 30); " +
-            "    Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 12, TextColor: #96a9be, VerticalAlignment: Center)), " +
-            "    Hovered: (Background: #253545, LabelStyle: (FontSize: 12, TextColor: #ffffff, VerticalAlignment: Center))); } " +
+            "    Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 12, TextColor: #96a9be, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
+            "    Hovered: (Background: #253545, LabelStyle: (FontSize: 12, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
             "}");
 
         cmd.set("#PrevRank.Text", "< Precedent");
@@ -148,11 +148,11 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
                     "  Label #Block { Anchor: (Width: 100); Style: (FontSize: 10, TextColor: #96a9be, VerticalAlignment: Center); } " +
                     "  Label #Tiers { FlexWeight: 1; Style: (FontSize: 9, TextColor: #66bb6a, VerticalAlignment: Center); } " +
                     "  TextButton #EditBtn" + i + " { Anchor: (Width: 50, Height: 26); " +
-                    "    Style: TextButtonStyle(Default: (Background: #1a3a5a, LabelStyle: (FontSize: 10, TextColor: #4fc3f7, RenderBold: true, VerticalAlignment: Center)), " +
-                    "    Hovered: (Background: #2a4a6a, LabelStyle: (FontSize: 10, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center))); } " +
+                    "    Style: TextButtonStyle(Default: (Background: #1a3a5a, LabelStyle: (FontSize: 10, TextColor: #4fc3f7, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
+                    "    Hovered: (Background: #2a4a6a, LabelStyle: (FontSize: 10, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
                     "  TextButton #DelBtn" + i + " { Anchor: (Width: 30, Height: 26, Left: 4); " +
-                    "    Style: TextButtonStyle(Default: (Background: #3a1a1a, LabelStyle: (FontSize: 12, TextColor: #ff4444, RenderBold: true, VerticalAlignment: Center)), " +
-                    "    Hovered: (Background: #4a2a2a, LabelStyle: (FontSize: 12, TextColor: #ff6666, RenderBold: true, VerticalAlignment: Center))); } " +
+                    "    Style: TextButtonStyle(Default: (Background: #3a1a1a, LabelStyle: (FontSize: 12, TextColor: #ff4444, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
+                    "    Hovered: (Background: #4a2a2a, LabelStyle: (FontSize: 12, TextColor: #ff6666, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
                     "}");
 
                 cmd.set("#" + rowId + " #Idx.Text", String.valueOf(i + 1));

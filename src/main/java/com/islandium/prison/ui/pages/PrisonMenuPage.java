@@ -66,12 +66,11 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
 
         // Hub card events (grille definie dans le .ui)
         event.addEventBinding(CustomUIEventBindingType.Activating, "#CardMines", EventData.of("Navigate", "mines"), false);
-        event.addEventBinding(CustomUIEventBindingType.Activating, "#CardRang", EventData.of("Navigate", "rang"), false);
+        event.addEventBinding(CustomUIEventBindingType.Activating, "#CardDefis", EventData.of("Navigate", "defis"), false);
         event.addEventBinding(CustomUIEventBindingType.Activating, "#CardUpgrades", EventData.of("Navigate", "upgrades"), false);
         event.addEventBinding(CustomUIEventBindingType.Activating, "#CardVendre", EventData.of("Navigate", "vendre"), false);
         event.addEventBinding(CustomUIEventBindingType.Activating, "#CardClassement", EventData.of("Navigate", "classement"), false);
         event.addEventBinding(CustomUIEventBindingType.Activating, "#CardCellule", EventData.of("Navigate", "cellule"), false);
-        event.addEventBinding(CustomUIEventBindingType.Activating, "#CardDefis", EventData.of("Navigate", "defis"), false);
 
         // Hub visible par defaut, PageContent masque
         showHub(cmd);
@@ -760,16 +759,16 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
             "Group { Anchor: (Height: 32); LayoutMode: Left; " +
             (hasPrev ?
             "  TextButton #DefiPrev { Anchor: (Width: 120, Height: 28); " +
-            "    Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 12, TextColor: #96a9be, VerticalAlignment: Center)), " +
-            "    Hovered: (Background: #253545, LabelStyle: (FontSize: 12, TextColor: #ffffff, VerticalAlignment: Center))); } "
+            "    Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 12, TextColor: #96a9be, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
+            "    Hovered: (Background: #253545, LabelStyle: (FontSize: 12, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center))); } "
             : "") +
             "  Group { FlexWeight: 1; } " +
-            "  Label #RangIndicator { Anchor: (Width: 150); Style: (FontSize: 13, TextColor: " + (isCurrentRank ? "#ff9800" : "#96a9be") + ", RenderBold: true, VerticalAlignment: Center); } " +
+            "  Label #RangIndicator { Anchor: (Width: 150); Style: (FontSize: 13, TextColor: " + (isCurrentRank ? "#ff9800" : "#96a9be") + ", RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center); } " +
             "  Group { FlexWeight: 1; } " +
             (hasNext ?
             "  TextButton #DefiNext { Anchor: (Width: 120, Height: 28); " +
-            "    Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 12, TextColor: #96a9be, VerticalAlignment: Center)), " +
-            "    Hovered: (Background: #253545, LabelStyle: (FontSize: 12, TextColor: #ffffff, VerticalAlignment: Center))); } "
+            "    Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 12, TextColor: #96a9be, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
+            "    Hovered: (Background: #253545, LabelStyle: (FontSize: 12, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center))); } "
             : "") +
             "}");
 
@@ -911,14 +910,14 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                     "Group { Anchor: (Height: 55, Top: 10); LayoutMode: Top; " +
                     "  Group { Anchor: (Height: 20); LayoutMode: Left; " +
                     "    Group { FlexWeight: 1; } " +
-                    "    Label #RankupPrice { Anchor: (Width: 250); Style: (FontSize: 12, TextColor: #96a9be, VerticalAlignment: Center); } " +
+                    "    Label #RankupPrice { Anchor: (Width: 200); Style: (FontSize: 12, TextColor: #96a9be, HorizontalAlignment: Center, VerticalAlignment: Center); } " +
                     "    Group { FlexWeight: 1; } " +
                     "  } " +
                     "  Group { Anchor: (Height: 40, Top: 2); LayoutMode: Left; " +
                     "    Group { FlexWeight: 1; } " +
                     "    TextButton #DefiRankupBtn { Anchor: (Width: 200, Height: 38); " +
-                    "      Style: TextButtonStyle(Default: (Background: " + btnBg + ", LabelStyle: (FontSize: 15, TextColor: " + btnTextColor + ", RenderBold: true, VerticalAlignment: Center)), " +
-                    "      Hovered: (Background: " + btnHover + ", LabelStyle: (FontSize: 15, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center))); } " +
+                    "      Style: TextButtonStyle(Default: (Background: " + btnBg + ", LabelStyle: (FontSize: 15, TextColor: " + btnTextColor + ", RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
+                    "      Hovered: (Background: " + btnHover + ", LabelStyle: (FontSize: 15, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
                     "    Group { FlexWeight: 1; } " +
                     "  } " +
                     "}");
@@ -1007,7 +1006,6 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         if (data.navigate != null) {
             switch (data.navigate) {
                 case "mines" -> { currentPage = "mines"; buildMinesPage(cmd, event); }
-                case "rang" -> { currentPage = "rang"; buildRangPage(cmd, event); }
                 case "upgrades" -> { currentPage = "upgrades"; buildUpgradesPage(cmd, event); }
                 case "classement" -> { currentPage = "classement"; buildClassementPage(cmd, event); }
                 case "cellule" -> { currentPage = "cellule"; buildCellulePage(cmd, event); }
