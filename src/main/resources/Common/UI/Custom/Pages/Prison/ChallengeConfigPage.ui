@@ -163,70 +163,70 @@ $C.@PageOverlay {
                     Group #ItemTier0 { Anchor: (Height: 100, Top: 10); LayoutMode: Top; Visible: false;
                         Label { Anchor: (Height: 22); Text: "-- Palier 1 --"; Style: (FontSize: 12, TextColor: #4fc3f7, RenderBold: true); }
                         Group { Anchor: (Height: 36, Top: 2); LayoutMode: Left;
-                            TextField #I0_0Id { Anchor: (Width: 280, Height: 32); PlaceholderText: "Item ID 1"; }
-                            NumberField #I0_0Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
+                            TextField #I00Id { Anchor: (Width: 280, Height: 32); PlaceholderText: "Item ID 1"; }
+                            NumberField #I00Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
                             Group { Anchor: (Width: 20); }
-                            TextField #I0_1Id { Anchor: (Width: 280, Height: 32); PlaceholderText: "Item ID 2"; }
-                            NumberField #I0_1Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
+                            TextField #I01Id { Anchor: (Width: 280, Height: 32); PlaceholderText: "Item ID 2"; }
+                            NumberField #I01Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
                             Group { Anchor: (Width: 20); }
-                            TextField #I0_2Id { Anchor: (Width: 200, Height: 32); PlaceholderText: "Item ID 3"; }
-                            NumberField #I0_2Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
+                            TextField #I02Id { Anchor: (Width: 200, Height: 32); PlaceholderText: "Item ID 3"; }
+                            NumberField #I02Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
                         }
                     }
                     // Palier 2 items
                     Group #ItemTier1 { Anchor: (Height: 100, Top: 5); LayoutMode: Top; Visible: false;
                         Label { Anchor: (Height: 22); Text: "-- Palier 2 --"; Style: (FontSize: 12, TextColor: #4fc3f7, RenderBold: true); }
                         Group { Anchor: (Height: 36, Top: 2); LayoutMode: Left;
-                            TextField #I1_0Id { Anchor: (Width: 280, Height: 32); PlaceholderText: "Item ID 1"; }
-                            NumberField #I1_0Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
+                            TextField #I10Id { Anchor: (Width: 280, Height: 32); PlaceholderText: "Item ID 1"; }
+                            NumberField #I10Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
                             Group { Anchor: (Width: 20); }
-                            TextField #I1_1Id { Anchor: (Width: 280, Height: 32); PlaceholderText: "Item ID 2"; }
-                            NumberField #I1_1Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
+                            TextField #I11Id { Anchor: (Width: 280, Height: 32); PlaceholderText: "Item ID 2"; }
+                            NumberField #I11Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
                             Group { Anchor: (Width: 20); }
-                            TextField #I1_2Id { Anchor: (Width: 200, Height: 32); PlaceholderText: "Item ID 3"; }
-                            NumberField #I1_2Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
+                            TextField #I12Id { Anchor: (Width: 200, Height: 32); PlaceholderText: "Item ID 3"; }
+                            NumberField #I12Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
                         }
                     }
                     // Palier 3 items
                     Group #ItemTier2 { Anchor: (Height: 100, Top: 5); LayoutMode: Top; Visible: false;
                         Label { Anchor: (Height: 22); Text: "-- Palier 3 --"; Style: (FontSize: 12, TextColor: #4fc3f7, RenderBold: true); }
                         Group { Anchor: (Height: 36, Top: 2); LayoutMode: Left;
-                            TextField #I2_0Id { Anchor: (Width: 280, Height: 32); PlaceholderText: "Item ID 1"; }
-                            NumberField #I2_0Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
+                            TextField #I20Id { Anchor: (Width: 280, Height: 32); PlaceholderText: "Item ID 1"; }
+                            NumberField #I20Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
                             Group { Anchor: (Width: 20); }
-                            TextField #I2_1Id { Anchor: (Width: 280, Height: 32); PlaceholderText: "Item ID 2"; }
-                            NumberField #I2_1Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
+                            TextField #I21Id { Anchor: (Width: 280, Height: 32); PlaceholderText: "Item ID 2"; }
+                            NumberField #I21Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
                             Group { Anchor: (Width: 20); }
-                            TextField #I2_2Id { Anchor: (Width: 200, Height: 32); PlaceholderText: "Item ID 3"; }
-                            NumberField #I2_2Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
+                            TextField #I22Id { Anchor: (Width: 200, Height: 32); PlaceholderText: "Item ID 3"; }
+                            NumberField #I22Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
                         }
                     }
                     // Palier 4 items
                     Group #ItemTier3 { Anchor: (Height: 100, Top: 5); LayoutMode: Top; Visible: false;
                         Label { Anchor: (Height: 22); Text: "-- Palier 4 --"; Style: (FontSize: 12, TextColor: #4fc3f7, RenderBold: true); }
                         Group { Anchor: (Height: 36, Top: 2); LayoutMode: Left;
-                            TextField #I3_0Id { Anchor: (Width: 280, Height: 32); PlaceholderText: "Item ID 1"; }
-                            NumberField #I3_0Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
+                            TextField #I30Id { Anchor: (Width: 280, Height: 32); PlaceholderText: "Item ID 1"; }
+                            NumberField #I30Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
                             Group { Anchor: (Width: 20); }
-                            TextField #I3_1Id { Anchor: (Width: 280, Height: 32); PlaceholderText: "Item ID 2"; }
-                            NumberField #I3_1Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
+                            TextField #I31Id { Anchor: (Width: 280, Height: 32); PlaceholderText: "Item ID 2"; }
+                            NumberField #I31Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
                             Group { Anchor: (Width: 20); }
-                            TextField #I3_2Id { Anchor: (Width: 200, Height: 32); PlaceholderText: "Item ID 3"; }
-                            NumberField #I3_2Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
+                            TextField #I32Id { Anchor: (Width: 200, Height: 32); PlaceholderText: "Item ID 3"; }
+                            NumberField #I32Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
                         }
                     }
                     // Palier 5 items
                     Group #ItemTier4 { Anchor: (Height: 100, Top: 5); LayoutMode: Top; Visible: false;
                         Label { Anchor: (Height: 22); Text: "-- Palier 5 --"; Style: (FontSize: 12, TextColor: #4fc3f7, RenderBold: true); }
                         Group { Anchor: (Height: 36, Top: 2); LayoutMode: Left;
-                            TextField #I4_0Id { Anchor: (Width: 280, Height: 32); PlaceholderText: "Item ID 1"; }
-                            NumberField #I4_0Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
+                            TextField #I40Id { Anchor: (Width: 280, Height: 32); PlaceholderText: "Item ID 1"; }
+                            NumberField #I40Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
                             Group { Anchor: (Width: 20); }
-                            TextField #I4_1Id { Anchor: (Width: 280, Height: 32); PlaceholderText: "Item ID 2"; }
-                            NumberField #I4_1Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
+                            TextField #I41Id { Anchor: (Width: 280, Height: 32); PlaceholderText: "Item ID 2"; }
+                            NumberField #I41Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
                             Group { Anchor: (Width: 20); }
-                            TextField #I4_2Id { Anchor: (Width: 200, Height: 32); PlaceholderText: "Item ID 3"; }
-                            NumberField #I4_2Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
+                            TextField #I42Id { Anchor: (Width: 200, Height: 32); PlaceholderText: "Item ID 3"; }
+                            NumberField #I42Qty { Anchor: (Width: 80, Height: 32, Left: 6); }
                         }
                     }
                 }

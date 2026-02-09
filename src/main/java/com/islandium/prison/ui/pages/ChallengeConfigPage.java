@@ -297,10 +297,10 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
                         String itemId = formTierItemIds[t][s];
                         int itemQty = formTierItemQtys[t][s];
                         if (itemId != null && !itemId.isEmpty()) {
-                            cmd.set("#I" + t + "_" + s + "Id.Value", itemId);
+                            cmd.set("#I" + t + s + "Id.Value", itemId);
                         }
                         if (itemQty > 0) {
-                            cmd.set("#I" + t + "_" + s + "Qty.Value", itemQty);
+                            cmd.set("#I" + t + s + "Qty.Value", itemQty);
                         }
                     }
                 }
@@ -338,8 +338,8 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
         for (int t = 0; t < MAX_TIERS; t++) {
             for (int s = 0; s < MAX_ITEMS_PER_TIER; s++) {
                 saveData = saveData
-                    .append("@I" + t + "_" + s + "Id", "#I" + t + "_" + s + "Id.Value")
-                    .append("@I" + t + "_" + s + "Qty", "#I" + t + "_" + s + "Qty.Value");
+                    .append("@I" + t + s + "Id", "#I" + t + s + "Id.Value")
+                    .append("@I" + t + s + "Qty", "#I" + t + s + "Qty.Value");
             }
         }
         event.addEventBinding(CustomUIEventBindingType.Activating, "#SaveBtn", saveData, false);
@@ -659,36 +659,36 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
                 .addField(new KeyedCodec<>("T4Target", Codec.INTEGER), (d, v) -> d.t4Target = v, d -> d.t4Target)
                 .addField(new KeyedCodec<>("T4Reward", Codec.INTEGER), (d, v) -> d.t4Reward = v, d -> d.t4Reward)
                 // Item fields: I{tier}_{slot}Id (string) and I{tier}_{slot}Qty (int)
-                .addField(new KeyedCodec<>("I0_0Id", Codec.STRING), (d, v) -> d.i0_0Id = v, d -> d.i0_0Id)
-                .addField(new KeyedCodec<>("I0_0Qty", Codec.INTEGER), (d, v) -> d.i0_0Qty = v, d -> d.i0_0Qty)
-                .addField(new KeyedCodec<>("I0_1Id", Codec.STRING), (d, v) -> d.i0_1Id = v, d -> d.i0_1Id)
-                .addField(new KeyedCodec<>("I0_1Qty", Codec.INTEGER), (d, v) -> d.i0_1Qty = v, d -> d.i0_1Qty)
-                .addField(new KeyedCodec<>("I0_2Id", Codec.STRING), (d, v) -> d.i0_2Id = v, d -> d.i0_2Id)
-                .addField(new KeyedCodec<>("I0_2Qty", Codec.INTEGER), (d, v) -> d.i0_2Qty = v, d -> d.i0_2Qty)
-                .addField(new KeyedCodec<>("I1_0Id", Codec.STRING), (d, v) -> d.i1_0Id = v, d -> d.i1_0Id)
-                .addField(new KeyedCodec<>("I1_0Qty", Codec.INTEGER), (d, v) -> d.i1_0Qty = v, d -> d.i1_0Qty)
-                .addField(new KeyedCodec<>("I1_1Id", Codec.STRING), (d, v) -> d.i1_1Id = v, d -> d.i1_1Id)
-                .addField(new KeyedCodec<>("I1_1Qty", Codec.INTEGER), (d, v) -> d.i1_1Qty = v, d -> d.i1_1Qty)
-                .addField(new KeyedCodec<>("I1_2Id", Codec.STRING), (d, v) -> d.i1_2Id = v, d -> d.i1_2Id)
-                .addField(new KeyedCodec<>("I1_2Qty", Codec.INTEGER), (d, v) -> d.i1_2Qty = v, d -> d.i1_2Qty)
-                .addField(new KeyedCodec<>("I2_0Id", Codec.STRING), (d, v) -> d.i2_0Id = v, d -> d.i2_0Id)
-                .addField(new KeyedCodec<>("I2_0Qty", Codec.INTEGER), (d, v) -> d.i2_0Qty = v, d -> d.i2_0Qty)
-                .addField(new KeyedCodec<>("I2_1Id", Codec.STRING), (d, v) -> d.i2_1Id = v, d -> d.i2_1Id)
-                .addField(new KeyedCodec<>("I2_1Qty", Codec.INTEGER), (d, v) -> d.i2_1Qty = v, d -> d.i2_1Qty)
-                .addField(new KeyedCodec<>("I2_2Id", Codec.STRING), (d, v) -> d.i2_2Id = v, d -> d.i2_2Id)
-                .addField(new KeyedCodec<>("I2_2Qty", Codec.INTEGER), (d, v) -> d.i2_2Qty = v, d -> d.i2_2Qty)
-                .addField(new KeyedCodec<>("I3_0Id", Codec.STRING), (d, v) -> d.i3_0Id = v, d -> d.i3_0Id)
-                .addField(new KeyedCodec<>("I3_0Qty", Codec.INTEGER), (d, v) -> d.i3_0Qty = v, d -> d.i3_0Qty)
-                .addField(new KeyedCodec<>("I3_1Id", Codec.STRING), (d, v) -> d.i3_1Id = v, d -> d.i3_1Id)
-                .addField(new KeyedCodec<>("I3_1Qty", Codec.INTEGER), (d, v) -> d.i3_1Qty = v, d -> d.i3_1Qty)
-                .addField(new KeyedCodec<>("I3_2Id", Codec.STRING), (d, v) -> d.i3_2Id = v, d -> d.i3_2Id)
-                .addField(new KeyedCodec<>("I3_2Qty", Codec.INTEGER), (d, v) -> d.i3_2Qty = v, d -> d.i3_2Qty)
-                .addField(new KeyedCodec<>("I4_0Id", Codec.STRING), (d, v) -> d.i4_0Id = v, d -> d.i4_0Id)
-                .addField(new KeyedCodec<>("I4_0Qty", Codec.INTEGER), (d, v) -> d.i4_0Qty = v, d -> d.i4_0Qty)
-                .addField(new KeyedCodec<>("I4_1Id", Codec.STRING), (d, v) -> d.i4_1Id = v, d -> d.i4_1Id)
-                .addField(new KeyedCodec<>("I4_1Qty", Codec.INTEGER), (d, v) -> d.i4_1Qty = v, d -> d.i4_1Qty)
-                .addField(new KeyedCodec<>("I4_2Id", Codec.STRING), (d, v) -> d.i4_2Id = v, d -> d.i4_2Id)
-                .addField(new KeyedCodec<>("I4_2Qty", Codec.INTEGER), (d, v) -> d.i4_2Qty = v, d -> d.i4_2Qty)
+                .addField(new KeyedCodec<>("I00Id", Codec.STRING), (d, v) -> d.i00Id = v, d -> d.i00Id)
+                .addField(new KeyedCodec<>("I00Qty", Codec.INTEGER), (d, v) -> d.i00Qty = v, d -> d.i00Qty)
+                .addField(new KeyedCodec<>("I01Id", Codec.STRING), (d, v) -> d.i01Id = v, d -> d.i01Id)
+                .addField(new KeyedCodec<>("I01Qty", Codec.INTEGER), (d, v) -> d.i01Qty = v, d -> d.i01Qty)
+                .addField(new KeyedCodec<>("I02Id", Codec.STRING), (d, v) -> d.i02Id = v, d -> d.i02Id)
+                .addField(new KeyedCodec<>("I02Qty", Codec.INTEGER), (d, v) -> d.i02Qty = v, d -> d.i02Qty)
+                .addField(new KeyedCodec<>("I10Id", Codec.STRING), (d, v) -> d.i10Id = v, d -> d.i10Id)
+                .addField(new KeyedCodec<>("I10Qty", Codec.INTEGER), (d, v) -> d.i10Qty = v, d -> d.i10Qty)
+                .addField(new KeyedCodec<>("I11Id", Codec.STRING), (d, v) -> d.i11Id = v, d -> d.i11Id)
+                .addField(new KeyedCodec<>("I11Qty", Codec.INTEGER), (d, v) -> d.i11Qty = v, d -> d.i11Qty)
+                .addField(new KeyedCodec<>("I12Id", Codec.STRING), (d, v) -> d.i12Id = v, d -> d.i12Id)
+                .addField(new KeyedCodec<>("I12Qty", Codec.INTEGER), (d, v) -> d.i12Qty = v, d -> d.i12Qty)
+                .addField(new KeyedCodec<>("I20Id", Codec.STRING), (d, v) -> d.i20Id = v, d -> d.i20Id)
+                .addField(new KeyedCodec<>("I20Qty", Codec.INTEGER), (d, v) -> d.i20Qty = v, d -> d.i20Qty)
+                .addField(new KeyedCodec<>("I21Id", Codec.STRING), (d, v) -> d.i21Id = v, d -> d.i21Id)
+                .addField(new KeyedCodec<>("I21Qty", Codec.INTEGER), (d, v) -> d.i21Qty = v, d -> d.i21Qty)
+                .addField(new KeyedCodec<>("I22Id", Codec.STRING), (d, v) -> d.i22Id = v, d -> d.i22Id)
+                .addField(new KeyedCodec<>("I22Qty", Codec.INTEGER), (d, v) -> d.i22Qty = v, d -> d.i22Qty)
+                .addField(new KeyedCodec<>("I30Id", Codec.STRING), (d, v) -> d.i30Id = v, d -> d.i30Id)
+                .addField(new KeyedCodec<>("I30Qty", Codec.INTEGER), (d, v) -> d.i30Qty = v, d -> d.i30Qty)
+                .addField(new KeyedCodec<>("I31Id", Codec.STRING), (d, v) -> d.i31Id = v, d -> d.i31Id)
+                .addField(new KeyedCodec<>("I31Qty", Codec.INTEGER), (d, v) -> d.i31Qty = v, d -> d.i31Qty)
+                .addField(new KeyedCodec<>("I32Id", Codec.STRING), (d, v) -> d.i32Id = v, d -> d.i32Id)
+                .addField(new KeyedCodec<>("I32Qty", Codec.INTEGER), (d, v) -> d.i32Qty = v, d -> d.i32Qty)
+                .addField(new KeyedCodec<>("I40Id", Codec.STRING), (d, v) -> d.i40Id = v, d -> d.i40Id)
+                .addField(new KeyedCodec<>("I40Qty", Codec.INTEGER), (d, v) -> d.i40Qty = v, d -> d.i40Qty)
+                .addField(new KeyedCodec<>("I41Id", Codec.STRING), (d, v) -> d.i41Id = v, d -> d.i41Id)
+                .addField(new KeyedCodec<>("I41Qty", Codec.INTEGER), (d, v) -> d.i41Qty = v, d -> d.i41Qty)
+                .addField(new KeyedCodec<>("I42Id", Codec.STRING), (d, v) -> d.i42Id = v, d -> d.i42Id)
+                .addField(new KeyedCodec<>("I42Qty", Codec.INTEGER), (d, v) -> d.i42Qty = v, d -> d.i42Qty)
                 .build();
 
         public String action;
@@ -704,25 +704,25 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
         public Integer t3Target, t3Reward;
         public Integer t4Target, t4Reward;
         // Item fields [tier]_[slot]
-        public String i0_0Id, i0_1Id, i0_2Id;
-        public Integer i0_0Qty, i0_1Qty, i0_2Qty;
-        public String i1_0Id, i1_1Id, i1_2Id;
-        public Integer i1_0Qty, i1_1Qty, i1_2Qty;
-        public String i2_0Id, i2_1Id, i2_2Id;
-        public Integer i2_0Qty, i2_1Qty, i2_2Qty;
-        public String i3_0Id, i3_1Id, i3_2Id;
-        public Integer i3_0Qty, i3_1Qty, i3_2Qty;
-        public String i4_0Id, i4_1Id, i4_2Id;
-        public Integer i4_0Qty, i4_1Qty, i4_2Qty;
+        public String i00Id, i01Id, i02Id;
+        public Integer i00Qty, i01Qty, i02Qty;
+        public String i10Id, i11Id, i12Id;
+        public Integer i10Qty, i11Qty, i12Qty;
+        public String i20Id, i21Id, i22Id;
+        public Integer i20Qty, i21Qty, i22Qty;
+        public String i30Id, i31Id, i32Id;
+        public Integer i30Qty, i31Qty, i32Qty;
+        public String i40Id, i41Id, i42Id;
+        public Integer i40Qty, i41Qty, i42Qty;
 
         /** Helper to get item ID by tier and slot index. */
         public String getItemId(int tier, int slot) {
             return switch (tier * 3 + slot) {
-                case 0 -> i0_0Id; case 1 -> i0_1Id; case 2 -> i0_2Id;
-                case 3 -> i1_0Id; case 4 -> i1_1Id; case 5 -> i1_2Id;
-                case 6 -> i2_0Id; case 7 -> i2_1Id; case 8 -> i2_2Id;
-                case 9 -> i3_0Id; case 10 -> i3_1Id; case 11 -> i3_2Id;
-                case 12 -> i4_0Id; case 13 -> i4_1Id; case 14 -> i4_2Id;
+                case 0 -> i00Id; case 1 -> i01Id; case 2 -> i02Id;
+                case 3 -> i10Id; case 4 -> i11Id; case 5 -> i12Id;
+                case 6 -> i20Id; case 7 -> i21Id; case 8 -> i22Id;
+                case 9 -> i30Id; case 10 -> i31Id; case 11 -> i32Id;
+                case 12 -> i40Id; case 13 -> i41Id; case 14 -> i42Id;
                 default -> null;
             };
         }
@@ -730,11 +730,11 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
         /** Helper to get item qty by tier and slot index. */
         public Integer getItemQty(int tier, int slot) {
             return switch (tier * 3 + slot) {
-                case 0 -> i0_0Qty; case 1 -> i0_1Qty; case 2 -> i0_2Qty;
-                case 3 -> i1_0Qty; case 4 -> i1_1Qty; case 5 -> i1_2Qty;
-                case 6 -> i2_0Qty; case 7 -> i2_1Qty; case 8 -> i2_2Qty;
-                case 9 -> i3_0Qty; case 10 -> i3_1Qty; case 11 -> i3_2Qty;
-                case 12 -> i4_0Qty; case 13 -> i4_1Qty; case 14 -> i4_2Qty;
+                case 0 -> i00Qty; case 1 -> i01Qty; case 2 -> i02Qty;
+                case 3 -> i10Qty; case 4 -> i11Qty; case 5 -> i12Qty;
+                case 6 -> i20Qty; case 7 -> i21Qty; case 8 -> i22Qty;
+                case 9 -> i30Qty; case 10 -> i31Qty; case 11 -> i32Qty;
+                case 12 -> i40Qty; case 13 -> i41Qty; case 14 -> i42Qty;
                 default -> null;
             };
         }
