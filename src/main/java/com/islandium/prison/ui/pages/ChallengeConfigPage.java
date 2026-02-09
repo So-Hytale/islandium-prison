@@ -13,6 +13,7 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
+import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
 import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
@@ -22,9 +23,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import javax.annotation.Nonnull;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Page admin pour visualiser et configurer les challenges.
@@ -62,15 +61,55 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
         this.playerRef = playerRef;
     }
 
+    /**
+     * Constructeur avec etat restaure (pour reopenPage).
+     */
+    public ChallengeConfigPage(@Nonnull PlayerRef playerRef, PrisonPlugin plugin,
+                                ViewMode viewMode, String viewingRank,
+                                String editingChallengeId, ChallengeType selectedType,
+                                int tierCount, String formId, String formName,
+                                String formDesc, String formBlock,
+                                long[] formTierTargets, long[] formTierRewards) {
+        super(playerRef, CustomPageLifetime.CanDismiss, PageData.CODEC);
+        this.plugin = plugin;
+        this.playerRef = playerRef;
+        this.viewMode = viewMode;
+        this.viewingRank = viewingRank;
+        this.editingChallengeId = editingChallengeId;
+        this.selectedType = selectedType;
+        this.tierCount = tierCount;
+        this.formId = formId;
+        this.formName = formName;
+        this.formDesc = formDesc;
+        this.formBlock = formBlock;
+        this.formTierTargets = formTierTargets;
+        this.formTierRewards = formTierRewards;
+    }
+
     private SQLExecutor getSql() {
         return plugin.getCore().getDatabaseManager().getExecutor();
+    }
+
+    /**
+     * Rouvre la page avec l'etat actuel pour forcer un build() complet.
+     */
+    private void reopenPage(Ref<EntityStore> ref, Store<EntityStore> store, Player player) {
+        player.getPageManager().openCustomPage(ref, store,
+            new ChallengeConfigPage(playerRef, plugin,
+                viewMode, viewingRank, editingChallengeId, selectedType,
+                tierCount, formId, formName, formDesc, formBlock,
+                formTierTargets, formTierRewards));
     }
 
     @Override
     public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder cmd, @Nonnull UIEventBuilder event, @Nonnull Store<EntityStore> store) {
         cmd.append("Pages/Prison/ChallengeConfigPage.ui");
         event.addEventBinding(CustomUIEventBindingType.Activating, "#CloseBtn", EventData.of("Action", "close"), false);
-        buildRankList(cmd, event);
+        if (viewMode == ViewMode.EDIT || viewMode == ViewMode.CREATE) {
+            buildEditorForm(cmd, event);
+        } else {
+            buildRankList(cmd, event);
+        }
     }
 
     // =============================================
@@ -79,6 +118,11 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
 
     private void buildRankList(UICommandBuilder cmd, UIEventBuilder event) {
         viewMode = ViewMode.LIST;
+
+        // Toggle visibility: show list, hide editor
+        cmd.set("#EditorForm.Visible", false);
+        cmd.set("#PageContent.Visible", true);
+
         cmd.clear("#PageContent");
         cmd.set("#HeaderTitle.Text", "CHALLENGES - RANG " + viewingRank);
 
@@ -196,179 +240,71 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
     // =============================================
 
     private void buildEditorForm(UICommandBuilder cmd, UIEventBuilder event) {
-        cmd.clear("#PageContent");
         boolean isEdit = viewMode == ViewMode.EDIT;
+
+        // Toggle visibility: show editor, hide list
+        cmd.set("#EditorForm.Visible", true);
+        cmd.set("#PageContent.Visible", false);
+
+        // Header
         cmd.set("#HeaderTitle.Text", isEdit ? "MODIFIER CHALLENGE" : "CREER CHALLENGE");
 
-        // --- ID ---
-        cmd.appendInline("#PageContent",
-            "Group { Anchor: (Height: 35, Top: 5); LayoutMode: Left; Padding: (Horizontal: 10); " +
-            "  Label { Anchor: (Width: 100); Text: \"ID:\"; Style: (FontSize: 12, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); } " +
-            (isEdit ?
-            "  Label #EditIdLabel { Anchor: (Height: 28); FlexWeight: 1; Style: (FontSize: 12, TextColor: #7c8b99, VerticalAlignment: Center); } " +
-            "  TextField #EditId { Anchor: (Width: 0, Height: 0); } "
-            :
-            "  TextField #EditId { Anchor: (Height: 28); FlexWeight: 1; PlaceholderText: \"ex: A_1\"; } "
-            ) +
-            "}");
+        // ID field: in edit mode show label, in create mode show text field
+        cmd.set("#EditIdLabel.Visible", isEdit);
+        cmd.set("#EditId.Visible", !isEdit);
         cmd.set("#EditId.Value", formId);
         if (isEdit) {
             cmd.set("#EditIdLabel.Text", formId + "  (non modifiable)");
         }
 
-        // --- Nom ---
-        cmd.appendInline("#PageContent",
-            "Group { Anchor: (Height: 35, Top: 3); LayoutMode: Left; Padding: (Horizontal: 10); " +
-            "  Label { Anchor: (Width: 100); Text: \"Nom:\"; Style: (FontSize: 12, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); } " +
-            "  TextField #EditName { Anchor: (Height: 28); FlexWeight: 1; PlaceholderText: \"Nom du challenge\"; } " +
-            "}");
+        // Name & Description
         cmd.set("#EditName.Value", formName);
-
-        // --- Description ---
-        cmd.appendInline("#PageContent",
-            "Group { Anchor: (Height: 35, Top: 3); LayoutMode: Left; Padding: (Horizontal: 10); " +
-            "  Label { Anchor: (Width: 100); Text: \"Description:\"; Style: (FontSize: 12, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); } " +
-            "  TextField #EditDesc { Anchor: (Height: 28); FlexWeight: 1; PlaceholderText: \"Description\"; } " +
-            "}");
         cmd.set("#EditDesc.Value", formDesc);
 
-        // --- Type (grille de boutons) ---
-        cmd.appendInline("#PageContent",
-            "Group { Anchor: (Height: 20, Top: 8); Padding: (Horizontal: 10); " +
-            "  Label { Text: \"Type:\"; Style: (FontSize: 12, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); } " +
-            "}");
-
-        // Premiere ligne de types (5 boutons)
+        // Type buttons - set text (prefixe > pour le selectionne) et bind events
         ChallengeType[] types = ChallengeType.values();
-        StringBuilder typeRow1 = new StringBuilder("Group { Anchor: (Height: 30, Top: 2); LayoutMode: Left; Padding: (Horizontal: 10); ");
-        for (int i = 0; i < Math.min(5, types.length); i++) {
-            ChallengeType t = types[i];
-            boolean selected = t == selectedType;
-            String bg = selected ? "#2a5f2a" : "#1a2836";
-            String hover = selected ? "#3a7f3a" : "#253545";
-            String color = selected ? "#ffffff" : getTypeColor(t);
-            typeRow1.append("TextButton #TypeBtn").append(i).append(" { Anchor: (Width: 130, Height: 26); ")
-                    .append("Style: TextButtonStyle(Default: (Background: ").append(bg)
-                    .append(", LabelStyle: (FontSize: 9, TextColor: ").append(color).append(", RenderBold: true, VerticalAlignment: Center)), ")
-                    .append("Hovered: (Background: ").append(hover)
-                    .append(", LabelStyle: (FontSize: 9, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center))); } ");
-        }
-        typeRow1.append("}");
-        cmd.appendInline("#PageContent", typeRow1.toString());
-        for (int i = 0; i < Math.min(5, types.length); i++) {
-            cmd.set("#TypeBtn" + i + ".Text", types[i].name());
+        for (int i = 0; i < types.length; i++) {
+            String prefix = (types[i] == selectedType) ? "> " : "";
+            cmd.set("#TypeBtn" + i + ".Text", prefix + types[i].name());
             event.addEventBinding(CustomUIEventBindingType.Activating, "#TypeBtn" + i,
                 EventData.of("Action", "selectType").append("TypeSelect", types[i].name()), false);
         }
 
-        // Deuxieme ligne de types (4 boutons restants)
-        if (types.length > 5) {
-            StringBuilder typeRow2 = new StringBuilder("Group { Anchor: (Height: 30, Top: 2); LayoutMode: Left; Padding: (Horizontal: 10); ");
-            for (int i = 5; i < types.length; i++) {
-                ChallengeType t = types[i];
-                boolean selected = t == selectedType;
-                String bg = selected ? "#2a5f2a" : "#1a2836";
-                String hover = selected ? "#3a7f3a" : "#253545";
-                String color = selected ? "#ffffff" : getTypeColor(t);
-                typeRow2.append("TextButton #TypeBtn").append(i).append(" { Anchor: (Width: 130, Height: 26); ")
-                        .append("Style: TextButtonStyle(Default: (Background: ").append(bg)
-                        .append(", LabelStyle: (FontSize: 9, TextColor: ").append(color).append(", RenderBold: true, VerticalAlignment: Center)), ")
-                        .append("Hovered: (Background: ").append(hover)
-                        .append(", LabelStyle: (FontSize: 9, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center))); } ");
-            }
-            typeRow2.append("}");
-            cmd.appendInline("#PageContent", typeRow2.toString());
-            for (int i = 5; i < types.length; i++) {
-                cmd.set("#TypeBtn" + i + ".Text", types[i].name());
-                event.addEventBinding(CustomUIEventBindingType.Activating, "#TypeBtn" + i,
-                    EventData.of("Action", "selectType").append("TypeSelect", types[i].name()), false);
-            }
-        }
-
-        // --- Bloc cible (seulement si MINE_SPECIFIC) ---
+        // Block row: visible only for MINE_SPECIFIC
         boolean showBlock = selectedType == ChallengeType.MINE_SPECIFIC;
+        cmd.set("#BlockRow.Visible", showBlock);
         if (showBlock) {
-            cmd.appendInline("#PageContent",
-                "Group #BlockRow { Anchor: (Height: 35, Top: 5); LayoutMode: Left; Padding: (Horizontal: 10); " +
-                "  Label { Anchor: (Width: 100); Text: \"Bloc cible:\"; Style: (FontSize: 12, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); } " +
-                "  TextField #EditBlock { Anchor: (Height: 28); FlexWeight: 1; PlaceholderText: \"ex: hytale:cobblestone\"; } " +
-                "}");
             cmd.set("#EditBlock.Value", formBlock);
         }
 
-        // --- Paliers ---
-        cmd.appendInline("#PageContent",
-            "Group { Anchor: (Height: 25, Top: 8); LayoutMode: Left; Padding: (Horizontal: 10); " +
-            "  Label { Anchor: (Width: 100); Text: \"Paliers:\"; Style: (FontSize: 12, TextColor: #96a9be, RenderBold: true, VerticalAlignment: Center); } " +
-            "  Label #TierInfo { FlexWeight: 1; Style: (FontSize: 10, TextColor: #7c8b99, VerticalAlignment: Center); } " +
-            "}");
+        // Tier info
         cmd.set("#TierInfo.Text", tierCount + "/" + MAX_TIERS + " paliers");
 
-        // Header paliers
-        cmd.appendInline("#PageContent",
-            "Group { Anchor: (Height: 22, Top: 2); LayoutMode: Left; Padding: (Horizontal: 10); " +
-            "  Label { Anchor: (Width: 30); Text: \"#\"; Style: (FontSize: 9, TextColor: #7c8b99, RenderBold: true, VerticalAlignment: Center); } " +
-            "  Label { Anchor: (Width: 200); Text: \"Cible (nombre)\"; Style: (FontSize: 9, TextColor: #7c8b99, RenderBold: true, VerticalAlignment: Center); } " +
-            "  Label { Anchor: (Width: 200); Text: \"Recompense ($)\"; Style: (FontSize: 9, TextColor: #7c8b99, RenderBold: true, VerticalAlignment: Center); } " +
-            "}");
-
-        // Lignes de paliers (seulement celles visibles, pas de Visible: false inline)
-        for (int i = 0; i < tierCount; i++) {
-            cmd.appendInline("#PageContent",
-                "Group #TierRow" + i + " { Anchor: (Height: 35, Top: 2); LayoutMode: Left; Padding: (Horizontal: 10); " +
-                "  Label { Anchor: (Width: 30); Text: \"" + (i + 1) + ".\"; Style: (FontSize: 11, TextColor: #96a9be, VerticalAlignment: Center); } " +
-                "  NumberField #T" + i + "Target { Anchor: (Width: 200, Height: 28); PlaceholderText: \"Cible\"; } " +
-                "  NumberField #T" + i + "Reward { Anchor: (Width: 200, Height: 28, Left: 8); PlaceholderText: \"Recompense\"; } " +
-                "}");
-            if (formTierTargets[i] > 0) cmd.set("#T" + i + "Target.Value", (int) formTierTargets[i]);
-            if (formTierRewards[i] > 0) cmd.set("#T" + i + "Reward.Value", (int) formTierRewards[i]);
+        // Tier rows visibility and values
+        for (int i = 0; i < MAX_TIERS; i++) {
+            cmd.set("#TierRow" + i + ".Visible", i < tierCount);
+            if (i < tierCount) {
+                if (formTierTargets[i] > 0) cmd.set("#T" + i + "Target.Value", (int) formTierTargets[i]);
+                if (formTierRewards[i] > 0) cmd.set("#T" + i + "Reward.Value", (int) formTierRewards[i]);
+            }
         }
 
-        // Boutons ajouter/retirer palier
-        cmd.appendInline("#PageContent",
-            "Group { Anchor: (Height: 32, Top: 5); LayoutMode: Left; Padding: (Horizontal: 10); " +
-            "  TextButton #AddTierBtn { Anchor: (Width: 140, Height: 28); " +
-            "    Style: TextButtonStyle(Default: (Background: #1a3a1a, LabelStyle: (FontSize: 10, TextColor: #66bb6a, VerticalAlignment: Center)), " +
-            "    Hovered: (Background: #2a5a2a, LabelStyle: (FontSize: 10, TextColor: #ffffff, VerticalAlignment: Center))); } " +
-            "  TextButton #RemTierBtn { Anchor: (Width: 140, Height: 28, Left: 8); " +
-            "    Style: TextButtonStyle(Default: (Background: #3a1a1a, LabelStyle: (FontSize: 10, TextColor: #ef5350, VerticalAlignment: Center)), " +
-            "    Hovered: (Background: #4a2a2a, LabelStyle: (FontSize: 10, TextColor: #ffffff, VerticalAlignment: Center))); } " +
-            "}");
-        cmd.set("#AddTierBtn.Text", "+ PALIER");
-        cmd.set("#RemTierBtn.Text", "- PALIER");
+        // Tier add/remove buttons
         event.addEventBinding(CustomUIEventBindingType.Activating, "#AddTierBtn", EventData.of("Action", "addTier"), false);
         event.addEventBinding(CustomUIEventBindingType.Activating, "#RemTierBtn", EventData.of("Action", "removeTier"), false);
 
-        // --- Boutons Sauvegarder / Annuler ---
-        // On construit l'EventData pour capturer tous les champs du formulaire
-        Map<String, String> saveFields = new java.util.LinkedHashMap<>();
-        saveFields.put("Action", "saveChallenge");
-        saveFields.put("@EditId", "#EditId.Value");
-        saveFields.put("@EditName", "#EditName.Value");
-        saveFields.put("@EditDesc", "#EditDesc.Value");
-        if (showBlock) {
-            saveFields.put("@EditBlock", "#EditBlock.Value");
+        // Save button - capture all form fields
+        EventData saveData = EventData.of("Action", "saveChallenge")
+            .append("@EditId", "#EditId.Value")
+            .append("@EditName", "#EditName.Value")
+            .append("@EditDesc", "#EditDesc.Value")
+            .append("@EditBlock", "#EditBlock.Value");
+        for (int i = 0; i < MAX_TIERS; i++) {
+            saveData = saveData
+                .append("@T" + i + "Target", "#T" + i + "Target.Value")
+                .append("@T" + i + "Reward", "#T" + i + "Reward.Value");
         }
-        for (int i = 0; i < tierCount; i++) {
-            saveFields.put("@T" + i + "Target", "#T" + i + "Target.Value");
-            saveFields.put("@T" + i + "Reward", "#T" + i + "Reward.Value");
-        }
-
-        cmd.appendInline("#PageContent",
-            "Group { Anchor: (Height: 50, Top: 15); LayoutMode: Left; Padding: (Horizontal: 10); " +
-            "  Group { FlexWeight: 1; } " +
-            "  TextButton #SaveBtn { Anchor: (Width: 180, Height: 40); " +
-            "    Style: TextButtonStyle(Default: (Background: #2a5f2a, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center)), " +
-            "    Hovered: (Background: #3a7f3a, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center))); } " +
-            "  TextButton #CancelBtn { Anchor: (Width: 140, Height: 40, Left: 15); " +
-            "    Style: TextButtonStyle(Default: (Background: #3a2a2a, LabelStyle: (FontSize: 14, TextColor: #ff6666, RenderBold: true, VerticalAlignment: Center)), " +
-            "    Hovered: (Background: #4a3a3a, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center))); } " +
-            "  Group { FlexWeight: 1; } " +
-            "}");
-        cmd.set("#SaveBtn.Text", "SAUVEGARDER");
-        cmd.set("#CancelBtn.Text", "ANNULER");
-
-        event.addEventBinding(CustomUIEventBindingType.Activating, "#SaveBtn", new EventData(saveFields), false);
+        event.addEventBinding(CustomUIEventBindingType.Activating, "#SaveBtn", saveData, false);
         event.addEventBinding(CustomUIEventBindingType.Activating, "#CancelBtn", EventData.of("Action", "cancelEdit"), false);
     }
 
@@ -414,8 +350,7 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
         super.handleDataEvent(ref, store, data);
         if (data.action == null) return;
 
-        UICommandBuilder cmd = new UICommandBuilder();
-        UIEventBuilder event = new UIEventBuilder();
+        Player player = store.getComponent(ref, Player.getComponentType());
 
         switch (data.action) {
             case "close" -> {
@@ -426,8 +361,8 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
                 int idx = rankToIndex(viewingRank);
                 if (idx > 0) {
                     viewingRank = indexToRank(idx - 1);
-                    buildRankList(cmd, event);
-                    sendUpdate(cmd, event, false);
+                    viewMode = ViewMode.LIST;
+                    reopenPage(ref, store, player);
                 }
                 return;
             }
@@ -435,8 +370,8 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
                 int idx = rankToIndex(viewingRank);
                 if (idx < 26) {
                     viewingRank = indexToRank(idx + 1);
-                    buildRankList(cmd, event);
-                    sendUpdate(cmd, event, false);
+                    viewMode = ViewMode.LIST;
+                    reopenPage(ref, store, player);
                 }
                 return;
             }
@@ -446,8 +381,7 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
                     if (def != null) {
                         viewMode = ViewMode.EDIT;
                         initFormForEdit(def);
-                        buildEditorForm(cmd, event);
-                        sendUpdate(cmd, event, false);
+                        reopenPage(ref, store, player);
                     }
                 }
                 return;
@@ -459,16 +393,15 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
                     } catch (Exception e) {
                         System.err.println("[ChallengeConfig] Delete failed: " + e.getMessage());
                     }
-                    buildRankList(cmd, event);
-                    sendUpdate(cmd, event, false);
+                    viewMode = ViewMode.LIST;
+                    reopenPage(ref, store, player);
                 }
                 return;
             }
             case "createChallenge" -> {
                 viewMode = ViewMode.CREATE;
                 initFormForCreate();
-                buildEditorForm(cmd, event);
-                sendUpdate(cmd, event, false);
+                reopenPage(ref, store, player);
                 return;
             }
             case "selectType" -> {
@@ -476,10 +409,8 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
                     try {
                         selectedType = ChallengeType.valueOf(data.typeSelect);
                     } catch (Exception ignored) {}
-                    // Capturer les valeurs du formulaire avant rebuild
                     captureFormValues(data);
-                    buildEditorForm(cmd, event);
-                    sendUpdate(cmd, event, false);
+                    reopenPage(ref, store, player);
                 }
                 return;
             }
@@ -487,8 +418,7 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
                 if (tierCount < MAX_TIERS) {
                     captureFormValues(data);
                     tierCount++;
-                    buildEditorForm(cmd, event);
-                    sendUpdate(cmd, event, false);
+                    reopenPage(ref, store, player);
                 }
                 return;
             }
@@ -498,24 +428,23 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
                     tierCount--;
                     formTierTargets[tierCount] = 0;
                     formTierRewards[tierCount] = 0;
-                    buildEditorForm(cmd, event);
-                    sendUpdate(cmd, event, false);
+                    reopenPage(ref, store, player);
                 }
                 return;
             }
             case "saveChallenge" -> {
                 captureFormValues(data);
                 if (handleSave()) {
-                    buildRankList(cmd, event);
+                    viewMode = ViewMode.LIST;
                 } else {
-                    buildEditorForm(cmd, event);
+                    // Reste en mode edit/create
                 }
-                sendUpdate(cmd, event, false);
+                reopenPage(ref, store, player);
                 return;
             }
             case "cancelEdit" -> {
-                buildRankList(cmd, event);
-                sendUpdate(cmd, event, false);
+                viewMode = ViewMode.LIST;
+                reopenPage(ref, store, player);
                 return;
             }
         }
