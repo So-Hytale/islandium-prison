@@ -131,13 +131,13 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
             "Group { Anchor: (Height: 45); LayoutMode: Left; " +
             "  TextButton #PrevRank { Anchor: (Width: 130, Height: 38); " +
             "    Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 14, TextColor: #96a9be, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
-            "    Hovered: (Background: #253545, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Sounds: SoundStyle(ActivatingSound: \"UI_GenericButtonActivate\")); } " +
+            "    Hovered: (Background: #253545, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
             "  Group { FlexWeight: 1; } " +
             "  Label #RankLabel { Anchor: (Width: 200); Style: (FontSize: 20, TextColor: #ffd700, RenderBold: true, VerticalAlignment: Center); } " +
             "  Group { FlexWeight: 1; } " +
             "  TextButton #NextRank { Anchor: (Width: 130, Height: 38); " +
             "    Style: TextButtonStyle(Default: (Background: #1a2836, LabelStyle: (FontSize: 14, TextColor: #96a9be, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
-            "    Hovered: (Background: #253545, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Sounds: SoundStyle(ActivatingSound: \"UI_GenericButtonActivate\")); } " +
+            "    Hovered: (Background: #253545, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
             "}");
 
         cmd.set("#PrevRank.Text", "< Precedent");
@@ -193,10 +193,10 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
                     "  Label #Tiers { FlexWeight: 1; Style: (FontSize: 12, TextColor: #66bb6a, VerticalAlignment: Center); } " +
                     "  TextButton #EditBtn" + i + " { Anchor: (Width: 70, Height: 32); " +
                     "    Style: TextButtonStyle(Default: (Background: #1a3a5a, LabelStyle: (FontSize: 12, TextColor: #4fc3f7, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
-                    "    Hovered: (Background: #2a4a6a, LabelStyle: (FontSize: 12, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Sounds: SoundStyle(ActivatingSound: \"UI_GenericButtonActivate\")); } " +
+                    "    Hovered: (Background: #2a4a6a, LabelStyle: (FontSize: 12, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
                     "  TextButton #DelBtn" + i + " { Anchor: (Width: 42, Height: 32, Left: 6); " +
                     "    Style: TextButtonStyle(Default: (Background: #3a1a1a, LabelStyle: (FontSize: 14, TextColor: #ff4444, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
-                    "    Hovered: (Background: #4a2a2a, LabelStyle: (FontSize: 14, TextColor: #ff6666, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Sounds: SoundStyle(ActivatingSound: \"UI_GenericButtonActivate\")); } " +
+                    "    Hovered: (Background: #4a2a2a, LabelStyle: (FontSize: 14, TextColor: #ff6666, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
                     "}");
 
                 cmd.set("#" + rowId + " #Idx.Text", String.valueOf(i + 1));
@@ -226,7 +226,7 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
             "    Group { FlexWeight: 1; } " +
             "    TextButton #AddBtn { Anchor: (Width: 260, Height: 40); " +
             "      Style: TextButtonStyle(Default: (Background: #1a3a1a, LabelStyle: (FontSize: 14, TextColor: #66bb6a, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
-            "      Hovered: (Background: #2a5a2a, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)), Sounds: SoundStyle(ActivatingSound: \"UI_GenericButtonActivate\")); } " +
+            "      Hovered: (Background: #2a5a2a, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
             "    Group { FlexWeight: 1; } " +
             "  } " +
             "}");
