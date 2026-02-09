@@ -13,6 +13,7 @@ import com.islandium.prison.upgrade.PickaxeUpgradeManager;
 import com.islandium.prison.challenge.ChallengeDefinition;
 import com.islandium.prison.challenge.ChallengeManager;
 import com.islandium.prison.challenge.ChallengeRegistry;
+import com.islandium.prison.challenge.ChallengeType;
 import com.islandium.prison.challenge.PlayerChallengeProgress;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
@@ -824,46 +825,41 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                 ChallengeDefinition def = challenges.get(idx);
                 PlayerChallengeProgress.ChallengeProgressData data = challengeManager.getProgressData(uuid, def.getId());
                 boolean isComplete = data.completedTier >= def.getTierCount();
+                boolean isSubmitType = def.getType() == ChallengeType.SUBMIT_ITEMS;
 
                 String cardBg = isComplete ? "#1a2a1a" : "#151d28";
+                String cardHoverBg = isComplete ? "#1a2a1a" : "#1e2a38";
                 String titleColor = isComplete ? "#66bb6a" : "#ffd700";
                 String cardId = "Defi" + idx;
 
-                // Determine current tier target and progress
-                long currentValue = data.currentValue;
-                long currentTarget;
-                String progressText;
-                String rewardText;
-
-                if (isComplete) {
-                    currentTarget = def.getFinalTarget();
-                    progressText = "COMPLETE";
-                    rewardText = "";
+                if (isSubmitType && !isComplete) {
+                    // SUBMIT_ITEMS card: clickable Button with hover
+                    rowContent.append("Button #").append(cardId)
+                        .append(" { FlexWeight: 1; Style: ButtonStyle(Default: (Background: ").append(cardBg)
+                        .append("), Hovered: (Background: ").append(cardHoverBg).append(")); ")
+                        .append("  Group { LayoutMode: Top; Padding: (Horizontal: 12, Vertical: 8); ")
+                        .append("    Label #Title { Anchor: (Height: 24); Style: (FontSize: 14, TextColor: ").append(titleColor).append(", RenderBold: true); } ")
+                        .append("    Label #Desc { Anchor: (Height: 18); Style: (FontSize: 11, TextColor: #7c8b99); } ")
+                        .append("    Label #Items { Anchor: (Height: 36, Top: 2); Style: (FontSize: 11, TextColor: #96a9be); } ")
+                        .append("    Group { Anchor: (Height: 22, Top: 2); LayoutMode: Left; ")
+                        .append("      Label #Rew { FlexWeight: 1; Style: (FontSize: 12, TextColor: #66bb6a, VerticalAlignment: Center); } ")
+                        .append("      Label #Action { Anchor: (Width: 120); Style: (FontSize: 11, TextColor: #ff9800, RenderBold: true, VerticalAlignment: Center); } ")
+                        .append("    } ")
+                        .append("  } ")
+                        .append("} ");
                 } else {
-                    ChallengeDefinition.ChallengeTier tier = def.getTiers().get(data.completedTier);
-                    currentTarget = tier.target();
-                    progressText = formatNumber(currentValue) + "/" + formatNumber(currentTarget);
-                    rewardText = "-> " + SellService.formatMoney(tier.reward());
+                    // Standard card (non-clickable Group)
+                    rowContent.append("Group #").append(cardId)
+                        .append(" { FlexWeight: 1; Background: (Color: ").append(cardBg).append("); Padding: (Horizontal: 12, Vertical: 8); LayoutMode: Top; ")
+                        .append("  Label #Title { Anchor: (Height: 26); Style: (FontSize: 14, TextColor: ").append(titleColor).append(", RenderBold: true); } ")
+                        .append("  Label #Desc { Anchor: (Height: 20); Style: (FontSize: 12, TextColor: #7c8b99); } ")
+                        .append("  Label #Bar { Anchor: (Height: 22, Top: 4); Style: (FontSize: 13, TextColor: #96a9be); } ")
+                        .append("  Group { Anchor: (Height: 22, Top: 2); LayoutMode: Left; ")
+                        .append("    Label #Prog { FlexWeight: 1; Style: (FontSize: 12, TextColor: #ffffff, VerticalAlignment: Center); } ")
+                        .append("    Label #Rew { Anchor: (Width: 100); Style: (FontSize: 12, TextColor: #66bb6a, VerticalAlignment: Center); } ")
+                        .append("  } ")
+                        .append("} ");
                 }
-
-                // Progress bar [####------]
-                String progressBar = buildProgressBar(currentValue, currentTarget, isComplete);
-
-                // Tier indicator
-                String tierInfo = def.getTierCount() > 1
-                    ? " (" + Math.min(data.completedTier + 1, def.getTierCount()) + "/" + def.getTierCount() + ")"
-                    : "";
-
-                rowContent.append("Group #").append(cardId)
-                    .append(" { FlexWeight: 1; Background: (Color: ").append(cardBg).append("); Padding: (Horizontal: 12, Vertical: 8); LayoutMode: Top; ")
-                    .append("  Label #Title { Anchor: (Height: 26); Style: (FontSize: 14, TextColor: ").append(titleColor).append(", RenderBold: true); } ")
-                    .append("  Label #Desc { Anchor: (Height: 20); Style: (FontSize: 12, TextColor: #7c8b99); } ")
-                    .append("  Label #Bar { Anchor: (Height: 22, Top: 4); Style: (FontSize: 13, TextColor: #96a9be); } ")
-                    .append("  Group { Anchor: (Height: 22, Top: 2); LayoutMode: Left; ")
-                    .append("    Label #Prog { FlexWeight: 1; Style: (FontSize: 12, TextColor: #ffffff, VerticalAlignment: Center); } ")
-                    .append("    Label #Rew { Anchor: (Width: 100); Style: (FontSize: 12, TextColor: #66bb6a, VerticalAlignment: Center); } ")
-                    .append("  } ")
-                    .append("} ");
 
                 if (col < 2) rowContent.append("Group { Anchor: (Width: 5); } ");
             }
@@ -879,34 +875,67 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                 ChallengeDefinition def = challenges.get(idx);
                 PlayerChallengeProgress.ChallengeProgressData data = challengeManager.getProgressData(uuid, def.getId());
                 boolean isComplete = data.completedTier >= def.getTierCount();
+                boolean isSubmitType = def.getType() == ChallengeType.SUBMIT_ITEMS;
                 String cardSelector = "#DefiRow" + row + " #Defi" + idx;
 
-                long currentValue = data.currentValue;
-                long currentTarget;
-                String progressText;
-                String rewardText;
-
-                if (isComplete) {
-                    currentTarget = def.getFinalTarget();
-                    progressText = "COMPLETE";
-                    rewardText = "";
-                } else {
-                    ChallengeDefinition.ChallengeTier tier = def.getTiers().get(data.completedTier);
-                    currentTarget = tier.target();
-                    progressText = formatNumber(currentValue) + "/" + formatNumber(currentTarget);
-                    rewardText = "-> " + SellService.formatMoney(tier.reward());
-                }
-
-                String progressBar = buildProgressBar(currentValue, currentTarget, isComplete);
                 String tierInfo = def.getTierCount() > 1
                     ? " (" + Math.min(data.completedTier + 1, def.getTierCount()) + "/" + def.getTierCount() + ")"
                     : "";
 
                 cmd.set(cardSelector + " #Title.Text", def.getDisplayName() + tierInfo);
                 cmd.set(cardSelector + " #Desc.Text", def.getDescription());
-                cmd.set(cardSelector + " #Bar.Text", progressBar);
-                cmd.set(cardSelector + " #Prog.Text", progressText);
-                cmd.set(cardSelector + " #Rew.Text", rewardText);
+
+                if (isSubmitType && !isComplete) {
+                    // SUBMIT_ITEMS: show required items list + click action
+                    ChallengeDefinition.ChallengeTier tier = def.getTiers().get(data.completedTier);
+                    String rewardText = "-> " + SellService.formatMoney(tier.reward());
+
+                    // Build items description
+                    StringBuilder itemsText = new StringBuilder();
+                    for (int i = 0; i < tier.requiredItems().size(); i++) {
+                        ChallengeDefinition.RequiredItem ri = tier.requiredItems().get(i);
+                        if (i > 0) itemsText.append(", ");
+                        itemsText.append(ri.quantity()).append("x ").append(shortItemName(ri.itemId()));
+                    }
+                    if (tier.requiredItems().isEmpty()) {
+                        itemsText.append("(aucun item requis)");
+                    }
+
+                    cmd.set(cardSelector + " #Items.Text", itemsText.toString());
+                    cmd.set(cardSelector + " #Rew.Text", rewardText);
+                    cmd.set(cardSelector + " #Action.Text", "CLIQUER POUR VALIDER");
+
+                    // Event binding for click
+                    event.addEventBinding(CustomUIEventBindingType.Activating, cardSelector,
+                        EventData.of("Action", "submitChallenge").append("ChallengeId", def.getId()), false);
+                } else if (isSubmitType && isComplete) {
+                    // SUBMIT_ITEMS complete: show as completed (uses standard card layout)
+                    cmd.set(cardSelector + " #Bar.Text", buildProgressBar(1, 1, true));
+                    cmd.set(cardSelector + " #Prog.Text", "COMPLETE");
+                    cmd.set(cardSelector + " #Rew.Text", "");
+                } else {
+                    // Standard challenge: progress bar
+                    long currentValue = data.currentValue;
+                    long currentTarget;
+                    String progressText;
+                    String rewardText;
+
+                    if (isComplete) {
+                        currentTarget = def.getFinalTarget();
+                        progressText = "COMPLETE";
+                        rewardText = "";
+                    } else {
+                        ChallengeDefinition.ChallengeTier tier = def.getTiers().get(data.completedTier);
+                        currentTarget = tier.target();
+                        progressText = formatNumber(currentValue) + "/" + formatNumber(currentTarget);
+                        rewardText = "-> " + SellService.formatMoney(tier.reward());
+                    }
+
+                    String progressBar = buildProgressBar(currentValue, currentTarget, isComplete);
+                    cmd.set(cardSelector + " #Bar.Text", progressBar);
+                    cmd.set(cardSelector + " #Prog.Text", progressText);
+                    cmd.set(cardSelector + " #Rew.Text", rewardText);
+                }
             }
         }
 
@@ -1135,6 +1164,25 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                     }
                     return;
                 }
+                case "submitChallenge" -> {
+                    if (data.challengeId != null) {
+                        ChallengeManager cm = plugin.getChallengeManager();
+                        int result = cm.trySubmitItems(uuid, data.challengeId, player);
+                        switch (result) {
+                            case 0 -> player.sendMessage(Message.raw("Challenge valide! Items soumis avec succes."));
+                            case 1 -> {
+                                List<String> missing = cm.getMissingItems(uuid, data.challengeId, player);
+                                player.sendMessage(Message.raw("Items manquants: " + String.join(", ", missing)));
+                            }
+                            case 2 -> player.sendMessage(Message.raw("Ce challenge n'est pas de type soumission."));
+                            case 3 -> player.sendMessage(Message.raw("Ce challenge est deja termine!"));
+                        }
+                        // Refresh defis page
+                        buildDefisPageForRank(cmd, event, viewingDefiRank);
+                        sendUpdate(cmd, event, false);
+                    }
+                    return;
+                }
                 case "defiRankup" -> {
                     PrisonRankManager.RankupResult result = plugin.getRankManager().rankup(uuid);
                     switch (result) {
@@ -1272,6 +1320,15 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         return "A";
     }
 
+    /**
+     * Raccourcit un item ID en enlevant le namespace (ex: "hytale:cobblestone" -> "cobblestone").
+     */
+    private String shortItemName(String itemId) {
+        if (itemId == null) return "???";
+        int colon = itemId.indexOf(':');
+        return colon >= 0 ? itemId.substring(colon + 1) : itemId;
+    }
+
     private String formatNumber(long number) {
         if (number >= 1_000_000_000) {
             return String.format("%.2fB", number / 1_000_000_000.0);
@@ -1292,10 +1349,12 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                 .addField(new KeyedCodec<>("Action", Codec.STRING), (d, v) -> d.action = v, d -> d.action)
                 .addField(new KeyedCodec<>("Navigate", Codec.STRING), (d, v) -> d.navigate = v, d -> d.navigate)
                 .addField(new KeyedCodec<>("TpMine", Codec.STRING), (d, v) -> d.tpMine = v, d -> d.tpMine)
+                .addField(new KeyedCodec<>("ChallengeId", Codec.STRING), (d, v) -> d.challengeId = v, d -> d.challengeId)
                 .build();
 
         public String action;
         public String navigate;
         public String tpMine;
+        public String challengeId;
     }
 }

@@ -6,6 +6,12 @@ import com.islandium.core.database.SQLExecutor;
 import com.islandium.prison.PrisonPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.inventory.Inventory;
+import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
+import com.hypixel.hytale.server.core.inventory.transaction.SlotTransaction;
+
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -271,6 +277,138 @@ public class ChallengeManager {
                     : "&a[Defi] &e" + def.getDisplayName() + tierText + " &6+" + com.islandium.prison.economy.SellService.formatMoney(reward);
             p.sendMessage(msg);
         });
+    }
+
+    // ===========================
+    // SUBMIT_ITEMS - Soumission d'items
+    // ===========================
+
+    /**
+     * Tente de soumettre les items requis pour un challenge SUBMIT_ITEMS.
+     * Verifie l'inventaire du joueur, retire les items si suffisants, et complete le palier.
+     *
+     * @return 0 = succes, 1 = pas assez d'items, 2 = type incorrect, 3 = deja complete
+     */
+    public int trySubmitItems(@NotNull UUID uuid, @NotNull String challengeId, @NotNull Player player) {
+        ChallengeDefinition def = ChallengeRegistry.getChallenge(challengeId);
+        if (def == null || def.getType() != ChallengeType.SUBMIT_ITEMS) return 2;
+
+        PlayerChallengeProgress.ChallengeProgressData data = getProgressData(uuid, challengeId);
+        if (data.completedTier >= def.getTierCount()) return 3;
+
+        ChallengeDefinition.ChallengeTier tier = def.getTiers().get(data.completedTier);
+        List<ChallengeDefinition.RequiredItem> requiredItems = tier.requiredItems();
+        if (requiredItems.isEmpty()) return 2;
+
+        Inventory inv = player.getInventory();
+        if (inv == null) return 1;
+
+        // Phase 1: Compter les items disponibles
+        Map<String, Integer> available = new HashMap<>();
+        countItemsInContainer(inv.getStorage(), available);
+        countItemsInContainer(inv.getHotbar(), available);
+
+        // Phase 2: Verifier que tous les items requis sont presents
+        for (ChallengeDefinition.RequiredItem req : requiredItems) {
+            int has = available.getOrDefault(req.itemId(), 0);
+            if (has < req.quantity()) {
+                return 1; // Pas assez
+            }
+        }
+
+        // Phase 3: Retirer les items de l'inventaire
+        for (ChallengeDefinition.RequiredItem req : requiredItems) {
+            int toRemove = req.quantity();
+            toRemove = removeItemsFromContainer(inv.getStorage(), req.itemId(), toRemove);
+            if (toRemove > 0) {
+                toRemove = removeItemsFromContainer(inv.getHotbar(), req.itemId(), toRemove);
+            }
+        }
+
+        // Phase 4: Completer le palier
+        data.completedTier++;
+        BigDecimal reward = tier.reward();
+        if (reward.compareTo(BigDecimal.ZERO) > 0) {
+            EconomyService eco = getEconomyService();
+            if (eco != null) {
+                try {
+                    eco.addBalance(uuid, reward, "Challenge reward: " + def.getDisplayName());
+                } catch (Exception e) {
+                    plugin.log(Level.WARNING, "Failed to give challenge reward: " + e.getMessage());
+                }
+            }
+        }
+
+        notifyTierComplete(uuid, def, data.completedTier, def.getTierCount(), reward);
+        persistAsync(uuid, challengeId, data);
+        return 0;
+    }
+
+    /**
+     * Retourne la liste des items manquants pour le palier actuel d'un challenge SUBMIT_ITEMS.
+     */
+    @NotNull
+    public List<String> getMissingItems(@NotNull UUID uuid, @NotNull String challengeId, @NotNull Player player) {
+        ChallengeDefinition def = ChallengeRegistry.getChallenge(challengeId);
+        if (def == null || def.getType() != ChallengeType.SUBMIT_ITEMS) return List.of();
+
+        PlayerChallengeProgress.ChallengeProgressData data = getProgressData(uuid, challengeId);
+        if (data.completedTier >= def.getTierCount()) return List.of();
+
+        ChallengeDefinition.ChallengeTier tier = def.getTiers().get(data.completedTier);
+        Inventory inv = player.getInventory();
+        if (inv == null) return List.of();
+
+        Map<String, Integer> available = new HashMap<>();
+        countItemsInContainer(inv.getStorage(), available);
+        countItemsInContainer(inv.getHotbar(), available);
+
+        List<String> missing = new ArrayList<>();
+        for (ChallengeDefinition.RequiredItem req : tier.requiredItems()) {
+            int has = available.getOrDefault(req.itemId(), 0);
+            if (has < req.quantity()) {
+                missing.add((req.quantity() - has) + "x " + shortItemName(req.itemId()));
+            }
+        }
+        return missing;
+    }
+
+    private void countItemsInContainer(@NotNull ItemContainer container, @NotNull Map<String, Integer> counts) {
+        for (short slot = 0; slot < container.getCapacity(); slot++) {
+            ItemStack stack = container.getItemStack(slot);
+            if (ItemStack.isEmpty(stack)) continue;
+            counts.merge(stack.getItemId(), stack.getQuantity(), Integer::sum);
+        }
+    }
+
+    /**
+     * Retire un nombre specifique d'items d'un conteneur.
+     * @return le nombre restant a retirer (0 si tout a ete retire)
+     */
+    private int removeItemsFromContainer(@NotNull ItemContainer container, @NotNull String itemId, int toRemove) {
+        for (short slot = 0; slot < container.getCapacity() && toRemove > 0; slot++) {
+            ItemStack stack = container.getItemStack(slot);
+            if (ItemStack.isEmpty(stack) || !stack.getItemId().equals(itemId)) continue;
+
+            int inSlot = stack.getQuantity();
+            SlotTransaction tx = container.removeItemStackFromSlot(slot);
+            if (!tx.succeeded()) continue;
+
+            if (inSlot <= toRemove) {
+                toRemove -= inSlot;
+            } else {
+                // Remettre le surplus
+                int surplus = inSlot - toRemove;
+                container.addItemStack(new ItemStack(itemId, surplus));
+                toRemove = 0;
+            }
+        }
+        return toRemove;
+    }
+
+    private String shortItemName(@NotNull String itemId) {
+        int colonIdx = itemId.indexOf(':');
+        return colonIdx >= 0 ? itemId.substring(colonIdx + 1) : itemId;
     }
 
     // ===========================

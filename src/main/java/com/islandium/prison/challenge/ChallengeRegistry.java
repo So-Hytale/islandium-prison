@@ -77,6 +77,17 @@ public class ChallengeRegistry {
                     FOREIGN KEY (challenge_id) REFERENCES prison_challenge_definitions(challenge_id) ON DELETE CASCADE
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
             """).join();
+
+            sql.execute("""
+                CREATE TABLE IF NOT EXISTS prison_challenge_tier_items (
+                    challenge_id VARCHAR(64) NOT NULL,
+                    tier_index INT NOT NULL,
+                    item_id VARCHAR(128) NOT NULL,
+                    quantity INT NOT NULL DEFAULT 1,
+                    PRIMARY KEY (challenge_id, tier_index, item_id),
+                    FOREIGN KEY (challenge_id) REFERENCES prison_challenge_definitions(challenge_id) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            """).join();
         } catch (Exception e) {
             System.err.println("[ChallengeRegistry] Failed to create tables: " + e.getMessage());
         }
@@ -132,11 +143,40 @@ public class ChallengeRegistry {
                 }
             ).join();
 
+            // Charger les items requis par tier (pour SUBMIT_ITEMS)
+            List<TierItemRow> tierItemRows = sql.queryList(
+                "SELECT challenge_id, tier_index, item_id, quantity FROM prison_challenge_tier_items ORDER BY challenge_id, tier_index",
+                rs -> {
+                    try {
+                        return new TierItemRow(
+                            rs.getString("challenge_id"),
+                            rs.getInt("tier_index"),
+                            rs.getString("item_id"),
+                            rs.getInt("quantity")
+                        );
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            ).join();
+
+            // Grouper les items par (challenge_id, tier_index)
+            Map<String, Map<Integer, List<ChallengeDefinition.RequiredItem>>> itemsByChallengeTier = new LinkedHashMap<>();
+            for (TierItemRow tir : tierItemRows) {
+                itemsByChallengeTier
+                    .computeIfAbsent(tir.challengeId, k -> new LinkedHashMap<>())
+                    .computeIfAbsent(tir.tierIndex, k -> new ArrayList<>())
+                    .add(new ChallengeDefinition.RequiredItem(tir.itemId, tir.quantity));
+            }
+
             // Grouper les tiers par challenge_id
             Map<String, List<ChallengeDefinition.ChallengeTier>> tiersByChallenge = new LinkedHashMap<>();
             for (TierRow tr : tierRows) {
+                List<ChallengeDefinition.RequiredItem> items = itemsByChallengeTier
+                    .getOrDefault(tr.challengeId, Map.of())
+                    .getOrDefault(tr.tierIndex, List.of());
                 tiersByChallenge.computeIfAbsent(tr.challengeId, k -> new ArrayList<>())
-                    .add(new ChallengeDefinition.ChallengeTier(tr.target, tr.reward));
+                    .add(new ChallengeDefinition.ChallengeTier(tr.target, tr.reward, items));
             }
 
             // Reconstruire le registre
@@ -184,7 +224,8 @@ public class ChallengeRegistry {
                 WHERE challenge_id = ?
             """, def.getDisplayName(), def.getType().name(), def.getDescription(), def.getTargetBlockId(), def.getId()).join();
 
-            // Delete old tiers
+            // Delete old tiers and tier items
+            sql.execute("DELETE FROM prison_challenge_tier_items WHERE challenge_id = ?", def.getId()).join();
             sql.execute("DELETE FROM prison_challenge_tiers WHERE challenge_id = ?", def.getId()).join();
 
             // Insert new tiers
@@ -193,6 +234,13 @@ public class ChallengeRegistry {
                 sql.execute("""
                     INSERT INTO prison_challenge_tiers (challenge_id, tier_index, target, reward) VALUES (?, ?, ?, ?)
                 """, def.getId(), i, tier.target(), tier.reward()).join();
+
+                // Insert tier items (for SUBMIT_ITEMS)
+                for (ChallengeDefinition.RequiredItem item : tier.requiredItems()) {
+                    sql.execute("""
+                        INSERT INTO prison_challenge_tier_items (challenge_id, tier_index, item_id, quantity) VALUES (?, ?, ?, ?)
+                    """, def.getId(), i, item.itemId(), item.quantity()).join();
+                }
             }
 
             // Reload
@@ -229,6 +277,13 @@ public class ChallengeRegistry {
                 sql.execute("""
                     INSERT INTO prison_challenge_tiers (challenge_id, tier_index, target, reward) VALUES (?, ?, ?, ?)
                 """, def.getId(), i, tier.target(), tier.reward()).join();
+
+                // Insert tier items (for SUBMIT_ITEMS)
+                for (ChallengeDefinition.RequiredItem item : tier.requiredItems()) {
+                    sql.execute("""
+                        INSERT INTO prison_challenge_tier_items (challenge_id, tier_index, item_id, quantity) VALUES (?, ?, ?, ?)
+                    """, def.getId(), i, item.itemId(), item.quantity()).join();
+                }
             }
 
             loadFromSQL(sql);
@@ -549,4 +604,5 @@ public class ChallengeRegistry {
 
     private record DefRow(String challengeId, String rankId, int challengeIndex, String displayName, String type, String description, String targetBlockId) {}
     private record TierRow(String challengeId, int tierIndex, long target, BigDecimal reward) {}
+    private record TierItemRow(String challengeId, int tierIndex, String itemId, int quantity) {}
 }

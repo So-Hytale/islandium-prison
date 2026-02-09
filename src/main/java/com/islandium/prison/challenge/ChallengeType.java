@@ -12,5 +12,6 @@ public enum ChallengeType {
     BUY_FORTUNE,
     BUY_EFFICIENCY,
     BUY_AUTOSELL,
-    SPEND_MONEY
+    SPEND_MONEY,
+    SUBMIT_ITEMS
 }

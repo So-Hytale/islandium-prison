@@ -23,6 +23,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import javax.annotation.Nonnull;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,6 +35,7 @@ import java.util.List;
 public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfigPage.PageData> {
 
     private static final int MAX_TIERS = 5;
+    private static final int MAX_ITEMS_PER_TIER = 3;
 
     private final PrisonPlugin plugin;
     private final PlayerRef playerRef;
@@ -54,6 +56,9 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
     private String formBlock = "";
     private long[] formTierTargets = new long[MAX_TIERS];
     private long[] formTierRewards = new long[MAX_TIERS];
+    // Items requis par palier pour SUBMIT_ITEMS [tier][itemSlot]
+    private String[][] formTierItemIds = new String[MAX_TIERS][MAX_ITEMS_PER_TIER];
+    private int[][] formTierItemQtys = new int[MAX_TIERS][MAX_ITEMS_PER_TIER];
 
     public ChallengeConfigPage(@Nonnull PlayerRef playerRef, PrisonPlugin plugin) {
         super(playerRef, CustomPageLifetime.CanDismiss, PageData.CODEC);
@@ -69,7 +74,8 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
                                 String editingChallengeId, ChallengeType selectedType,
                                 int tierCount, String formId, String formName,
                                 String formDesc, String formBlock,
-                                long[] formTierTargets, long[] formTierRewards) {
+                                long[] formTierTargets, long[] formTierRewards,
+                                String[][] formTierItemIds, int[][] formTierItemQtys) {
         super(playerRef, CustomPageLifetime.CanDismiss, PageData.CODEC);
         this.plugin = plugin;
         this.playerRef = playerRef;
@@ -84,6 +90,8 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
         this.formBlock = formBlock;
         this.formTierTargets = formTierTargets;
         this.formTierRewards = formTierRewards;
+        this.formTierItemIds = formTierItemIds;
+        this.formTierItemQtys = formTierItemQtys;
     }
 
     private SQLExecutor getSql() {
@@ -98,7 +106,8 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
             new ChallengeConfigPage(playerRef, plugin,
                 viewMode, viewingRank, editingChallengeId, selectedType,
                 tierCount, formId, formName, formDesc, formBlock,
-                formTierTargets, formTierRewards));
+                formTierTargets, formTierRewards,
+                formTierItemIds, formTierItemQtys));
     }
 
     @Override
@@ -277,6 +286,27 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
             cmd.set("#EditBlock.Value", formBlock);
         }
 
+        // Items section: visible only for SUBMIT_ITEMS
+        boolean showItems = selectedType == ChallengeType.SUBMIT_ITEMS;
+        cmd.set("#ItemsSection.Visible", showItems);
+        if (showItems) {
+            for (int t = 0; t < MAX_TIERS; t++) {
+                cmd.set("#ItemTier" + t + ".Visible", t < tierCount);
+                if (t < tierCount) {
+                    for (int s = 0; s < MAX_ITEMS_PER_TIER; s++) {
+                        String itemId = formTierItemIds[t][s];
+                        int itemQty = formTierItemQtys[t][s];
+                        if (itemId != null && !itemId.isEmpty()) {
+                            cmd.set("#I" + t + "_" + s + "Id.Value", itemId);
+                        }
+                        if (itemQty > 0) {
+                            cmd.set("#I" + t + "_" + s + "Qty.Value", itemQty);
+                        }
+                    }
+                }
+            }
+        }
+
         // Tier info
         cmd.set("#TierInfo.Text", tierCount + "/" + MAX_TIERS + " paliers");
 
@@ -304,6 +334,14 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
                 .append("@T" + i + "Target", "#T" + i + "Target.Value")
                 .append("@T" + i + "Reward", "#T" + i + "Reward.Value");
         }
+        // Item fields for SUBMIT_ITEMS
+        for (int t = 0; t < MAX_TIERS; t++) {
+            for (int s = 0; s < MAX_ITEMS_PER_TIER; s++) {
+                saveData = saveData
+                    .append("@I" + t + "_" + s + "Id", "#I" + t + "_" + s + "Id.Value")
+                    .append("@I" + t + "_" + s + "Qty", "#I" + t + "_" + s + "Qty.Value");
+            }
+        }
         event.addEventBinding(CustomUIEventBindingType.Activating, "#SaveBtn", saveData, false);
         event.addEventBinding(CustomUIEventBindingType.Activating, "#CancelBtn", EventData.of("Action", "cancelEdit"), false);
     }
@@ -322,9 +360,18 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
         tierCount = Math.max(1, def.getTiers().size());
         formTierTargets = new long[MAX_TIERS];
         formTierRewards = new long[MAX_TIERS];
+        formTierItemIds = new String[MAX_TIERS][MAX_ITEMS_PER_TIER];
+        formTierItemQtys = new int[MAX_TIERS][MAX_ITEMS_PER_TIER];
         for (int i = 0; i < def.getTiers().size() && i < MAX_TIERS; i++) {
-            formTierTargets[i] = def.getTiers().get(i).target();
-            formTierRewards[i] = def.getTiers().get(i).reward().longValue();
+            ChallengeDefinition.ChallengeTier tier = def.getTiers().get(i);
+            formTierTargets[i] = tier.target();
+            formTierRewards[i] = tier.reward().longValue();
+            // Load required items
+            for (int j = 0; j < tier.requiredItems().size() && j < MAX_ITEMS_PER_TIER; j++) {
+                ChallengeDefinition.RequiredItem ri = tier.requiredItems().get(j);
+                formTierItemIds[i][j] = ri.itemId();
+                formTierItemQtys[i][j] = ri.quantity();
+            }
         }
     }
 
@@ -339,6 +386,8 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
         tierCount = 1;
         formTierTargets = new long[MAX_TIERS];
         formTierRewards = new long[MAX_TIERS];
+        formTierItemIds = new String[MAX_TIERS][MAX_ITEMS_PER_TIER];
+        formTierItemQtys = new int[MAX_TIERS][MAX_ITEMS_PER_TIER];
     }
 
     // =============================================
@@ -469,6 +518,16 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
         if (data.t3Reward != null) formTierRewards[3] = data.t3Reward;
         if (data.t4Target != null) formTierTargets[4] = data.t4Target;
         if (data.t4Reward != null) formTierRewards[4] = data.t4Reward;
+
+        // Capture item fields
+        for (int t = 0; t < MAX_TIERS; t++) {
+            for (int s = 0; s < MAX_ITEMS_PER_TIER; s++) {
+                String id = data.getItemId(t, s);
+                Integer qty = data.getItemQty(t, s);
+                if (id != null) formTierItemIds[t][s] = id;
+                if (qty != null) formTierItemQtys[t][s] = qty;
+            }
+        }
     }
 
     /**
@@ -508,7 +567,20 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
 
         for (int i = 0; i < tierCount; i++) {
             if (formTierTargets[i] > 0) {
-                builder.tier(formTierTargets[i], formTierRewards[i]);
+                if (selectedType == ChallengeType.SUBMIT_ITEMS) {
+                    // Build required items list for this tier
+                    List<ChallengeDefinition.RequiredItem> items = new ArrayList<>();
+                    for (int s = 0; s < MAX_ITEMS_PER_TIER; s++) {
+                        String itemId = formTierItemIds[i][s];
+                        int itemQty = formTierItemQtys[i][s];
+                        if (itemId != null && !itemId.isBlank() && itemQty > 0) {
+                            items.add(new ChallengeDefinition.RequiredItem(itemId, itemQty));
+                        }
+                    }
+                    builder.tierWithItems(formTierTargets[i], formTierRewards[i], items);
+                } else {
+                    builder.tier(formTierTargets[i], formTierRewards[i]);
+                }
             }
         }
 
@@ -538,6 +610,7 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
             case SELL_ITEMS -> "#ff9800";
             case BUY_FORTUNE, BUY_EFFICIENCY, BUY_AUTOSELL -> "#ab47bc";
             case SPEND_MONEY -> "#ef5350";
+            case SUBMIT_ITEMS -> "#ffab40";
         };
     }
 
@@ -585,6 +658,37 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
                 .addField(new KeyedCodec<>("T3Reward", Codec.INTEGER), (d, v) -> d.t3Reward = v, d -> d.t3Reward)
                 .addField(new KeyedCodec<>("T4Target", Codec.INTEGER), (d, v) -> d.t4Target = v, d -> d.t4Target)
                 .addField(new KeyedCodec<>("T4Reward", Codec.INTEGER), (d, v) -> d.t4Reward = v, d -> d.t4Reward)
+                // Item fields: I{tier}_{slot}Id (string) and I{tier}_{slot}Qty (int)
+                .addField(new KeyedCodec<>("I0_0Id", Codec.STRING), (d, v) -> d.i0_0Id = v, d -> d.i0_0Id)
+                .addField(new KeyedCodec<>("I0_0Qty", Codec.INTEGER), (d, v) -> d.i0_0Qty = v, d -> d.i0_0Qty)
+                .addField(new KeyedCodec<>("I0_1Id", Codec.STRING), (d, v) -> d.i0_1Id = v, d -> d.i0_1Id)
+                .addField(new KeyedCodec<>("I0_1Qty", Codec.INTEGER), (d, v) -> d.i0_1Qty = v, d -> d.i0_1Qty)
+                .addField(new KeyedCodec<>("I0_2Id", Codec.STRING), (d, v) -> d.i0_2Id = v, d -> d.i0_2Id)
+                .addField(new KeyedCodec<>("I0_2Qty", Codec.INTEGER), (d, v) -> d.i0_2Qty = v, d -> d.i0_2Qty)
+                .addField(new KeyedCodec<>("I1_0Id", Codec.STRING), (d, v) -> d.i1_0Id = v, d -> d.i1_0Id)
+                .addField(new KeyedCodec<>("I1_0Qty", Codec.INTEGER), (d, v) -> d.i1_0Qty = v, d -> d.i1_0Qty)
+                .addField(new KeyedCodec<>("I1_1Id", Codec.STRING), (d, v) -> d.i1_1Id = v, d -> d.i1_1Id)
+                .addField(new KeyedCodec<>("I1_1Qty", Codec.INTEGER), (d, v) -> d.i1_1Qty = v, d -> d.i1_1Qty)
+                .addField(new KeyedCodec<>("I1_2Id", Codec.STRING), (d, v) -> d.i1_2Id = v, d -> d.i1_2Id)
+                .addField(new KeyedCodec<>("I1_2Qty", Codec.INTEGER), (d, v) -> d.i1_2Qty = v, d -> d.i1_2Qty)
+                .addField(new KeyedCodec<>("I2_0Id", Codec.STRING), (d, v) -> d.i2_0Id = v, d -> d.i2_0Id)
+                .addField(new KeyedCodec<>("I2_0Qty", Codec.INTEGER), (d, v) -> d.i2_0Qty = v, d -> d.i2_0Qty)
+                .addField(new KeyedCodec<>("I2_1Id", Codec.STRING), (d, v) -> d.i2_1Id = v, d -> d.i2_1Id)
+                .addField(new KeyedCodec<>("I2_1Qty", Codec.INTEGER), (d, v) -> d.i2_1Qty = v, d -> d.i2_1Qty)
+                .addField(new KeyedCodec<>("I2_2Id", Codec.STRING), (d, v) -> d.i2_2Id = v, d -> d.i2_2Id)
+                .addField(new KeyedCodec<>("I2_2Qty", Codec.INTEGER), (d, v) -> d.i2_2Qty = v, d -> d.i2_2Qty)
+                .addField(new KeyedCodec<>("I3_0Id", Codec.STRING), (d, v) -> d.i3_0Id = v, d -> d.i3_0Id)
+                .addField(new KeyedCodec<>("I3_0Qty", Codec.INTEGER), (d, v) -> d.i3_0Qty = v, d -> d.i3_0Qty)
+                .addField(new KeyedCodec<>("I3_1Id", Codec.STRING), (d, v) -> d.i3_1Id = v, d -> d.i3_1Id)
+                .addField(new KeyedCodec<>("I3_1Qty", Codec.INTEGER), (d, v) -> d.i3_1Qty = v, d -> d.i3_1Qty)
+                .addField(new KeyedCodec<>("I3_2Id", Codec.STRING), (d, v) -> d.i3_2Id = v, d -> d.i3_2Id)
+                .addField(new KeyedCodec<>("I3_2Qty", Codec.INTEGER), (d, v) -> d.i3_2Qty = v, d -> d.i3_2Qty)
+                .addField(new KeyedCodec<>("I4_0Id", Codec.STRING), (d, v) -> d.i4_0Id = v, d -> d.i4_0Id)
+                .addField(new KeyedCodec<>("I4_0Qty", Codec.INTEGER), (d, v) -> d.i4_0Qty = v, d -> d.i4_0Qty)
+                .addField(new KeyedCodec<>("I4_1Id", Codec.STRING), (d, v) -> d.i4_1Id = v, d -> d.i4_1Id)
+                .addField(new KeyedCodec<>("I4_1Qty", Codec.INTEGER), (d, v) -> d.i4_1Qty = v, d -> d.i4_1Qty)
+                .addField(new KeyedCodec<>("I4_2Id", Codec.STRING), (d, v) -> d.i4_2Id = v, d -> d.i4_2Id)
+                .addField(new KeyedCodec<>("I4_2Qty", Codec.INTEGER), (d, v) -> d.i4_2Qty = v, d -> d.i4_2Qty)
                 .build();
 
         public String action;
@@ -599,5 +703,40 @@ public class ChallengeConfigPage extends InteractiveCustomUIPage<ChallengeConfig
         public Integer t2Target, t2Reward;
         public Integer t3Target, t3Reward;
         public Integer t4Target, t4Reward;
+        // Item fields [tier]_[slot]
+        public String i0_0Id, i0_1Id, i0_2Id;
+        public Integer i0_0Qty, i0_1Qty, i0_2Qty;
+        public String i1_0Id, i1_1Id, i1_2Id;
+        public Integer i1_0Qty, i1_1Qty, i1_2Qty;
+        public String i2_0Id, i2_1Id, i2_2Id;
+        public Integer i2_0Qty, i2_1Qty, i2_2Qty;
+        public String i3_0Id, i3_1Id, i3_2Id;
+        public Integer i3_0Qty, i3_1Qty, i3_2Qty;
+        public String i4_0Id, i4_1Id, i4_2Id;
+        public Integer i4_0Qty, i4_1Qty, i4_2Qty;
+
+        /** Helper to get item ID by tier and slot index. */
+        public String getItemId(int tier, int slot) {
+            return switch (tier * 3 + slot) {
+                case 0 -> i0_0Id; case 1 -> i0_1Id; case 2 -> i0_2Id;
+                case 3 -> i1_0Id; case 4 -> i1_1Id; case 5 -> i1_2Id;
+                case 6 -> i2_0Id; case 7 -> i2_1Id; case 8 -> i2_2Id;
+                case 9 -> i3_0Id; case 10 -> i3_1Id; case 11 -> i3_2Id;
+                case 12 -> i4_0Id; case 13 -> i4_1Id; case 14 -> i4_2Id;
+                default -> null;
+            };
+        }
+
+        /** Helper to get item qty by tier and slot index. */
+        public Integer getItemQty(int tier, int slot) {
+            return switch (tier * 3 + slot) {
+                case 0 -> i0_0Qty; case 1 -> i0_1Qty; case 2 -> i0_2Qty;
+                case 3 -> i1_0Qty; case 4 -> i1_1Qty; case 5 -> i1_2Qty;
+                case 6 -> i2_0Qty; case 7 -> i2_1Qty; case 8 -> i2_2Qty;
+                case 9 -> i3_0Qty; case 10 -> i3_1Qty; case 11 -> i3_2Qty;
+                case 12 -> i4_0Qty; case 13 -> i4_1Qty; case 14 -> i4_2Qty;
+                default -> null;
+            };
+        }
     }
 }

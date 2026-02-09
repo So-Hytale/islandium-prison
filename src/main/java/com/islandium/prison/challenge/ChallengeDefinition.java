@@ -51,9 +51,19 @@ public class ChallengeDefinition {
     }
 
     /**
-     * Un palier d'un challenge.
+     * Un item requis pour un palier SUBMIT_ITEMS.
      */
-    public record ChallengeTier(long target, BigDecimal reward) {}
+    public record RequiredItem(String itemId, int quantity) {}
+
+    /**
+     * Un palier d'un challenge.
+     * Pour les challenges SUBMIT_ITEMS, requiredItems contient la liste des items a soumettre.
+     */
+    public record ChallengeTier(long target, BigDecimal reward, List<RequiredItem> requiredItems) {
+        public ChallengeTier(long target, BigDecimal reward) {
+            this(target, reward, List.of());
+        }
+    }
 
     /**
      * Builder pour construire un ChallengeDefinition.
@@ -88,6 +98,11 @@ public class ChallengeDefinition {
 
         public Builder tier(long target, double reward) {
             this.tiers.add(new ChallengeTier(target, BigDecimal.valueOf(reward)));
+            return this;
+        }
+
+        public Builder tierWithItems(long target, double reward, List<RequiredItem> items) {
+            this.tiers.add(new ChallengeTier(target, BigDecimal.valueOf(reward), List.copyOf(items)));
             return this;
         }
 
