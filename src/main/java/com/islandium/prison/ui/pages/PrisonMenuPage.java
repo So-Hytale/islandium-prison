@@ -147,7 +147,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                 Mine mine = sortedMines.get(idx);
                 boolean canAccess = plugin.getMineManager().canAccess(uuid, mine);
 
-                // Append le template .ui (avec TexturePath baked-in)
+                // Append le template carte .ui
                 String template = canAccess
                     ? "Pages/Prison/MineCard.ui"
                     : "Pages/Prison/MineCardLocked.ui";
@@ -155,6 +155,10 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
 
                 // Le template est ajoute a l'index col dans la row
                 String cardSelector = rowSelector + "[" + col + "]";
+
+                // Injecter l'icone generee (fichier .ui avec le bon TexturePath)
+                String iconUi = "Pages/Prison/Icons/MineIcon_" + mine.getId().toLowerCase() + ".ui";
+                cmd.append(cardSelector + " #IconTarget", iconUi);
 
                 // Set les textes dynamiques
                 cmd.set(cardSelector + " #MTitle.Text", mine.getDisplayName());

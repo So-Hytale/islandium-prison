@@ -1,4 +1,4 @@
-// Template carte mine verrouillee
+// Template carte mine - verrouillee
 Group {
     FlexWeight: 1;
 
@@ -9,12 +9,14 @@ Group {
             LayoutMode: Top;
             Padding: (Full: 12);
 
-            // Icone centree
-            Group {
+            // Conteneur icone - sera rempli par cmd.append() avec le bon .ui d'icone
+            Group #IconSlot {
                 Anchor: (Height: 80);
                 LayoutMode: Left;
                 Group { FlexWeight: 1; }
-                Group { Anchor: (Width: 80, Height: 80); Background: PatchStyle(TexturePath: "Icons/mines.png"); }
+                Group #IconTarget {
+                    Anchor: (Width: 80, Height: 80);
+                }
                 Group { FlexWeight: 1; }
             }
 

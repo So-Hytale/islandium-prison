@@ -101,6 +101,9 @@ public class PrisonPlugin extends JavaPlugin {
             cellManager.loadAll();
             challengeManager.loadAll();
 
+            // Generate mine icon .ui files for each mine
+            generateMineIconUIs();
+
             // 5. Initialize UI Manager
             log(Level.INFO, "Initializing UI manager...");
             this.uiManager = new PrisonUIManager(this);
@@ -252,6 +255,43 @@ public class PrisonPlugin extends JavaPlugin {
     @NotNull
     public PrisonUIManager getUIManager() {
         return uiManager;
+    }
+
+    // === Mine Icon UI Generation ===
+
+    /**
+     * Genere un fichier .ui d'icone pour chaque mine.
+     * Fichier: Common/UI/Custom/Pages/Prison/Icons/MineIcon_<id>.ui
+     * Contient juste un Group avec le Background PatchStyle vers l'icone PNG.
+     * Si le PNG mine_<id>.png n'existe pas, utilise mines.png par defaut.
+     */
+    private void generateMineIconUIs() {
+        try {
+            // Le dossier Icons dans les resources custom UI du serveur
+            java.nio.file.Path iconsDir = java.nio.file.Path.of("Common/UI/Custom/Pages/Prison/Icons");
+            if (!java.nio.file.Files.exists(iconsDir)) {
+                java.nio.file.Files.createDirectories(iconsDir);
+            }
+
+            for (var mine : mineManager.getAllMines()) {
+                String mineId = mine.getId().toLowerCase();
+                java.nio.file.Path uiFile = iconsDir.resolve("MineIcon_" + mineId + ".ui");
+
+                // Verifier si le PNG specifique existe, sinon fallback
+                java.nio.file.Path specificPng = iconsDir.resolve("mine_" + mineId + ".png");
+                String pngName = java.nio.file.Files.exists(specificPng) ? "mine_" + mineId + ".png" : "mines.png";
+
+                // Generer le .ui (toujours regenere pour rester a jour)
+                String uiContent = "// Auto-generated mine icon for " + mineId + "\n"
+                    + "Group { Anchor: (Width: 80, Height: 80); Background: PatchStyle(TexturePath: \"Icons/" + pngName + "\"); }\n";
+
+                java.nio.file.Files.writeString(uiFile, uiContent);
+            }
+
+            log(Level.INFO, "Generated " + mineManager.getAllMines().size() + " mine icon UI files.");
+        } catch (Exception e) {
+            log(Level.WARNING, "Failed to generate mine icon UIs: " + e.getMessage());
+        }
     }
 
     // === Logging ===
