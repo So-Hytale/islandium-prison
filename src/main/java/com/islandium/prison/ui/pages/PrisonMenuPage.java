@@ -1262,8 +1262,9 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                     if (cell != null) {
                         IslandiumPlayer islandiumPlayer = plugin.getCore().getPlayerManager().getOnlinePlayer(uuid).orElse(null);
                         if (islandiumPlayer != null) {
+                            String cellWorldName = com.islandium.cells.CellsPlugin.get().getConfig().getWorldName();
                             var loc = com.islandium.core.api.location.ServerLocation.of(
-                                plugin.getCore().getServerName(), "world",
+                                plugin.getCore().getServerName(), cellWorldName,
                                 cell.getSpawnX(), cell.getSpawnY(), cell.getSpawnZ(), 0, 0
                             );
                             plugin.getCore().getTeleportService().teleportWithWarmup(
