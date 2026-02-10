@@ -34,8 +34,7 @@ public class PrisonCommandManager {
         register(new MineCommand(plugin));
         register(new MinesCommand(plugin));
 
-        // Cell commands
-        register(new CellCommand(plugin));
+        // Cell commands -> migre vers islandium-cells (/cell et /celladmin)
 
         // Economy
         register(new SellCommand(plugin));

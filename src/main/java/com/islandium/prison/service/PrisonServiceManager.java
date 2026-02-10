@@ -32,9 +32,6 @@ public class PrisonServiceManager {
         // Schedule auto-save every 5 minutes
         scheduler.scheduleAtFixedRate(this::autoSave, 5, 5, TimeUnit.MINUTES);
 
-        // Schedule cell expiration check every hour
-        scheduler.scheduleAtFixedRate(this::checkCellExpirations, 1, 1, TimeUnit.HOURS);
-
         plugin.log(Level.INFO, "Prison services initialized");
     }
 
@@ -63,24 +60,12 @@ public class PrisonServiceManager {
             plugin.getMineManager().saveAll();
             plugin.getRankManager().saveAll();
             plugin.getStatsManager().saveAll();
-            plugin.getCellManager().saveAll();
+            // cellManager.saveAll() est dans islandium-cells (CellAutoSaver)
             plugin.log(Level.FINE, "Auto-save completed");
         } catch (Exception e) {
             plugin.log(Level.WARNING, "Auto-save failed: " + e.getMessage());
         }
     }
 
-    /**
-     * Vérifie les cellules expirées.
-     */
-    private void checkCellExpirations() {
-        try {
-            int expired = plugin.getCellManager().cleanupExpiredCells();
-            if (expired > 0) {
-                plugin.log(Level.INFO, "Cleaned up " + expired + " expired cells");
-            }
-        } catch (Exception e) {
-            plugin.log(Level.WARNING, "Cell expiration check failed: " + e.getMessage());
-        }
-    }
+    // Cell expiration check migre vers islandium-cells
 }

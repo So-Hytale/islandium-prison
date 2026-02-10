@@ -9,6 +9,9 @@ dependencies {
     // Islandium Core (compileOnly car fourni séparément comme plugin)
     compileOnly project(':islandium-core')
 
+    // Islandium Cells (compileOnly car fourni séparément comme plugin)
+    compileOnly project(':islandium-cells')
+
     // Hytale Server API (compileOnly car fourni par le serveur)
     compileOnly files('../libs/HytaleServer.jar')
 

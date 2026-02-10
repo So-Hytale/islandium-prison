@@ -7,7 +7,7 @@ import com.islandium.prison.economy.SellService;
 import com.islandium.prison.listener.PrisonListenerManager;
 import com.islandium.prison.mine.MineManager;
 import com.islandium.prison.rank.PrisonRankManager;
-import com.islandium.prison.cell.CellManager;
+// CellManager migre vers islandium-cells (com.islandium.cells.api.CellsAPI)
 import com.islandium.prison.service.PrisonServiceManager;
 import com.islandium.prison.stats.PlayerStatsManager;
 import com.islandium.prison.ui.PrisonUIManager;
@@ -38,7 +38,6 @@ public class PrisonPlugin extends JavaPlugin {
     private MineManager mineManager;
     private PrisonRankManager rankManager;
     private PlayerStatsManager statsManager;
-    private CellManager cellManager;
     private SellService sellService;
     private PickaxeUpgradeManager upgradeManager;
     private PrisonServiceManager serviceManager;
@@ -81,7 +80,7 @@ public class PrisonPlugin extends JavaPlugin {
             this.statsManager = new PlayerStatsManager(this);
             this.sellService = new SellService(this);
             this.upgradeManager = new PickaxeUpgradeManager(this);
-            this.cellManager = new CellManager(this);
+            // CellManager est maintenant dans islandium-cells
             this.challengeManager = new ChallengeManager(this);
             this.challengeTracker = new ChallengeTracker(this, challengeManager);
 
@@ -89,7 +88,7 @@ public class PrisonPlugin extends JavaPlugin {
             var sql = corePlugin.getDatabaseManager().getExecutor();
             rankManager.runMigrations();
             statsManager.runMigrations();
-            cellManager.runMigrations();
+            // cellManager migrations sont dans islandium-cells
             ChallengeRegistry.runMigrations(sql);
             ChallengeRegistry.loadFromSQL(sql);
             challengeManager.runMigrations();
@@ -98,7 +97,7 @@ public class PrisonPlugin extends JavaPlugin {
             mineManager.loadAll();
             rankManager.loadAll();
             statsManager.loadAll();
-            cellManager.loadAll();
+            // cellManager loading est dans islandium-cells
             challengeManager.loadAll();
 
             // 5. Initialize UI Manager
@@ -152,9 +151,7 @@ public class PrisonPlugin extends JavaPlugin {
             if (statsManager != null) {
                 statsManager.saveAll();
             }
-            if (cellManager != null) {
-                cellManager.saveAll();
-            }
+            // cellManager.saveAll() est dans islandium-cells
             if (challengeManager != null) {
                 challengeManager.saveAll();
             }
@@ -229,10 +226,7 @@ public class PrisonPlugin extends JavaPlugin {
         return upgradeManager;
     }
 
-    @NotNull
-    public CellManager getCellManager() {
-        return cellManager;
-    }
+    // getCellManager() supprime - utiliser CellsAPI.get() depuis islandium-cells
 
     @NotNull
     public PrisonServiceManager getServiceManager() {

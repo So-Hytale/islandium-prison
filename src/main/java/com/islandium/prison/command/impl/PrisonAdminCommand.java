@@ -10,7 +10,6 @@ import com.islandium.core.api.location.ServerLocation;
 import com.islandium.core.api.player.IslandiumPlayer;
 import com.islandium.core.api.util.ColorUtil;
 import com.islandium.prison.PrisonPlugin;
-import com.islandium.prison.cell.Cell;
 import com.islandium.prison.command.base.PrisonCommand;
 import com.islandium.prison.mine.Mine;
 import org.jetbrains.annotations.NotNull;
@@ -49,10 +48,7 @@ public class PrisonAdminCommand extends PrisonCommand {
         addSubCommand(new SetBlockRankCommand(plugin));
         addSubCommand(new ClearBlockRanksCommand(plugin));
 
-        // Cell management subcommands
-        addSubCommand(new CreateCellCommand(plugin));
-        addSubCommand(new DeleteCellCommand(plugin));
-        addSubCommand(new SetCellSpawnCommand(plugin));
+        // Cell management -> migre vers islandium-cells (/celladmin)
 
         // Player management subcommands
         addSubCommand(new SetRankCommand(plugin));
@@ -103,10 +99,7 @@ public class PrisonAdminCommand extends PrisonCommand {
         sendMessage(ctx, "&e/pa setblockrank <mine> <block> <rank> &8- &7Rang par bloc");
         sendMessage(ctx, "&e/pa clearblockranks <mine> &8- &7Vide les rangs par bloc");
         sendMessage(ctx, "");
-        sendMessage(ctx, "&e&lCellules:");
-        sendMessage(ctx, "&e/pa createcell <id> &8- &7Cree une cellule");
-        sendMessage(ctx, "&e/pa deletecell <id> &8- &7Supprime une cellule");
-        sendMessage(ctx, "&e/pa setcellspawn <id> &8- &7Definit le spawn");
+        sendMessage(ctx, "&7&lCellules: &8migre vers &e/celladmin");
         sendMessage(ctx, "");
         sendMessage(ctx, "&e&lJoueurs:");
         sendMessage(ctx, "&e/pa setrank <player> <rank> &8- &7Definit le rang");
@@ -744,95 +737,7 @@ public class PrisonAdminCommand extends PrisonCommand {
         }
     }
 
-    // ============================================
-    // CELL MANAGEMENT SUBCOMMANDS
-    // ============================================
-
-    private static class CreateCellCommand extends PrisonCommand {
-        private final RequiredArg<String> cellIdArg;
-
-        public CreateCellCommand(@NotNull PrisonPlugin plugin) {
-            super(plugin, "createcell", "Cree une nouvelle cellule");
-            cellIdArg = withRequiredArg("id", "ID de la cellule", ArgTypes.STRING);
-        }
-
-        @Override
-        public CompletableFuture<Void> execute(CommandContext ctx) {
-            String cellId = ctx.get(cellIdArg);
-
-            if (plugin.getCellManager().getCell(cellId) != null) {
-                sendMessage(ctx, "&cLa cellule &e" + cellId + "&c existe deja!");
-                return complete();
-            }
-
-            Cell cell = plugin.getCellManager().createCell(cellId);
-            sendMessage(ctx, "&aCellule &e" + cell.getId() + "&a creee!");
-            sendMessage(ctx, "&7Utilise &e/pa setcellspawn " + cellId + "&7 pour definir le spawn.");
-
-            return complete();
-        }
-    }
-
-    private static class DeleteCellCommand extends PrisonCommand {
-        private final RequiredArg<String> cellIdArg;
-
-        public DeleteCellCommand(@NotNull PrisonPlugin plugin) {
-            super(plugin, "deletecell", "Supprime une cellule");
-            cellIdArg = withRequiredArg("id", "ID de la cellule", ArgTypes.STRING);
-        }
-
-        @Override
-        public CompletableFuture<Void> execute(CommandContext ctx) {
-            String cellId = ctx.get(cellIdArg);
-
-            if (!plugin.getCellManager().deleteCell(cellId)) {
-                sendMessage(ctx, "&cCellule &e" + cellId + "&c introuvable!");
-                return complete();
-            }
-
-            sendMessage(ctx, "&cCellule &e" + cellId + "&c supprimee!");
-            return complete();
-        }
-    }
-
-    private static class SetCellSpawnCommand extends PrisonCommand {
-        private final RequiredArg<String> cellIdArg;
-
-        public SetCellSpawnCommand(@NotNull PrisonPlugin plugin) {
-            super(plugin, "setcellspawn", "Definit le spawn d'une cellule");
-            cellIdArg = withRequiredArg("id", "ID de la cellule", ArgTypes.STRING);
-        }
-
-        @Override
-        public CompletableFuture<Void> execute(CommandContext ctx) {
-            if (!isPlayer(ctx)) {
-                sendMessage(ctx, "&cCette commande est reservee aux joueurs!");
-                return complete();
-            }
-
-            String cellId = ctx.get(cellIdArg);
-            Cell cell = plugin.getCellManager().getCell(cellId);
-
-            if (cell == null) {
-                sendMessage(ctx, "&cCellule &e" + cellId + "&c introuvable!");
-                return complete();
-            }
-
-            IslandiumPlayer player = requireIslandiumPlayer(ctx);
-            ServerLocation loc = player.getLocation();
-
-            if (loc == null) {
-                sendMessage(ctx, "&cImpossible d'obtenir ta position!");
-                return complete();
-            }
-
-            cell.setSpawnPoint(loc);
-            plugin.getCellManager().saveAll();
-
-            sendMessage(ctx, "&aSpawn de la cellule &e" + cell.getId() + "&a defini!");
-            return complete();
-        }
-    }
+    // Cell management subcommands -> migre vers islandium-cells (/celladmin)
 
     // ============================================
     // PLAYER MANAGEMENT SUBCOMMANDS
@@ -987,7 +892,7 @@ public class PrisonAdminCommand extends PrisonCommand {
         public CompletableFuture<Void> execute(CommandContext ctx) {
             plugin.getMineManager().saveAll();
             plugin.getRankManager().saveAll();
-            plugin.getCellManager().saveAll();
+            // cellManager.saveAll() -> islandium-cells
             sendMessage(ctx, "&aDonnees sauvegardees!");
             return complete();
         }

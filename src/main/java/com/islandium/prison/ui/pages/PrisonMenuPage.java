@@ -698,8 +698,9 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         cmd.set("#HeaderTitle.Text", "CELLULE");
 
         UUID uuid = playerRef.getUuid();
-        var cellManager = plugin.getCellManager();
-        var playerCell = cellManager.getPlayerCell(uuid);
+        // Utiliser CellsAPI depuis islandium-cells
+        var cellsApi = com.islandium.cells.api.CellsAPI.get();
+        var playerCell = cellsApi != null ? cellsApi.getPlayerCell(uuid) : null;
 
         if (playerCell != null) {
             cmd.appendInline("#PageContent",
@@ -707,34 +708,22 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                 "  Label { Anchor: (Height: 25); Text: \"Ta cellule\"; Style: (FontSize: 14, TextColor: #8d6e63, RenderBold: true); } " +
                 "  Label #CellInfo { Anchor: (Height: 20); Style: (FontSize: 12, TextColor: #96a9be); } " +
                 "}");
-            cmd.set("#CellInfo.Text", "Cellule: " + playerCell.getOwnerName());
+            cmd.set("#CellInfo.Text", "Cellule: " + playerCell.getOwnerName() + " (Nv." + playerCell.getCurrentLevel() + ")");
 
-            if (playerCell.hasOwner()) {
-                cmd.appendInline("#PageContent",
-                    "Group { Anchor: (Height: 50, Top: 10); " +
-                    "  TextButton #CellTpBtn { Anchor: (Width: 180, Height: 40); " +
-                    "    Style: TextButtonStyle(Default: (Background: #2a5f2a, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center)), " +
-                    "    Hovered: (Background: #3a7f3a, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center))); } " +
-                    "}");
-                cmd.set("#CellTpBtn.Text", "TELEPORTER");
-                event.addEventBinding(CustomUIEventBindingType.Activating, "#CellTpBtn", EventData.of("Action", "tpCell"), false);
-            }
+            cmd.appendInline("#PageContent",
+                "Group { Anchor: (Height: 50, Top: 10); " +
+                "  TextButton #CellTpBtn { Anchor: (Width: 180, Height: 40); " +
+                "    Style: TextButtonStyle(Default: (Background: #2a5f2a, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center)), " +
+                "    Hovered: (Background: #3a7f3a, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center))); } " +
+                "}");
+            cmd.set("#CellTpBtn.Text", "TELEPORTER");
+            event.addEventBinding(CustomUIEventBindingType.Activating, "#CellTpBtn", EventData.of("Action", "tpCell"), false);
         } else {
             cmd.appendInline("#PageContent",
                 "Group { Anchor: (Height: 80); Background: (Color: #151d28); Padding: (Full: 15); LayoutMode: Top; " +
                 "  Label { Anchor: (Height: 25); Text: \"Pas de cellule\"; Style: (FontSize: 14, TextColor: #8d6e63, RenderBold: true); } " +
-                "  Label { Anchor: (Height: 20); Text: \"Tu n'as pas encore de cellule.\"; Style: (FontSize: 12, TextColor: #96a9be); } " +
+                "  Label { Anchor: (Height: 20); Text: \"Utilise /cell buy pour en acheter une!\"; Style: (FontSize: 12, TextColor: #96a9be); } " +
                 "}");
-
-            // Bouton acheter s'il y a des cellules libres
-            cmd.appendInline("#PageContent",
-                "Group { Anchor: (Height: 50, Top: 10); " +
-                "  TextButton #BuyCellBtn { Anchor: (Width: 180, Height: 40); " +
-                "    Style: TextButtonStyle(Default: (Background: #2a5f2a, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center)), " +
-                "    Hovered: (Background: #3a7f3a, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center))); } " +
-                "}");
-            cmd.set("#BuyCellBtn.Text", "ACHETER UNE CELLULE");
-            event.addEventBinding(CustomUIEventBindingType.Activating, "#BuyCellBtn", EventData.of("Action", "buyCell"), false);
         }
     }
 
@@ -1268,13 +1257,17 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                     return;
                 }
                 case "tpCell" -> {
-                    var cell = plugin.getCellManager().getPlayerCell(uuid);
-                    if (cell != null && cell.hasOwner()) {
+                    var cellsApiTp = com.islandium.cells.api.CellsAPI.get();
+                    var cell = cellsApiTp != null ? cellsApiTp.getPlayerCell(uuid) : null;
+                    if (cell != null) {
                         IslandiumPlayer islandiumPlayer = plugin.getCore().getPlayerManager().getOnlinePlayer(uuid).orElse(null);
                         if (islandiumPlayer != null) {
+                            var loc = com.islandium.core.api.location.ServerLocation.of(
+                                plugin.getCore().getServerName(), "world",
+                                cell.getSpawnX(), cell.getSpawnY(), cell.getSpawnZ(), 0, 0
+                            );
                             plugin.getCore().getTeleportService().teleportWithWarmup(
-                                islandiumPlayer,
-                                cell.getSpawnPoint(),
+                                islandiumPlayer, loc,
                                 () -> player.sendMessage(Message.raw("Teleporte a ta cellule!"))
                             );
                         }
@@ -1282,8 +1275,13 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                     return;
                 }
                 case "buyCell" -> {
+                    var cellsApiBuy = com.islandium.cells.api.CellsAPI.get();
+                    if (cellsApiBuy == null) {
+                        player.sendMessage(Message.raw("Systeme de cellules non disponible!"));
+                        return;
+                    }
                     String playerName = playerRef.getUsername();
-                    var cellResult = plugin.getCellManager().purchaseCell(uuid, playerName);
+                    var cellResult = cellsApiBuy.getCellManager().createCell(uuid, playerName);
                     switch (cellResult) {
                         case SUCCESS -> {
                             player.sendMessage(Message.raw("Cellule achetee!"));
@@ -1292,8 +1290,8 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                         }
                         case NOT_ENOUGH_MONEY -> player.sendMessage(Message.raw("Pas assez d'argent!"));
                         case ALREADY_HAS_CELL -> player.sendMessage(Message.raw("Tu as deja une cellule!"));
-                        case NO_CELLS_AVAILABLE -> player.sendMessage(Message.raw("Aucune cellule disponible!"));
-                        default -> player.sendMessage(Message.raw("Impossible d'acheter une cellule!"));
+                        case NO_LEVELS_CONFIGURED -> player.sendMessage(Message.raw("Aucun niveau de cellule configure!"));
+                        case ECONOMY_ERROR -> player.sendMessage(Message.raw("Erreur economique, reessaie!"));
                     }
                     return;
                 }
