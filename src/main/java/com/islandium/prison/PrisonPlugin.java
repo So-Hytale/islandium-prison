@@ -118,7 +118,7 @@ public class PrisonPlugin extends JavaPlugin {
             this.listenerManager = new PrisonListenerManager(this);
             listenerManager.registerAll();
 
-            // 8. Register in main menu (/menu)
+            // 8. Register in main menu (/menu) — visible uniquement dans le monde prison
             IslandiumUIRegistry.getInstance().register(new IslandiumUIRegistry.Entry(
                     "prison",
                     "PRISON",
@@ -126,7 +126,8 @@ public class PrisonPlugin extends JavaPlugin {
                     "#ff9800",
                     "Pages/Islandium/MenuCardPrison.ui",
                     playerRef -> new PrisonMenuPage(playerRef, this),
-                    false
+                    false,
+                    config.getWorldName()
             ));
 
             log(Level.INFO, "Prison initialized successfully!");

@@ -31,7 +31,11 @@ public class PrisonUIManager {
 
     private final PrisonPlugin plugin;
     private final Map<UUID, PrisonHud> activeHuds = new ConcurrentHashMap<>();
+    /** Joueurs connectes dont le HUD est masque (pas dans le monde prison). */
+    private final Map<UUID, PlayerHudInfo> trackedPlayers = new ConcurrentHashMap<>();
     private ScheduledExecutorService refreshScheduler;
+
+    private record PlayerHudInfo(PlayerRef playerRef, Player player) {}
 
     public PrisonUIManager(@NotNull PrisonPlugin plugin) {
         this.plugin = plugin;
@@ -46,11 +50,38 @@ public class PrisonUIManager {
         });
         refreshScheduler.scheduleAtFixedRate(() -> {
             try {
-                for (PrisonHud hud : activeHuds.values()) {
+                String requiredWorld = plugin.getConfig().getWorldName();
+
+                // Refresh HUDs actifs et masquer si le joueur a quitte le monde prison
+                for (var entry : activeHuds.entrySet()) {
                     try {
-                        hud.refreshData();
+                        UUID uuid = entry.getKey();
+                        PrisonHud hud = entry.getValue();
+                        PlayerHudInfo info = trackedPlayers.get(uuid);
+                        if (info != null && !isInWorld(info.player(), requiredWorld)) {
+                            // Le joueur a quitte le monde prison -> masquer le HUD
+                            hideHud(info.player());
+                        } else {
+                            hud.refreshData();
+                        }
                     } catch (Exception e) {
                         // Ignore individual refresh errors
+                    }
+                }
+
+                // Verifier les joueurs trackes sans HUD actif (viennent d'arriver dans le monde prison)
+                for (var entry : trackedPlayers.entrySet()) {
+                    try {
+                        UUID uuid = entry.getKey();
+                        if (!activeHuds.containsKey(uuid)) {
+                            PlayerHudInfo info = entry.getValue();
+                            if (isInWorld(info.player(), requiredWorld)) {
+                                // Le joueur est entre dans le monde prison -> afficher le HUD
+                                showHud(info.playerRef(), info.player());
+                            }
+                        }
+                    } catch (Exception e) {
+                        // Ignore
                     }
                 }
             } catch (Exception e) {
@@ -66,6 +97,37 @@ public class PrisonUIManager {
     }
 
     // === HUD Management (via MultipleHUD API) ===
+
+    /**
+     * Verifie si un joueur est dans le monde specifie.
+     */
+    private boolean isInWorld(@NotNull Player player, @NotNull String worldName) {
+        try {
+            var ref = player.getReference();
+            if (ref == null || !ref.isValid()) return false;
+            var store = ref.getStore();
+            var world = store.getExternalData().getWorld();
+            return world != null && worldName.equals(world.getName());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Enregistre un joueur pour le suivi de monde (show/hide automatique).
+     * Affiche le HUD seulement si le joueur est dans le monde prison.
+     */
+    public void trackPlayer(@NotNull PlayerRef playerRef, @NotNull Player player) {
+        UUID uuid = playerRef.getUuid();
+        trackedPlayers.put(uuid, new PlayerHudInfo(playerRef, player));
+
+        String requiredWorld = plugin.getConfig().getWorldName();
+        if (isInWorld(player, requiredWorld)) {
+            showHud(playerRef, player);
+        } else {
+            plugin.log(Level.INFO, "Player " + playerRef.getUsername() + " not in world '" + requiredWorld + "', HUD deferred");
+        }
+    }
 
     /**
      * Affiche le HUD Prison pour un joueur.
@@ -161,6 +223,7 @@ public class PrisonUIManager {
      */
     public void cleanupPlayer(@NotNull UUID uuid) {
         activeHuds.remove(uuid);
+        trackedPlayers.remove(uuid);
     }
 
     // === Page Management ===

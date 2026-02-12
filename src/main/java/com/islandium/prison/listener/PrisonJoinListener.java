@@ -47,27 +47,27 @@ public class PrisonJoinListener extends PrisonListener {
 
                 plugin.log(Level.INFO, "Player " + name + " connected with rank " + rank);
 
-                // Show Prison HUD
+                // Track player pour show/hide HUD automatique selon le monde
                 if (player != null && playerRef != null) {
                     try {
                         var ref = player.getReference();
                         if (ref == null || !ref.isValid()) {
-                            plugin.log(Level.WARNING, "Player reference invalid for " + name + ", trying direct showHud");
-                            plugin.getUIManager().showHud(playerRef, player);
+                            plugin.log(Level.WARNING, "Player reference invalid for " + name + ", tracking directly");
+                            plugin.getUIManager().trackPlayer(playerRef, player);
                             return;
                         }
                         var store = ref.getStore();
                         var world = store.getExternalData().getWorld();
                         CompletableFuture.runAsync(() -> {
                             try {
-                                plugin.getUIManager().showHud(playerRef, player);
+                                plugin.getUIManager().trackPlayer(playerRef, player);
                             } catch (Exception e) {
-                                plugin.log(Level.WARNING, "Failed to show HUD for " + name + ": " + e.getMessage());
+                                plugin.log(Level.WARNING, "Failed to track HUD for " + name + ": " + e.getMessage());
                                 e.printStackTrace();
                             }
                         }, world);
                     } catch (Exception e) {
-                        plugin.log(Level.WARNING, "Error showing HUD for " + name + ": " + e.getMessage());
+                        plugin.log(Level.WARNING, "Error tracking HUD for " + name + ": " + e.getMessage());
                         e.printStackTrace();
                     }
                 }

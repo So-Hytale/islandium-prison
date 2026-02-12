@@ -46,6 +46,7 @@ public class PrisonConfig {
 
     private ConfigData createDefault() {
         ConfigData config = new ConfigData();
+        config.worldName = "prison";
 
         // Mines config
         config.mines = new MinesConfig();
@@ -127,6 +128,11 @@ public class PrisonConfig {
     }
 
     // === Getters ===
+
+    @NotNull
+    public String getWorldName() {
+        return data.worldName != null ? data.worldName : "prison";
+    }
 
     public int getMineResetInterval() {
         return data.mines.resetIntervalMinutes;
@@ -237,6 +243,7 @@ public class PrisonConfig {
     // === Inner Classes ===
 
     private static class ConfigData {
+        String worldName;
         MinesConfig mines;
         RanksConfig ranks;
         CellsConfig cells;
