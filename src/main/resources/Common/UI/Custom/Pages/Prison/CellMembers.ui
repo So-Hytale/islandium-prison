@@ -95,7 +95,6 @@ Group {
         // Champ texte nom du joueur
         TextField #InviteNameField {
             Anchor: (Width: 250, Height: 36);
-            Text: "";
             PlaceholderText: "Nom du joueur";
             Style: TextFieldStyle(
                 Default: (Background: #0d1520, LabelStyle: (FontSize: 13, TextColor: #ffffff, VerticalAlignment: Center)),
