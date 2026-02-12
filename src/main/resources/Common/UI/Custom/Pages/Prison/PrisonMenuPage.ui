@@ -5,7 +5,6 @@ $C = "../../Common.ui";
 @IconUpgrades = PatchStyle(TexturePath: "Icons/upgrades.png");
 @IconVendre = PatchStyle(TexturePath: "Icons/vendre.png");
 @IconClassement = PatchStyle(TexturePath: "Icons/classement.png");
-@IconCellule = PatchStyle(TexturePath: "Icons/cellule.png");
 @IconDefis = PatchStyle(TexturePath: "Icons/defis.png");
 
 $C.@PageOverlay {
@@ -282,39 +281,10 @@ $C.@PageOverlay {
                         }
                     }
 
-                    // Carte CELLULE
+                    // Emplacement vide (3e colonne)
                     Group {
                         FlexWeight: 1;
                         Padding: (Left: 10);
-
-                        Button #CardCellule {
-                            Style: ButtonStyle(Default: (Background: #151d28), Hovered: (Background: #1e2d3d));
-
-                            Group {
-                                LayoutMode: Top;
-                                Padding: (Full: 12);
-
-                                Group {
-                                    Anchor: (Height: 88);
-                                    LayoutMode: Left;
-                                    Group { FlexWeight: 1; }
-                                    Group { Anchor: (Width: 88, Height: 88); Background: @IconCellule; }
-                                    Group { FlexWeight: 1; }
-                                }
-
-                                Label {
-                                    Anchor: (Height: 30, Top: 8);
-                                    Text: "CELLULE";
-                                    Style: (FontSize: 15, TextColor: #8d6e63, RenderBold: true, RenderUppercase: true, HorizontalAlignment: Center, VerticalAlignment: Center);
-                                }
-
-                                Label {
-                                    Anchor: (Height: 20);
-                                    Text: "Gestion de cellule";
-                                    Style: (FontSize: 11, TextColor: #7c8b99, HorizontalAlignment: Center);
-                                }
-                            }
-                        }
                     }
                 }
             }

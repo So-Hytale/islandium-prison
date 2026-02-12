@@ -82,7 +82,6 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         event.addEventBinding(CustomUIEventBindingType.Activating, "#CardUpgrades", EventData.of("Navigate", "upgrades"), false);
         event.addEventBinding(CustomUIEventBindingType.Activating, "#CardVendre", EventData.of("Navigate", "vendre"), false);
         event.addEventBinding(CustomUIEventBindingType.Activating, "#CardClassement", EventData.of("Navigate", "classement"), false);
-        event.addEventBinding(CustomUIEventBindingType.Activating, "#CardCellule", EventData.of("Action", "openCellMenu"), false);
 
         // Si startPage defini, ouvrir directement la sous-page
         if (startPage != null) {
@@ -1249,23 +1248,6 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                     }
                     buildUpgradesPage(cmd, event);
                     sendUpdate(cmd, event, false);
-                    return;
-                }
-                case "openCellMenu" -> {
-                    // Ouvrir la page CellMenuPage du plugin cells via reflexion
-                    try {
-                        Class<?> cellPageClass = Class.forName("com.islandium.cells.ui.CellMenuPage");
-                        Class<?> cellPluginClass = Class.forName("com.islandium.cells.CellsPlugin");
-                        Object cellPlugin = cellPluginClass.getMethod("get").invoke(null);
-                        java.lang.reflect.Constructor<?> ctor = cellPageClass.getConstructor(
-                            PlayerRef.class, cellPluginClass
-                        );
-                        var cellPage = (com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage<?>) ctor.newInstance(playerRef, cellPlugin);
-                        close();
-                        player.getPageManager().openCustomPage(ref, store, cellPage);
-                    } catch (Exception e) {
-                        player.sendMessage(Message.raw("Menu cellule non disponible!"));
-                    }
                     return;
                 }
             }
