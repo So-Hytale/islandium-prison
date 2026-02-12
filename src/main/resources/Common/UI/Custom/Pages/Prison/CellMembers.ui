@@ -1,0 +1,125 @@
+// Cell Members - En-tete de la page membres (compteur + header colonnes)
+$C = "../../../../Common.ui";
+
+Group {
+    LayoutMode: Top;
+
+    // Compteur de membres
+    Group {
+        Anchor: (Height: 35);
+        Background: (Color: #151d28);
+        Padding: (Horizontal: 15);
+        LayoutMode: Left;
+        Group { FlexWeight: 1; }
+        Label #MemberCountLabel {
+            Style: (FontSize: 14, TextColor: #4fc3f7, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center);
+        }
+        Group { FlexWeight: 1; }
+    }
+
+    // Espacement
+    Group { Anchor: (Height: 8); }
+
+    // Header colonnes
+    Group {
+        Anchor: (Height: 28);
+        Background: (Color: #0d1520);
+        Padding: (Horizontal: 15);
+        LayoutMode: Left;
+
+        Label {
+            Anchor: (Width: 200);
+            Text: "Joueur";
+            Style: (FontSize: 11, TextColor: #4a5568, RenderBold: true, VerticalAlignment: Center);
+        }
+
+        Group { FlexWeight: 1; }
+
+        Label {
+            Anchor: (Width: 120);
+            Text: "Role";
+            Style: (FontSize: 11, TextColor: #4a5568, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center);
+        }
+
+        Label {
+            Anchor: (Width: 200);
+            Text: "Actions";
+            Style: (FontSize: 11, TextColor: #4a5568, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center);
+        }
+    }
+
+    // Espacement avant la liste
+    Group { Anchor: (Height: 4); }
+
+    // Liste des membres (sera remplie dynamiquement)
+    Group #MemberList {
+        LayoutMode: Top;
+    }
+
+    // Espacement
+    Group { Anchor: (Height: 15); }
+
+    // Bouton inviter centre
+    Group #InviteZone {
+        Anchor: (Height: 40);
+        LayoutMode: Left;
+        Group { FlexWeight: 1; }
+        TextButton #InviteBtn {
+            Anchor: (Width: 280, Height: 40);
+            Text: "+ INVITER UN JOUEUR";
+            Style: TextButtonStyle(
+                Default: (
+                    Background: #1a3a5f,
+                    LabelStyle: (FontSize: 13, TextColor: #4fc3f7, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)
+                ),
+                Hovered: (
+                    Background: #2a4a7f,
+                    LabelStyle: (FontSize: 13, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)
+                ),
+                Sounds: $C.@ButtonSounds,
+            );
+        }
+        Group { FlexWeight: 1; }
+    }
+
+    // Zone d'invitation (cachee par defaut, affichee quand on clique sur Inviter)
+    Group #InviteForm {
+        Anchor: (Height: 50, Top: 10);
+        Visible: false;
+        Background: (Color: #151d28);
+        Padding: (Horizontal: 15);
+        LayoutMode: Left;
+
+        Group { FlexWeight: 1; }
+
+        // Champ texte nom du joueur
+        TextField #InviteNameField {
+            Anchor: (Width: 250, Height: 36);
+            Text: "";
+            PlaceholderText: "Nom du joueur";
+            Style: TextFieldStyle(
+                Default: (Background: #0d1520, LabelStyle: (FontSize: 13, TextColor: #ffffff, VerticalAlignment: Center)),
+                Focused: (Background: #1a2836, LabelStyle: (FontSize: 13, TextColor: #ffffff, VerticalAlignment: Center))
+            );
+        }
+
+        // Bouton confirmer
+        TextButton #InviteConfirmBtn {
+            Anchor: (Width: 120, Height: 36, Left: 10);
+            Text: "INVITER";
+            Style: TextButtonStyle(
+                Default: (
+                    Background: #2a5f2a,
+                    LabelStyle: (FontSize: 12, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)
+                ),
+                Hovered: (
+                    Background: #3a7f3a,
+                    LabelStyle: (FontSize: 12, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center)
+                ),
+                Sounds: $C.@ButtonSounds,
+            );
+        }
+
+        Group { FlexWeight: 1; }
+    }
+}

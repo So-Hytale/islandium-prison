@@ -698,33 +698,191 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         cmd.set("#HeaderTitle.Text", "CELLULE");
 
         UUID uuid = playerRef.getUuid();
-        // Utiliser CellsAPI depuis islandium-cells
         var cellsApi = com.islandium.cells.api.CellsAPI.get();
         var playerCell = cellsApi != null ? cellsApi.getPlayerCell(uuid) : null;
 
         if (playerCell != null) {
-            cmd.appendInline("#PageContent",
-                "Group { Anchor: (Height: 80); Background: (Color: #151d28); Padding: (Full: 15); LayoutMode: Top; " +
-                "  Label { Anchor: (Height: 25); Text: \"Ta cellule\"; Style: (FontSize: 14, TextColor: #8d6e63, RenderBold: true); } " +
-                "  Label #CellInfo { Anchor: (Height: 20); Style: (FontSize: 12, TextColor: #96a9be); } " +
-                "}");
-            cmd.set("#CellInfo.Text", "Cellule: " + playerCell.getOwnerName() + " (Nv." + playerCell.getCurrentLevel() + ")");
-
-            cmd.appendInline("#PageContent",
-                "Group { Anchor: (Height: 50, Top: 10); " +
-                "  TextButton #CellTpBtn { Anchor: (Width: 180, Height: 40); " +
-                "    Style: TextButtonStyle(Default: (Background: #2a5f2a, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center)), " +
-                "    Hovered: (Background: #3a7f3a, LabelStyle: (FontSize: 14, TextColor: #ffffff, RenderBold: true, VerticalAlignment: Center))); } " +
-                "}");
-            cmd.set("#CellTpBtn.Text", "TELEPORTER");
-            event.addEventBinding(CustomUIEventBindingType.Activating, "#CellTpBtn", EventData.of("Action", "tpCell"), false);
+            buildCellHubPage(cmd, event, playerCell, cellsApi);
         } else {
-            cmd.appendInline("#PageContent",
-                "Group { Anchor: (Height: 80); Background: (Color: #151d28); Padding: (Full: 15); LayoutMode: Top; " +
-                "  Label { Anchor: (Height: 25); Text: \"Pas de cellule\"; Style: (FontSize: 14, TextColor: #8d6e63, RenderBold: true); } " +
-                "  Label { Anchor: (Height: 20); Text: \"Utilise /cell buy pour en acheter une!\"; Style: (FontSize: 12, TextColor: #96a9be); } " +
-                "}");
+            buildCellNoCellPage(cmd, event, cellsApi);
         }
+    }
+
+    private void buildCellHubPage(UICommandBuilder cmd, UIEventBuilder event,
+            com.islandium.cells.cell.Cell cell, com.islandium.cells.api.CellsAPI cellsApi) {
+        cmd.append("#PageContent", "Pages/Prison/CellHub.ui");
+
+        // Info cellule
+        cmd.set("#CellOwnerLabel.Text", "Cellule de " + cell.getOwnerName());
+
+        var levelMgr = cellsApi.getLevelManager();
+        var level = levelMgr.getLevel(cell.getCurrentLevel());
+        String levelName = level != null ? level.getName() : "Nv." + cell.getCurrentLevel();
+        int zoneSize = level != null ? level.getZoneRadius() * 2 : 0;
+        cmd.set("#CellLevelLabel.Text", "Niveau " + cell.getCurrentLevel() + " - " + levelName);
+
+        int memberCount = cellsApi.getMemberManager().getMemberCount(cell.getId());
+        cmd.set("#CellMembersLabel.Text", "Membres: " + memberCount + "/" + cell.getMaxMembers());
+
+        cmd.set("#CellAccessLabel.Text", cell.isPublic() ? "Public" : "Prive");
+
+        // Events cartes
+        event.addEventBinding(CustomUIEventBindingType.Activating, "#CellTpCard", EventData.of("Action", "tpCell"), false);
+        event.addEventBinding(CustomUIEventBindingType.Activating, "#CellMembersCard", EventData.of("Action", "cellMembers"), false);
+        event.addEventBinding(CustomUIEventBindingType.Activating, "#CellSettingsCard", EventData.of("Action", "cellSettings"), false);
+    }
+
+    private void buildCellNoCellPage(UICommandBuilder cmd, UIEventBuilder event, com.islandium.cells.api.CellsAPI cellsApi) {
+        cmd.append("#PageContent", "Pages/Prison/CellNoCell.ui");
+
+        // Prix d'achat
+        String priceText = "ACHETER UNE CELLULE";
+        if (cellsApi != null) {
+            var level0 = cellsApi.getLevelManager().getLevel(0);
+            if (level0 != null) {
+                priceText = "ACHETER UNE CELLULE - " + com.islandium.prison.economy.SellService.formatMoney(level0.getPrice());
+            }
+        }
+        cmd.set("#BuyCellBtn.Text", priceText);
+        event.addEventBinding(CustomUIEventBindingType.Activating, "#BuyCellBtn", EventData.of("Action", "buyCell"), false);
+    }
+
+    private void buildCellMembersPage(UICommandBuilder cmd, UIEventBuilder event) {
+        showSubPage(cmd);
+        cmd.clear("#PageContent");
+        cmd.set("#HeaderTitle.Text", "MEMBRES");
+
+        UUID uuid = playerRef.getUuid();
+        var cellsApi = com.islandium.cells.api.CellsAPI.get();
+        var playerCell = cellsApi != null ? cellsApi.getPlayerCell(uuid) : null;
+        if (playerCell == null) {
+            buildCellulePage(cmd, event);
+            return;
+        }
+
+        cmd.append("#PageContent", "Pages/Prison/CellMembers.ui");
+
+        var memberMgr = cellsApi.getMemberManager();
+        var members = memberMgr.getMembers(playerCell.getId());
+        int memberCount = members.size();
+        cmd.set("#MemberCountLabel.Text", "Membres: " + memberCount + "/" + playerCell.getMaxMembers());
+
+        boolean isOwner = playerCell.isOwner(uuid);
+        boolean canInvite = isOwner || memberMgr.canInvite(playerCell, uuid);
+
+        // Ligne proprietaire
+        cmd.append("#MemberList", "Pages/Prison/CellMemberOwner.ui");
+        cmd.set("#MemberList[0] #MOwnerName.Text", playerCell.getOwnerName());
+
+        // Lignes membres
+        int idx = 1;
+        for (var member : members) {
+            cmd.append("#MemberList", "Pages/Prison/CellMemberRow.ui");
+            String rowSelector = "#MemberList[" + idx + "]";
+
+            cmd.set(rowSelector + " #MName.Text", member.getPlayerName());
+
+            String roleName = member.getRole().name();
+            String roleColor;
+            switch (member.getRole()) {
+                case MANAGER -> roleColor = "#ff9800";
+                case MEMBER -> roleColor = "#4fc3f7";
+                default -> roleColor = "#7c8b99";
+            }
+            cmd.set(rowSelector + " #MRole.Text", roleName);
+            cmd.set(rowSelector + " #MRole.Style.TextColor", roleColor);
+
+            // Boutons visibles uniquement si le joueur est owner
+            if (isOwner) {
+                String memberUuid = member.getPlayerUuid().toString();
+                event.addEventBinding(CustomUIEventBindingType.Activating,
+                    rowSelector + " #MPromoteBtn",
+                    EventData.of("Action", "cellPromote").append("MemberTarget", memberUuid), false);
+                event.addEventBinding(CustomUIEventBindingType.Activating,
+                    rowSelector + " #MDemoteBtn",
+                    EventData.of("Action", "cellDemote").append("MemberTarget", memberUuid), false);
+                event.addEventBinding(CustomUIEventBindingType.Activating,
+                    rowSelector + " #MKickBtn",
+                    EventData.of("Action", "cellKick").append("MemberTarget", memberUuid), false);
+            } else {
+                cmd.set(rowSelector + " #MActions.Visible", false);
+            }
+            idx++;
+        }
+
+        // Bouton inviter visible seulement si permissions
+        if (canInvite && !memberMgr.isFull(playerCell)) {
+            event.addEventBinding(CustomUIEventBindingType.Activating, "#InviteBtn",
+                EventData.of("Action", "cellShowInvite"), false);
+            event.addEventBinding(CustomUIEventBindingType.Activating, "#InviteConfirmBtn",
+                EventData.of("Action", "cellInvite").append("InviteName", "#InviteNameField.Value"), false);
+        } else {
+            cmd.set("#InviteZone.Visible", false);
+        }
+    }
+
+    private void buildCellSettingsPage(UICommandBuilder cmd, UIEventBuilder event) {
+        showSubPage(cmd);
+        cmd.clear("#PageContent");
+        cmd.set("#HeaderTitle.Text", "PARAMETRES");
+
+        UUID uuid = playerRef.getUuid();
+        var cellsApi = com.islandium.cells.api.CellsAPI.get();
+        var playerCell = cellsApi != null ? cellsApi.getPlayerCell(uuid) : null;
+        if (playerCell == null) {
+            buildCellulePage(cmd, event);
+            return;
+        }
+
+        cmd.append("#PageContent", "Pages/Prison/CellSettings.ui");
+
+        // Niveau actuel
+        var levelMgr = cellsApi.getLevelManager();
+        var currentLevel = levelMgr.getLevel(playerCell.getCurrentLevel());
+        String levelName = currentLevel != null ? currentLevel.getName() : "???";
+        int zoneRadius = currentLevel != null ? currentLevel.getZoneRadius() : 0;
+        int maxMem = currentLevel != null ? currentLevel.getMaxMembers() : playerCell.getMaxMembers();
+
+        cmd.set("#SettingsLevelName.Text", "Nv." + playerCell.getCurrentLevel() + " - " + levelName);
+        cmd.set("#SettingsLevelInfo.Text", "Taille: " + (zoneRadius * 2) + "x" + (zoneRadius * 2) + "  |  Max membres: " + maxMem);
+
+        // Bouton upgrade
+        var nextLevel = levelMgr.getNextLevel(playerCell.getCurrentLevel());
+        if (nextLevel != null) {
+            String upgradeText = "AMELIORER Nv." + nextLevel.getLevel() + " - " +
+                com.islandium.prison.economy.SellService.formatMoney(nextLevel.getPrice());
+            cmd.set("#UpgradeBtn.Text", upgradeText);
+            event.addEventBinding(CustomUIEventBindingType.Activating, "#UpgradeBtn",
+                EventData.of("Action", "cellUpgrade"), false);
+        } else {
+            cmd.set("#UpgradeZone.Visible", false);
+        }
+
+        // Bouton public/prive
+        if (playerCell.isPublic()) {
+            cmd.set("#TogglePublicBtn.Text", "Acces: PUBLIC - Cliquer pour rendre PRIVE");
+        } else {
+            cmd.set("#TogglePublicBtn.Text", "Acces: PRIVE - Cliquer pour rendre PUBLIC");
+        }
+        event.addEventBinding(CustomUIEventBindingType.Activating, "#TogglePublicBtn",
+            EventData.of("Action", "cellTogglePublic"), false);
+
+        // Bouton supprimer
+        event.addEventBinding(CustomUIEventBindingType.Activating, "#DeleteCellBtn",
+            EventData.of("Action", "cellDeleteConfirm"), false);
+    }
+
+    private void buildCellDeleteConfirmPage(UICommandBuilder cmd, UIEventBuilder event) {
+        showSubPage(cmd);
+        cmd.clear("#PageContent");
+        cmd.set("#HeaderTitle.Text", "SUPPRIMER");
+
+        cmd.append("#PageContent", "Pages/Prison/CellDeleteConfirm.ui");
+
+        event.addEventBinding(CustomUIEventBindingType.Activating, "#ConfirmDeleteBtn",
+            EventData.of("Action", "cellDeleteFinal"), false);
+        event.addEventBinding(CustomUIEventBindingType.Activating, "#CancelDeleteBtn",
+            EventData.of("Action", "cellSettings"), false);
     }
 
     // =========================================
@@ -1052,6 +1210,13 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
 
         // Bouton retour
         if (data.action != null && data.action.equals("back")) {
+            // Sous-pages cellule -> retour au hub cellule
+            if ("cellMembers".equals(currentPage) || "cellSettings".equals(currentPage) || "cellDeleteConfirm".equals(currentPage)) {
+                currentPage = "cellule";
+                buildCellulePage(cmd, event);
+                sendUpdate(cmd, event, false);
+                return;
+            }
             currentPage = "hub";
             showHub(cmd);
             sendUpdate(cmd, event, false);
@@ -1296,6 +1461,175 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                     }
                     return;
                 }
+                case "cellMembers" -> {
+                    currentPage = "cellMembers";
+                    buildCellMembersPage(cmd, event);
+                    sendUpdate(cmd, event, false);
+                    return;
+                }
+                case "cellSettings" -> {
+                    currentPage = "cellSettings";
+                    buildCellSettingsPage(cmd, event);
+                    sendUpdate(cmd, event, false);
+                    return;
+                }
+                case "cellUpgrade" -> {
+                    var cellsApiUp = com.islandium.cells.api.CellsAPI.get();
+                    if (cellsApiUp == null) return;
+                    var upResult = cellsApiUp.getCellManager().upgradeCell(uuid);
+                    switch (upResult) {
+                        case SUCCESS -> {
+                            player.sendMessage(Message.raw("Cellule amelioree!"));
+                            buildCellSettingsPage(cmd, event);
+                            sendUpdate(cmd, event, false);
+                        }
+                        case NOT_ENOUGH_MONEY -> player.sendMessage(Message.raw("Pas assez d'argent!"));
+                        case MAX_LEVEL -> player.sendMessage(Message.raw("Niveau maximum atteint!"));
+                        case NO_CELL -> player.sendMessage(Message.raw("Tu n'as pas de cellule!"));
+                        case ECONOMY_ERROR -> player.sendMessage(Message.raw("Erreur economique, reessaie!"));
+                    }
+                    return;
+                }
+                case "cellTogglePublic" -> {
+                    var cellsApiPub = com.islandium.cells.api.CellsAPI.get();
+                    if (cellsApiPub == null) return;
+                    boolean toggled = cellsApiPub.getCellManager().togglePublic(uuid);
+                    if (toggled) {
+                        var cellNow = cellsApiPub.getPlayerCell(uuid);
+                        player.sendMessage(Message.raw("Cellule " + (cellNow != null && cellNow.isPublic() ? "publique" : "privee") + "!"));
+                        buildCellSettingsPage(cmd, event);
+                        sendUpdate(cmd, event, false);
+                    }
+                    return;
+                }
+                case "cellDeleteConfirm" -> {
+                    currentPage = "cellDeleteConfirm";
+                    buildCellDeleteConfirmPage(cmd, event);
+                    sendUpdate(cmd, event, false);
+                    return;
+                }
+                case "cellDeleteFinal" -> {
+                    var cellsApiDel = com.islandium.cells.api.CellsAPI.get();
+                    if (cellsApiDel == null) return;
+                    var cellToDel = cellsApiDel.getPlayerCell(uuid);
+                    if (cellToDel != null) {
+                        boolean deleted = cellsApiDel.getCellManager().deleteCell(cellToDel.getId());
+                        if (deleted) {
+                            player.sendMessage(Message.raw("Cellule supprimee!"));
+                        }
+                    }
+                    buildCellulePage(cmd, event);
+                    sendUpdate(cmd, event, false);
+                    return;
+                }
+                case "cellShowInvite" -> {
+                    cmd.set("#InviteForm.Visible", true);
+                    sendUpdate(cmd, event, false);
+                    return;
+                }
+                case "cellInvite" -> {
+                    if (data.inviteName == null || data.inviteName.isBlank()) {
+                        player.sendMessage(Message.raw("Entre un nom de joueur!"));
+                        return;
+                    }
+                    var cellsApiInv = com.islandium.cells.api.CellsAPI.get();
+                    if (cellsApiInv == null) return;
+                    var cellInv = cellsApiInv.getPlayerCell(uuid);
+                    if (cellInv == null) return;
+
+                    String targetName = data.inviteName.trim();
+                    // Lookup async du joueur
+                    plugin.getCore().getPlayerManager().getPlayer(targetName).thenAccept(targetOpt -> {
+                        if (targetOpt.isEmpty()) {
+                            player.sendMessage(Message.raw("Joueur '" + targetName + "' introuvable!"));
+                            return;
+                        }
+                        var target = targetOpt.get();
+                        UUID targetUuid = target.getUniqueId();
+                        if (targetUuid.equals(uuid)) {
+                            player.sendMessage(Message.raw("Tu ne peux pas t'inviter toi-meme!"));
+                            return;
+                        }
+                        var memberMgr = cellsApiInv.getMemberManager();
+                        if (memberMgr.isFull(cellInv)) {
+                            player.sendMessage(Message.raw("La cellule est pleine!"));
+                            return;
+                        }
+                        boolean added = memberMgr.addMember(cellInv.getId(), targetUuid, target.getName(),
+                            com.islandium.cells.cell.CellRole.VISITOR, uuid);
+                        if (added) {
+                            player.sendMessage(Message.raw(target.getName() + " a ete invite comme VISITOR!"));
+                            // Refresh la page
+                            UICommandBuilder cmdRefresh = new UICommandBuilder();
+                            UIEventBuilder eventRefresh = new UIEventBuilder();
+                            buildCellMembersPage(cmdRefresh, eventRefresh);
+                            sendUpdate(cmdRefresh, eventRefresh, false);
+                        } else {
+                            player.sendMessage(Message.raw(target.getName() + " est deja membre!"));
+                        }
+                    });
+                    return;
+                }
+                case "cellPromote" -> {
+                    if (data.memberTarget == null) return;
+                    var cellsApiProm = com.islandium.cells.api.CellsAPI.get();
+                    if (cellsApiProm == null) return;
+                    var cellProm = cellsApiProm.getPlayerCell(uuid);
+                    if (cellProm == null || !cellProm.isOwner(uuid)) return;
+
+                    UUID targetUuid = UUID.fromString(data.memberTarget);
+                    var memberMgr = cellsApiProm.getMemberManager();
+                    var currentRole = memberMgr.getRole(cellProm.getId(), targetUuid);
+                    if (currentRole != null && currentRole.promote() != null) {
+                        memberMgr.setRole(cellProm.getId(), targetUuid, currentRole.promote());
+                        player.sendMessage(Message.raw("Membre promu a " + currentRole.promote().name() + "!"));
+                        buildCellMembersPage(cmd, event);
+                        sendUpdate(cmd, event, false);
+                    } else {
+                        player.sendMessage(Message.raw("Impossible de promouvoir ce membre!"));
+                    }
+                    return;
+                }
+                case "cellDemote" -> {
+                    if (data.memberTarget == null) return;
+                    var cellsApiDem = com.islandium.cells.api.CellsAPI.get();
+                    if (cellsApiDem == null) return;
+                    var cellDem = cellsApiDem.getPlayerCell(uuid);
+                    if (cellDem == null || !cellDem.isOwner(uuid)) return;
+
+                    UUID targetUuid = UUID.fromString(data.memberTarget);
+                    var memberMgr = cellsApiDem.getMemberManager();
+                    var currentRole = memberMgr.getRole(cellDem.getId(), targetUuid);
+                    if (currentRole != null && currentRole.demote() != null) {
+                        memberMgr.setRole(cellDem.getId(), targetUuid, currentRole.demote());
+                        player.sendMessage(Message.raw("Membre retrograde a " + currentRole.demote().name() + "!"));
+                        buildCellMembersPage(cmd, event);
+                        sendUpdate(cmd, event, false);
+                    } else {
+                        player.sendMessage(Message.raw("Impossible de retrograder ce membre!"));
+                    }
+                    return;
+                }
+                case "cellKick" -> {
+                    if (data.memberTarget == null) return;
+                    var cellsApiKick = com.islandium.cells.api.CellsAPI.get();
+                    if (cellsApiKick == null) return;
+                    var cellKick = cellsApiKick.getPlayerCell(uuid);
+                    if (cellKick == null) return;
+
+                    UUID targetUuid = UUID.fromString(data.memberTarget);
+                    if (!cellsApiKick.getMemberManager().canKick(cellKick, uuid, targetUuid)) {
+                        player.sendMessage(Message.raw("Tu n'as pas la permission!"));
+                        return;
+                    }
+                    boolean removed = cellsApiKick.getMemberManager().removeMember(cellKick.getId(), targetUuid);
+                    if (removed) {
+                        player.sendMessage(Message.raw("Membre expulse!"));
+                        buildCellMembersPage(cmd, event);
+                        sendUpdate(cmd, event, false);
+                    }
+                    return;
+                }
             }
         }
     }
@@ -1349,11 +1683,15 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                 .addField(new KeyedCodec<>("Navigate", Codec.STRING), (d, v) -> d.navigate = v, d -> d.navigate)
                 .addField(new KeyedCodec<>("TpMine", Codec.STRING), (d, v) -> d.tpMine = v, d -> d.tpMine)
                 .addField(new KeyedCodec<>("ChallengeId", Codec.STRING), (d, v) -> d.challengeId = v, d -> d.challengeId)
+                .addField(new KeyedCodec<>("MemberTarget", Codec.STRING), (d, v) -> d.memberTarget = v, d -> d.memberTarget)
+                .addField(new KeyedCodec<>("InviteName", Codec.STRING), (d, v) -> d.inviteName = v, d -> d.inviteName)
                 .build();
 
         public String action;
         public String navigate;
         public String tpMine;
         public String challengeId;
+        public String memberTarget;
+        public String inviteName;
     }
 }
