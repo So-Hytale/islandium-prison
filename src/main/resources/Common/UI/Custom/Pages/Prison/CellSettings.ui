@@ -1,5 +1,5 @@
 // Cell Settings - Page parametres (niveau, acces, suppression)
-$C = "../../../../Common.ui";
+$C = "../../Common.ui";
 
 Group {
     LayoutMode: Top;

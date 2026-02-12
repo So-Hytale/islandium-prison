@@ -1,5 +1,5 @@
 // Cell - Vue quand le joueur n'a pas de cellule
-$C = "../../../../Common.ui";
+$C = "../../Common.ui";
 
 Group {
     LayoutMode: Top;

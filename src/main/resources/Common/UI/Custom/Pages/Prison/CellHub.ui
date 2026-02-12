@@ -1,5 +1,5 @@
 // Cell Hub - Page principale avec 3 cartes (Teleporter, Membres, Parametres)
-$C = "../../../../Common.ui";
+$C = "../../Common.ui";
 @IconCellule = PatchStyle(TexturePath: "Icons/cellule.png");
 
 Group {

@@ -1,5 +1,5 @@
 // Ligne membre - Membre normal avec boutons promote/demote/kick
-$C = "../../../../Common.ui";
+$C = "../../Common.ui";
 
 Group {
     Anchor: (Height: 38, Top: 2);

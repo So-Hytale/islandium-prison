@@ -1,5 +1,5 @@
 // Confirmation de suppression de cellule
-$C = "../../../../Common.ui";
+$C = "../../Common.ui";
 
 Group {
     LayoutMode: Top;
