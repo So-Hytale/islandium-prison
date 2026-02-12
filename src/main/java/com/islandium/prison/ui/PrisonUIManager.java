@@ -59,7 +59,6 @@ public class PrisonUIManager {
                         PrisonHud hud = entry.getValue();
                         PlayerHudInfo info = trackedPlayers.get(uuid);
                         if (info != null && !isInWorld(info.player(), requiredWorld)) {
-                            // Le joueur a quitte le monde prison -> masquer le HUD
                             hideHud(info.player());
                         } else {
                             hud.refreshData();
@@ -76,7 +75,6 @@ public class PrisonUIManager {
                         if (!activeHuds.containsKey(uuid)) {
                             PlayerHudInfo info = entry.getValue();
                             if (isInWorld(info.player(), requiredWorld)) {
-                                // Le joueur est entre dans le monde prison -> afficher le HUD
                                 showHud(info.playerRef(), info.player());
                             }
                         }
@@ -124,8 +122,6 @@ public class PrisonUIManager {
         String requiredWorld = plugin.getConfig().getWorldName();
         if (isInWorld(player, requiredWorld)) {
             showHud(playerRef, player);
-        } else {
-            plugin.log(Level.INFO, "Player " + playerRef.getUsername() + " not in world '" + requiredWorld + "', HUD deferred");
         }
     }
 
