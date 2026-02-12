@@ -93,13 +93,9 @@ Group {
         Group { FlexWeight: 1; }
 
         // Champ texte nom du joueur
-        TextField #InviteNameField {
+        $C.@TextField #InviteNameField {
             Anchor: (Width: 250, Height: 36);
             PlaceholderText: "Nom du joueur";
-            Style: TextFieldStyle(
-                Default: (Background: #0d1520, LabelStyle: (FontSize: 13, TextColor: #ffffff, VerticalAlignment: Center)),
-                Focused: (Background: #1a2836, LabelStyle: (FontSize: 13, TextColor: #ffffff, VerticalAlignment: Center))
-            );
         }
 
         // Bouton confirmer
