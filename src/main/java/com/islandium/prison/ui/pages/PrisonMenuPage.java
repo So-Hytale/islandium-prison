@@ -47,12 +47,23 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
     private final PrisonPlugin plugin;
     private final PlayerRef playerRef;
     private String currentPage = "hub";
+    private String startPage = null;
     private String viewingDefiRank = null; // Rang actuellement affiché dans la page defis
 
     public PrisonMenuPage(@Nonnull PlayerRef playerRef, PrisonPlugin plugin) {
         super(playerRef, CustomPageLifetime.CanDismiss, PageData.CODEC);
         this.plugin = plugin;
         this.playerRef = playerRef;
+    }
+
+    /**
+     * Constructeur avec page de depart (ex: "cellule" pour ouvrir directement la page cellule).
+     */
+    public PrisonMenuPage(@Nonnull PlayerRef playerRef, PrisonPlugin plugin, @Nonnull String startPage) {
+        super(playerRef, CustomPageLifetime.CanDismiss, PageData.CODEC);
+        this.plugin = plugin;
+        this.playerRef = playerRef;
+        this.startPage = startPage;
     }
 
     @Override
@@ -73,8 +84,21 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         event.addEventBinding(CustomUIEventBindingType.Activating, "#CardClassement", EventData.of("Navigate", "classement"), false);
         event.addEventBinding(CustomUIEventBindingType.Activating, "#CardCellule", EventData.of("Navigate", "cellule"), false);
 
-        // Hub visible par defaut, PageContent masque
-        showHub(cmd);
+        // Si startPage defini, ouvrir directement la sous-page
+        if (startPage != null) {
+            currentPage = startPage;
+            switch (startPage) {
+                case "cellule" -> buildCellulePage(cmd, event);
+                case "mines" -> buildMinesPage(cmd, event);
+                case "upgrades" -> buildUpgradesPage(cmd, event);
+                case "classement" -> buildClassementPage(cmd, event);
+                case "defis" -> buildDefisPage(cmd, event);
+                default -> showHub(cmd);
+            }
+        } else {
+            // Hub visible par defaut, PageContent masque
+            showHub(cmd);
+        }
     }
 
     // =========================================
