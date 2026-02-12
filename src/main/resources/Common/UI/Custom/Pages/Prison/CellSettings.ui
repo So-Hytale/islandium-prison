@@ -3,7 +3,7 @@ $C = "../../Common.ui";
 
 Group {
     LayoutMode: Top;
-    Padding: (Horizontal: 40);
+    Padding: (Horizontal: 120);
 
     // === SECTION NIVEAU ===
     Group {

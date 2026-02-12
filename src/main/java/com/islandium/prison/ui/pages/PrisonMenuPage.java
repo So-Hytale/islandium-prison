@@ -1241,9 +1241,16 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                 sendUpdate(cmd, event, false);
                 return;
             }
-            // Hub -> fermer le menu prison
+            // Hub -> retourner au menu principal
             if ("hub".equals(currentPage)) {
                 close();
+                try {
+                    var world = ((EntityStore) store.getExternalData()).getWorld();
+                    var menuPage = new com.islandium.core.ui.pages.MenuPage(playerRef, plugin.getCore(), world.getName());
+                    player.getPageManager().openCustomPage(ref, store, menuPage);
+                } catch (Exception e) {
+                    plugin.getLogger().at(Level.WARNING).log("[Prison] Could not reopen main menu: " + e.getMessage());
+                }
                 return;
             }
             currentPage = "hub";
