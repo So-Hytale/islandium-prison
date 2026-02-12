@@ -3,6 +3,8 @@ package com.islandium.prison.ui.pages;
 import com.islandium.prison.PrisonPlugin;
 import com.islandium.prison.config.PrisonConfig;
 import com.islandium.prison.economy.SellService;
+import com.islandium.core.api.util.NotificationType;
+import com.islandium.core.api.util.NotificationUtil;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
@@ -10,7 +12,6 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
-import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
 import com.hypixel.hytale.server.core.ui.builder.EventData;
@@ -153,7 +154,7 @@ public class SellConfigPage extends InteractiveCustomUIPage<SellConfigPage.PageD
                     try {
                         double mult = Double.parseDouble(data.multiplier);
                         if (mult <= 0) {
-                            player.sendMessage(Message.raw("Le multiplicateur doit etre positif!"));
+                            NotificationUtil.send(player, NotificationType.ERROR, "Le multiplicateur doit etre positif!");
                             return;
                         }
                         plugin.getConfig().setBlockSellMultiplier(mult);
@@ -161,7 +162,7 @@ public class SellConfigPage extends InteractiveCustomUIPage<SellConfigPage.PageD
                         cmd.set("#MultiplierInfo.Text", "Sauvegarde! x" + String.format("%.2f", mult));
                         sendUpdate(cmd, event, false);
                     } catch (NumberFormatException e) {
-                        player.sendMessage(Message.raw("Valeur invalide pour le multiplicateur!"));
+                        NotificationUtil.send(player, NotificationType.ERROR, "Valeur invalide pour le multiplicateur!");
                     }
                 }
                 return;
@@ -195,7 +196,7 @@ public class SellConfigPage extends InteractiveCustomUIPage<SellConfigPage.PageD
                 if (data.newBlockId != null && data.newBlockPrice != null) {
                     String blockId = data.newBlockId.trim();
                     if (blockId.isEmpty()) {
-                        player.sendMessage(Message.raw("L'ID du bloc ne peut pas etre vide!"));
+                        NotificationUtil.send(player, NotificationType.ERROR, "L'ID du bloc ne peut pas etre vide!");
                         return;
                     }
                     // Add minecraft: prefix if missing
@@ -205,19 +206,19 @@ public class SellConfigPage extends InteractiveCustomUIPage<SellConfigPage.PageD
                     try {
                         double price = Double.parseDouble(data.newBlockPrice);
                         if (price <= 0) {
-                            player.sendMessage(Message.raw("Le prix doit etre positif!"));
+                            NotificationUtil.send(player, NotificationType.ERROR, "Le prix doit etre positif!");
                             return;
                         }
                         plugin.getConfig().setBlockValue(blockId, BigDecimal.valueOf(price));
                         saveConfig(player);
                         addMode = false;
                         cmd.set("#AddForm.Visible", false);
-                        player.sendMessage(Message.raw("Bloc " + blockId + " ajoute au prix de " + price + "$!"));
+                        NotificationUtil.send(player, NotificationType.SUCCESS, "Bloc " + blockId + " ajoute au prix de " + price + "$!");
                         buildBlockList(cmd, event);
                         updateStatus(cmd);
                         sendUpdate(cmd, event, false);
                     } catch (NumberFormatException e) {
-                        player.sendMessage(Message.raw("Valeur de prix invalide!"));
+                        NotificationUtil.send(player, NotificationType.ERROR, "Valeur de prix invalide!");
                     }
                 }
                 return;
@@ -248,18 +249,18 @@ public class SellConfigPage extends InteractiveCustomUIPage<SellConfigPage.PageD
                     try {
                         double price = Double.parseDouble(data.editPrice);
                         if (price <= 0) {
-                            player.sendMessage(Message.raw("Le prix doit etre positif!"));
+                            NotificationUtil.send(player, NotificationType.ERROR, "Le prix doit etre positif!");
                             return;
                         }
                         plugin.getConfig().setBlockValue(editingBlockId, BigDecimal.valueOf(price));
                         saveConfig(player);
-                        player.sendMessage(Message.raw("Prix de " + formatBlockName(editingBlockId) + " mis a jour: " + price + "$"));
+                        NotificationUtil.send(player, NotificationType.SUCCESS, "Prix de " + formatBlockName(editingBlockId) + " mis a jour: " + price + "$");
                         editingBlockId = null;
                         cmd.set("#EditForm.Visible", false);
                         buildBlockList(cmd, event);
                         sendUpdate(cmd, event, false);
                     } catch (Exception e) {
-                        player.sendMessage(Message.raw("Erreur lors de la sauvegarde!"));
+                        NotificationUtil.send(player, NotificationType.ERROR, "Erreur lors de la sauvegarde!");
                     }
                 }
                 return;
@@ -268,7 +269,7 @@ public class SellConfigPage extends InteractiveCustomUIPage<SellConfigPage.PageD
                 if (data.blockId != null) {
                     plugin.getConfig().removeBlockValue(data.blockId);
                     saveConfig(player);
-                    player.sendMessage(Message.raw("Bloc " + formatBlockName(data.blockId) + " supprime!"));
+                    NotificationUtil.send(player, NotificationType.SUCCESS, "Bloc " + formatBlockName(data.blockId) + " supprime!");
                     buildBlockList(cmd, event);
                     updateStatus(cmd);
                     sendUpdate(cmd, event, false);
@@ -282,7 +283,7 @@ public class SellConfigPage extends InteractiveCustomUIPage<SellConfigPage.PageD
         try {
             plugin.getConfig().save();
         } catch (IOException e) {
-            player.sendMessage(Message.raw("Erreur lors de la sauvegarde de la config: " + e.getMessage()));
+            NotificationUtil.send(player, NotificationType.ERROR, "Erreur lors de la sauvegarde de la config: " + e.getMessage());
             plugin.log(Level.WARNING, "Failed to save config: " + e.getMessage());
         }
     }

@@ -6,6 +6,8 @@ import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.permissions.PermissionsModule;
 import com.islandium.core.api.player.IslandiumPlayer;
 import com.islandium.core.api.util.ColorUtil;
+import com.islandium.core.api.util.NotificationType;
+import com.islandium.core.api.util.NotificationUtil;
 import com.islandium.prison.PrisonPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -94,6 +96,14 @@ public abstract class PrisonCommand extends AbstractCommand {
     }
 
     /**
+     * Envoie une notification visuelle (toast) au joueur.
+     */
+    protected void sendNotification(@NotNull CommandContext ctx, @NotNull NotificationType type, @NotNull String message) {
+        if (!isPlayer(ctx)) { sendMessage(ctx, message); return; }
+        NotificationUtil.send(requirePlayer(ctx), type, message);
+    }
+
+    /**
      * Envoie un message au sender.
      */
     protected void sendMessage(@NotNull CommandContext ctx, @NotNull String message) {
@@ -112,6 +122,22 @@ public abstract class PrisonCommand extends AbstractCommand {
      */
     protected void sendConfigMessage(@NotNull CommandContext ctx, @NotNull String key, Object... replacements) {
         sendMessage(ctx, plugin.getConfig().getPrefixedMessage(key, replacements));
+    }
+
+    /**
+     * Envoie une notification visuelle a partir d'une cle de config.
+     */
+    protected void sendConfigNotification(@NotNull CommandContext ctx, @NotNull NotificationType type, @NotNull String key) {
+        String msg = ColorUtil.stripColors(plugin.getConfig().getPrefixedMessage(key));
+        sendNotification(ctx, type, msg);
+    }
+
+    /**
+     * Envoie une notification visuelle a partir d'une cle de config avec placeholders.
+     */
+    protected void sendConfigNotification(@NotNull CommandContext ctx, @NotNull NotificationType type, @NotNull String key, Object... replacements) {
+        String msg = ColorUtil.stripColors(plugin.getConfig().getPrefixedMessage(key, replacements));
+        sendNotification(ctx, type, msg);
     }
 
     /**

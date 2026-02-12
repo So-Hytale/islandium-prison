@@ -6,6 +6,7 @@ import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.islandium.core.api.IslandiumAPI;
 import com.islandium.core.api.economy.EconomyService;
 import com.islandium.prison.PrisonPlugin;
+import com.islandium.core.api.util.NotificationType;
 import com.islandium.prison.command.base.PrisonCommand;
 import com.islandium.prison.economy.SellService;
 import com.islandium.prison.stats.PlayerStatsManager;
@@ -48,7 +49,7 @@ public class TopCommand extends PrisonCommand {
     @Override
     public CompletableFuture<Void> execute(CommandContext ctx) {
         if (!hasPermission(ctx, "prison.top")) {
-            sendMessage(ctx, "&cTu n'as pas la permission!");
+            sendNotification(ctx, NotificationType.ERROR, "Tu n'as pas la permission!");
             return complete();
         }
 
@@ -73,7 +74,7 @@ public class TopCommand extends PrisonCommand {
                 break;
 
             default:
-                sendMessage(ctx, "&cUsage: /top [balance|blocks|prestige]");
+                sendNotification(ctx, NotificationType.WARNING, "Usage: /top [balance|blocks|prestige]");
                 break;
         }
 
@@ -96,7 +97,7 @@ public class TopCommand extends PrisonCommand {
         // Charger depuis EconomyService
         EconomyService eco = getEconomyService();
         if (eco == null) {
-            sendMessage(ctx, prefix + "&cService économique non disponible!");
+            sendNotification(ctx, NotificationType.ERROR, "Service economique non disponible!");
             return;
         }
 
@@ -115,7 +116,7 @@ public class TopCommand extends PrisonCommand {
 
             displayLeaderboard(ctx, "&6&l=== Top Richesse ===", entries);
         } catch (Exception e) {
-            sendMessage(ctx, prefix + "&cErreur lors du chargement du classement!");
+            sendNotification(ctx, NotificationType.ERROR, "Erreur lors du chargement du classement!");
             plugin.log(Level.WARNING, "Failed to load balance leaderboard: " + e.getMessage());
         }
     }

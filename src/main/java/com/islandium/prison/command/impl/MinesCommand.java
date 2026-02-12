@@ -2,6 +2,7 @@ package com.islandium.prison.command.impl;
 
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.islandium.prison.PrisonPlugin;
+import com.islandium.core.api.util.NotificationType;
 import com.islandium.prison.command.base.PrisonCommand;
 import com.islandium.prison.mine.Mine;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +25,7 @@ public class MinesCommand extends PrisonCommand {
     @Override
     public CompletableFuture<Void> execute(CommandContext ctx) {
         if (!hasPermission(ctx, "prison.mines")) {
-            sendMessage(ctx, "&cTu n'as pas la permission!");
+            sendNotification(ctx, NotificationType.ERROR, "Tu n'as pas la permission!");
             return complete();
         }
 

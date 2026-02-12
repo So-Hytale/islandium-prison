@@ -2,6 +2,7 @@ package com.islandium.prison.command.impl;
 
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.islandium.core.api.util.NotificationType;
 import com.islandium.prison.PrisonPlugin;
 import com.islandium.prison.command.base.PrisonCommand;
 import com.islandium.prison.economy.SellService;
@@ -26,12 +27,12 @@ public class SellAllCommand extends PrisonCommand {
     @Override
     public CompletableFuture<Void> execute(CommandContext ctx) {
         if (!isPlayer(ctx)) {
-            sendMessage(ctx, "&cCette commande est réservée aux joueurs!");
+            sendNotification(ctx, NotificationType.ERROR, "Cette commande est reservee aux joueurs!");
             return complete();
         }
 
         if (!hasPermission(ctx, "prison.sell")) {
-            sendMessage(ctx, "&cTu n'as pas la permission!");
+            sendNotification(ctx, NotificationType.ERROR, "Tu n'as pas la permission!");
             return complete();
         }
 

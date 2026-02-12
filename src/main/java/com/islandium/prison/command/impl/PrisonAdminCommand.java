@@ -1,14 +1,12 @@
 package com.islandium.prison.command.impl;
 
-import com.hypixel.hytale.server.core.command.system.AbstractCommand;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
-import com.hypixel.hytale.server.core.command.system.arguments.system.OptionalArg;
 import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.islandium.core.api.location.ServerLocation;
 import com.islandium.core.api.player.IslandiumPlayer;
-import com.islandium.core.api.util.ColorUtil;
+import com.islandium.core.api.util.NotificationType;
 import com.islandium.prison.PrisonPlugin;
 import com.islandium.prison.command.base.PrisonCommand;
 import com.islandium.prison.mine.Mine;
@@ -66,7 +64,7 @@ public class PrisonAdminCommand extends PrisonCommand {
     @Override
     public CompletableFuture<Void> execute(CommandContext ctx) {
         if (!hasPermission(ctx, "prison.admin")) {
-            sendMessage(ctx, "&cTu n'as pas la permission!");
+            sendNotification(ctx, NotificationType.ERROR, "Tu n'as pas la permission!");
             return complete();
         }
         showAdminHelp(ctx);
@@ -129,7 +127,7 @@ public class PrisonAdminCommand extends PrisonCommand {
             String mineId = ctx.get(mineIdArg);
 
             if (plugin.getMineManager().getMine(mineId) != null) {
-                sendMessage(ctx, "&cLa mine &e" + mineId + "&c existe deja!");
+                sendNotification(ctx, NotificationType.ERROR, "La mine " + mineId + " existe deja!");
                 return complete();
             }
 
@@ -138,7 +136,7 @@ public class PrisonAdminCommand extends PrisonCommand {
             mine.setRequiredRank(mineId.toUpperCase());
             plugin.getMineManager().addMine(mine);
 
-            sendMessage(ctx, "&aMine &e" + mine.getId() + "&a creee!");
+            sendNotification(ctx, NotificationType.SUCCESS, "Mine " + mine.getId() + " creee!");
             sendMessage(ctx, "&7Utilise les commandes suivantes pour la configurer:");
             sendMessage(ctx, "&e/pa setminespawn " + mineId + " &8- &7Definir le spawn");
             sendMessage(ctx, "&e/pa setminecorner1 " + mineId + " &8- &7Definir coin 1");
@@ -161,12 +159,12 @@ public class PrisonAdminCommand extends PrisonCommand {
             String mineId = ctx.get(mineIdArg);
 
             if (plugin.getMineManager().getMine(mineId) == null) {
-                sendMessage(ctx, "&cMine &e" + mineId + "&c introuvable!");
+                sendNotification(ctx, NotificationType.ERROR, "Mine " + mineId + " introuvable!");
                 return complete();
             }
 
             plugin.getMineManager().removeMine(mineId);
-            sendMessage(ctx, "&cMine &e" + mineId + "&c supprimee!");
+            sendNotification(ctx, NotificationType.SUCCESS, "Mine " + mineId + " supprimee!");
 
             return complete();
         }
@@ -186,7 +184,7 @@ public class PrisonAdminCommand extends PrisonCommand {
             Mine mine = plugin.getMineManager().getMine(mineId);
 
             if (mine == null) {
-                sendMessage(ctx, "&cMine &e" + mineId + "&c introuvable!");
+                sendNotification(ctx, NotificationType.ERROR, "Mine " + mineId + " introuvable!");
                 return complete();
             }
 
@@ -213,7 +211,7 @@ public class PrisonAdminCommand extends PrisonCommand {
         @Override
         public CompletableFuture<Void> execute(CommandContext ctx) {
             if (!isPlayer(ctx)) {
-                sendMessage(ctx, "&cCette commande est reservee aux joueurs!");
+                sendNotification(ctx, NotificationType.ERROR, "Cette commande est reservee aux joueurs!");
                 return complete();
             }
 
@@ -221,7 +219,7 @@ public class PrisonAdminCommand extends PrisonCommand {
             Mine mine = plugin.getMineManager().getMine(mineId);
 
             if (mine == null) {
-                sendMessage(ctx, "&cMine &e" + mineId + "&c introuvable!");
+                sendNotification(ctx, NotificationType.ERROR, "Mine " + mineId + " introuvable!");
                 return complete();
             }
 
@@ -229,14 +227,14 @@ public class PrisonAdminCommand extends PrisonCommand {
             ServerLocation loc = player.getLocation();
 
             if (loc == null) {
-                sendMessage(ctx, "&cImpossible d'obtenir ta position!");
+                sendNotification(ctx, NotificationType.ERROR, "Impossible d'obtenir ta position!");
                 return complete();
             }
 
             mine.setSpawnPoint(loc);
             plugin.getMineManager().saveAll();
 
-            sendMessage(ctx, "&aSpawn de la mine &e" + mine.getId() + "&a defini!");
+            sendNotification(ctx, NotificationType.SUCCESS, "Spawn de la mine " + mine.getId() + " defini!");
             return complete();
         }
     }
@@ -256,7 +254,7 @@ public class PrisonAdminCommand extends PrisonCommand {
 
         private CompletableFuture<Void> handleSetCorner(CommandContext ctx, int corner) {
             if (!isPlayer(ctx)) {
-                sendMessage(ctx, "&cCette commande est reservee aux joueurs!");
+                sendNotification(ctx, NotificationType.ERROR, "Cette commande est reservee aux joueurs!");
                 return complete();
             }
 
@@ -264,7 +262,7 @@ public class PrisonAdminCommand extends PrisonCommand {
             Mine mine = plugin.getMineManager().getMine(mineId);
 
             if (mine == null) {
-                sendMessage(ctx, "&cMine &e" + mineId + "&c introuvable!");
+                sendNotification(ctx, NotificationType.ERROR, "Mine " + mineId + " introuvable!");
                 return complete();
             }
 
@@ -272,14 +270,14 @@ public class PrisonAdminCommand extends PrisonCommand {
             ServerLocation loc = player.getLocation();
 
             if (loc == null) {
-                sendMessage(ctx, "&cImpossible d'obtenir ta position!");
+                sendNotification(ctx, NotificationType.ERROR, "Impossible d'obtenir ta position!");
                 return complete();
             }
 
             mine.setCorner1(loc);
             plugin.getMineManager().saveAll();
 
-            sendMessage(ctx, "&aCorner 1 de la mine &e" + mine.getId() + "&a defini!");
+            sendNotification(ctx, NotificationType.SUCCESS, "Corner 1 de la mine " + mine.getId() + " defini!");
             if (mine.isConfigured()) {
                 sendMessage(ctx, "&7Taille: &e" + mine.getTotalBlocks() + " blocs");
             }
@@ -299,7 +297,7 @@ public class PrisonAdminCommand extends PrisonCommand {
         @Override
         public CompletableFuture<Void> execute(CommandContext ctx) {
             if (!isPlayer(ctx)) {
-                sendMessage(ctx, "&cCette commande est reservee aux joueurs!");
+                sendNotification(ctx, NotificationType.ERROR, "Cette commande est reservee aux joueurs!");
                 return complete();
             }
 
@@ -307,7 +305,7 @@ public class PrisonAdminCommand extends PrisonCommand {
             Mine mine = plugin.getMineManager().getMine(mineId);
 
             if (mine == null) {
-                sendMessage(ctx, "&cMine &e" + mineId + "&c introuvable!");
+                sendNotification(ctx, NotificationType.ERROR, "Mine " + mineId + " introuvable!");
                 return complete();
             }
 
@@ -315,14 +313,14 @@ public class PrisonAdminCommand extends PrisonCommand {
             ServerLocation loc = player.getLocation();
 
             if (loc == null) {
-                sendMessage(ctx, "&cImpossible d'obtenir ta position!");
+                sendNotification(ctx, NotificationType.ERROR, "Impossible d'obtenir ta position!");
                 return complete();
             }
 
             mine.setCorner2(loc);
             plugin.getMineManager().saveAll();
 
-            sendMessage(ctx, "&aCorner 2 de la mine &e" + mine.getId() + "&a defini!");
+            sendNotification(ctx, NotificationType.SUCCESS, "Corner 2 de la mine " + mine.getId() + " defini!");
             if (mine.isConfigured()) {
                 sendMessage(ctx, "&7Taille: &e" + mine.getTotalBlocks() + " blocs");
             }
@@ -345,12 +343,12 @@ public class PrisonAdminCommand extends PrisonCommand {
             Mine mine = plugin.getMineManager().getMine(mineId);
 
             if (mine == null) {
-                sendMessage(ctx, "&cMine &e" + mineId + "&c introuvable!");
+                sendNotification(ctx, NotificationType.ERROR, "Mine " + mineId + " introuvable!");
                 return complete();
             }
 
             plugin.getMineManager().resetMine(mine);
-            sendMessage(ctx, "&aMine &e" + mine.getId() + "&a reinitialisee!");
+            sendNotification(ctx, NotificationType.SUCCESS, "Mine " + mine.getId() + " reinitialisee!");
 
             return complete();
         }
@@ -376,14 +374,14 @@ public class PrisonAdminCommand extends PrisonCommand {
 
             Mine mine = plugin.getMineManager().getMine(mineId);
             if (mine == null) {
-                sendMessage(ctx, "&cMine &e" + mineId + "&c introuvable!");
+                sendNotification(ctx, NotificationType.ERROR, "Mine " + mineId + " introuvable!");
                 return complete();
             }
 
             mine.addBlock(blockType, percentage);
             plugin.getMineManager().saveAll();
 
-            sendMessage(ctx, "&aBloc &e" + blockType + "&a ajoute a la mine &e" + mine.getId() + "&a avec &e" + percentage + "%");
+            sendNotification(ctx, NotificationType.SUCCESS, "Bloc " + blockType + " ajoute a la mine " + mine.getId() + " avec " + percentage + "%");
             showMineComposition(ctx, mine);
 
             return complete();
@@ -415,14 +413,14 @@ public class PrisonAdminCommand extends PrisonCommand {
             Mine mine = plugin.getMineManager().getMine(mineId);
 
             if (mine == null) {
-                sendMessage(ctx, "&cMine &e" + mineId + "&c introuvable!");
+                sendNotification(ctx, NotificationType.ERROR, "Mine " + mineId + " introuvable!");
                 return complete();
             }
 
             mine.getComposition().clear();
             plugin.getMineManager().saveAll();
 
-            sendMessage(ctx, "&aComposition de la mine &e" + mine.getId() + "&a videe!");
+            sendNotification(ctx, NotificationType.SUCCESS, "Composition de la mine " + mine.getId() + " videe!");
             return complete();
         }
     }
@@ -441,21 +439,21 @@ public class PrisonAdminCommand extends PrisonCommand {
             Mine mine = plugin.getMineManager().getMine(mineId);
 
             if (mine == null) {
-                sendMessage(ctx, "&cMine &e" + mineId + "&c introuvable!");
+                sendNotification(ctx, NotificationType.ERROR, "Mine " + mineId + " introuvable!");
                 return complete();
             }
 
             if (!mine.isConfigured()) {
-                sendMessage(ctx, "&cLa mine n'est pas configuree! Definis d'abord corner1 et corner2.");
+                sendNotification(ctx, NotificationType.ERROR, "La mine n'est pas configuree! Definis d'abord corner1 et corner2.");
                 return complete();
             }
 
-            sendMessage(ctx, "&7Scan de la mine en cours...");
+            sendNotification(ctx, NotificationType.INFO, "Scan de la mine en cours...");
 
             java.util.Map<String, Integer> blockCounts = plugin.getMineManager().scanMineBlocks(mine);
 
             if (blockCounts.isEmpty()) {
-                sendMessage(ctx, "&cAucun bloc trouve dans la zone!");
+                sendNotification(ctx, NotificationType.ERROR, "Aucun bloc trouve dans la zone!");
                 return complete();
             }
 
@@ -470,8 +468,7 @@ public class PrisonAdminCommand extends PrisonCommand {
             mine.setComposition(composition);
             plugin.getMineManager().saveAll();
 
-            sendMessage(ctx, "&aComposition scannee et appliquee a la mine &e" + mine.getId() + "&a!");
-            sendMessage(ctx, "&7Total: &e" + totalBlocks + " blocs");
+            sendNotification(ctx, NotificationType.SUCCESS, "Composition scannee et appliquee a la mine " + mine.getId() + "! Total: " + totalBlocks + " blocs");
 
             return complete();
         }
@@ -491,21 +488,21 @@ public class PrisonAdminCommand extends PrisonCommand {
             Mine mine = plugin.getMineManager().getMine(mineId);
 
             if (mine == null) {
-                sendMessage(ctx, "&cMine &e" + mineId + "&c introuvable!");
+                sendNotification(ctx, NotificationType.ERROR, "Mine " + mineId + " introuvable!");
                 return complete();
             }
 
             if (!mine.isConfigured()) {
-                sendMessage(ctx, "&cLa mine n'est pas configuree! Definis d'abord corner1 et corner2.");
+                sendNotification(ctx, NotificationType.ERROR, "La mine n'est pas configuree! Definis d'abord corner1 et corner2.");
                 return complete();
             }
 
-            sendMessage(ctx, "&7Scan des layers en cours...");
+            sendNotification(ctx, NotificationType.INFO, "Scan des layers en cours...");
 
             java.util.Map<Integer, java.util.Map<String, Integer>> layerBlockCounts = plugin.getMineManager().scanMineLayers(mine);
 
             if (layerBlockCounts.isEmpty()) {
-                sendMessage(ctx, "&cAucun bloc trouve dans la zone!");
+                sendNotification(ctx, NotificationType.ERROR, "Aucun bloc trouve dans la zone!");
                 return complete();
             }
 
@@ -532,9 +529,7 @@ public class PrisonAdminCommand extends PrisonCommand {
             mine.setUseLayerComposition(true);
             plugin.getMineManager().saveAll();
 
-            sendMessage(ctx, "&aComposition par layer scannee et appliquee a la mine &e" + mine.getId() + "&a!");
-            sendMessage(ctx, "&7Layers: &e" + totalLayers + " couches");
-            sendMessage(ctx, "&7Mode layer: &aActive");
+            sendNotification(ctx, NotificationType.SUCCESS, "Composition par layer scannee et appliquee a la mine " + mine.getId() + "! " + totalLayers + " couches, mode layer active");
 
             return complete();
         }
@@ -563,14 +558,14 @@ public class PrisonAdminCommand extends PrisonCommand {
 
             Mine mine = plugin.getMineManager().getMine(mineId);
             if (mine == null) {
-                sendMessage(ctx, "&cMine &e" + mineId + "&c introuvable!");
+                sendNotification(ctx, NotificationType.ERROR, "Mine " + mineId + " introuvable!");
                 return complete();
             }
 
             mine.addBlockToLayer(layer, blockType, percentage);
             plugin.getMineManager().saveAll();
 
-            sendMessage(ctx, "&aBloc &e" + blockType + "&a ajoute au layer &e" + layer + "&a avec &e" + percentage + "%");
+            sendNotification(ctx, NotificationType.SUCCESS, "Bloc " + blockType + " ajoute au layer " + layer + " avec " + percentage + "%");
 
             return complete();
         }
@@ -590,7 +585,7 @@ public class PrisonAdminCommand extends PrisonCommand {
             Mine mine = plugin.getMineManager().getMine(mineId);
 
             if (mine == null) {
-                sendMessage(ctx, "&cMine &e" + mineId + "&c introuvable!");
+                sendNotification(ctx, NotificationType.ERROR, "Mine " + mineId + " introuvable!");
                 return complete();
             }
 
@@ -598,8 +593,7 @@ public class PrisonAdminCommand extends PrisonCommand {
             mine.setUseLayerComposition(false);
             plugin.getMineManager().saveAll();
 
-            sendMessage(ctx, "&aComposition par layers videe pour la mine &e" + mine.getId() + "&a!");
-            sendMessage(ctx, "&7Mode layer: &cDesactive");
+            sendNotification(ctx, NotificationType.SUCCESS, "Composition par layers videe pour la mine " + mine.getId() + "! Mode layer desactive");
             return complete();
         }
     }
@@ -621,7 +615,7 @@ public class PrisonAdminCommand extends PrisonCommand {
 
             Mine mine = plugin.getMineManager().getMine(mineId);
             if (mine == null) {
-                sendMessage(ctx, "&cMine &e" + mineId + "&c introuvable!");
+                sendNotification(ctx, NotificationType.ERROR, "Mine " + mineId + " introuvable!");
                 return complete();
             }
 
@@ -629,9 +623,9 @@ public class PrisonAdminCommand extends PrisonCommand {
             plugin.getMineManager().saveAll();
 
             if (useLayers) {
-                sendMessage(ctx, "&aMode layer &eactive&a pour la mine &e" + mine.getId() + "&a!");
+                sendNotification(ctx, NotificationType.SUCCESS, "Mode layer active pour la mine " + mine.getId() + "!");
             } else {
-                sendMessage(ctx, "&aMode layer &cdesactive&a pour la mine &e" + mine.getId() + "&a!");
+                sendNotification(ctx, NotificationType.SUCCESS, "Mode layer desactive pour la mine " + mine.getId() + "!");
             }
 
             return complete();
@@ -659,7 +653,7 @@ public class PrisonAdminCommand extends PrisonCommand {
 
             Mine mine = plugin.getMineManager().getMine(mineId);
             if (mine == null) {
-                sendMessage(ctx, "&cMine &e" + mineId + "&c introuvable!");
+                sendNotification(ctx, NotificationType.ERROR, "Mine " + mineId + " introuvable!");
                 return complete();
             }
 
@@ -667,11 +661,11 @@ public class PrisonAdminCommand extends PrisonCommand {
             plugin.getMineManager().saveAll();
 
             if (enable) {
-                sendMessage(ctx, "&aMode naturel &eactive&a pour la mine &e" + mine.getId() + "&a!");
+                sendNotification(ctx, NotificationType.SUCCESS, "Mode naturel active pour la mine " + mine.getId() + "!");
                 sendMessage(ctx, "&7Les joueurs ne pourront casser que les blocs de la composition.");
                 sendMessage(ctx, "&7Utilise &e/pa setblockrank&7 pour definir les rangs par bloc.");
             } else {
-                sendMessage(ctx, "&aMode naturel &cdesactive&a pour la mine &e" + mine.getId() + "&a!");
+                sendNotification(ctx, NotificationType.SUCCESS, "Mode naturel desactive pour la mine " + mine.getId() + "!");
             }
 
             return complete();
@@ -698,14 +692,14 @@ public class PrisonAdminCommand extends PrisonCommand {
 
             Mine mine = plugin.getMineManager().getMine(mineId);
             if (mine == null) {
-                sendMessage(ctx, "&cMine &e" + mineId + "&c introuvable!");
+                sendNotification(ctx, NotificationType.ERROR, "Mine " + mineId + " introuvable!");
                 return complete();
             }
 
             mine.setBlockRankRequirement(blockType, rank);
             plugin.getMineManager().saveAll();
 
-            sendMessage(ctx, "&aBloc &e" + blockType + "&a necessite maintenant le rang &e" + rank + "&a pour etre casse!");
+            sendNotification(ctx, NotificationType.SUCCESS, "Bloc " + blockType + " necessite maintenant le rang " + rank + " pour etre casse!");
 
             return complete();
         }
@@ -725,14 +719,14 @@ public class PrisonAdminCommand extends PrisonCommand {
             Mine mine = plugin.getMineManager().getMine(mineId);
 
             if (mine == null) {
-                sendMessage(ctx, "&cMine &e" + mineId + "&c introuvable!");
+                sendNotification(ctx, NotificationType.ERROR, "Mine " + mineId + " introuvable!");
                 return complete();
             }
 
             mine.clearBlockRankRequirements();
             plugin.getMineManager().saveAll();
 
-            sendMessage(ctx, "&aRequirements de rang par bloc vides pour la mine &e" + mine.getId() + "&a!");
+            sendNotification(ctx, NotificationType.SUCCESS, "Requirements de rang par bloc vides pour la mine " + mine.getId() + "!");
             return complete();
         }
     }
@@ -759,7 +753,7 @@ public class PrisonAdminCommand extends PrisonCommand {
             String rankId = ctx.get(rankArg).toUpperCase();
 
             if (plugin.getConfig().getRank(rankId) == null) {
-                sendMessage(ctx, "&cRang &e" + rankId + "&c invalide!");
+                sendNotification(ctx, NotificationType.ERROR, "Rang " + rankId + " invalide!");
                 return complete();
             }
 
@@ -768,11 +762,11 @@ public class PrisonAdminCommand extends PrisonCommand {
                         for (IslandiumPlayer p : players) {
                             if (p.getName().equalsIgnoreCase(playerName)) {
                                 plugin.getRankManager().setPlayerRank(p.getUniqueId(), rankId);
-                                sendMessage(ctx, "&aRang de &e" + p.getName() + "&a defini a &e" + rankId + "&a!");
+                                sendNotification(ctx, NotificationType.SUCCESS, "Rang de " + p.getName() + " defini a " + rankId + "!");
                                 return;
                             }
                         }
-                        sendMessage(ctx, "&cJoueur &e" + playerName + "&c non trouve!");
+                        sendNotification(ctx, NotificationType.ERROR, "Joueur " + playerName + " non trouve!");
                     });
 
             return complete();
@@ -799,11 +793,11 @@ public class PrisonAdminCommand extends PrisonCommand {
                         for (IslandiumPlayer p : players) {
                             if (p.getName().equalsIgnoreCase(playerName)) {
                                 plugin.getRankManager().setPlayerPrestige(p.getUniqueId(), level);
-                                sendMessage(ctx, "&aPrestige de &e" + p.getName() + "&a defini a &e" + level + "&a!");
+                                sendNotification(ctx, NotificationType.SUCCESS, "Prestige de " + p.getName() + " defini a " + level + "!");
                                 return;
                             }
                         }
-                        sendMessage(ctx, "&cJoueur &e" + playerName + "&c non trouve!");
+                        sendNotification(ctx, NotificationType.ERROR, "Joueur " + playerName + " non trouve!");
                     });
 
             return complete();
@@ -823,13 +817,13 @@ public class PrisonAdminCommand extends PrisonCommand {
         @Override
         public CompletableFuture<Void> execute(CommandContext ctx) {
             if (!isPlayer(ctx)) {
-                sendMessage(ctx, "&cCette commande est reservee aux joueurs!");
+                sendNotification(ctx, NotificationType.ERROR, "Cette commande est reservee aux joueurs!");
                 return complete();
             }
 
             Player player = getPlayer(ctx);
             if (player == null) {
-                sendMessage(ctx, "&cErreur: Impossible de recuperer le joueur!");
+                sendNotification(ctx, NotificationType.ERROR, "Impossible de recuperer le joueur!");
                 return complete();
             }
 
@@ -847,13 +841,13 @@ public class PrisonAdminCommand extends PrisonCommand {
         @Override
         public CompletableFuture<Void> execute(CommandContext ctx) {
             if (!isPlayer(ctx)) {
-                sendMessage(ctx, "&cCette commande est reservee aux joueurs!");
+                sendNotification(ctx, NotificationType.ERROR, "Cette commande est reservee aux joueurs!");
                 return complete();
             }
 
             Player player = getPlayer(ctx);
             if (player == null) {
-                sendMessage(ctx, "&cErreur: Impossible de recuperer le joueur!");
+                sendNotification(ctx, NotificationType.ERROR, "Impossible de recuperer le joueur!");
                 return complete();
             }
 
@@ -875,9 +869,9 @@ public class PrisonAdminCommand extends PrisonCommand {
         public CompletableFuture<Void> execute(CommandContext ctx) {
             try {
                 plugin.getConfig().load();
-                sendMessage(ctx, "&aConfiguration rechargee!");
+                sendNotification(ctx, NotificationType.SUCCESS, "Configuration rechargee!");
             } catch (Exception e) {
-                sendMessage(ctx, "&cErreur lors du rechargement: " + e.getMessage());
+                sendNotification(ctx, NotificationType.ERROR, "Erreur lors du rechargement: " + e.getMessage());
             }
             return complete();
         }
@@ -893,7 +887,7 @@ public class PrisonAdminCommand extends PrisonCommand {
             plugin.getMineManager().saveAll();
             plugin.getRankManager().saveAll();
             // cellManager.saveAll() -> islandium-cells
-            sendMessage(ctx, "&aDonnees sauvegardees!");
+            sendNotification(ctx, NotificationType.SUCCESS, "Donnees sauvegardees!");
             return complete();
         }
     }

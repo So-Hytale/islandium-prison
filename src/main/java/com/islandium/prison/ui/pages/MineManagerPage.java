@@ -2,6 +2,8 @@ package com.islandium.prison.ui.pages;
 
 import com.islandium.core.api.location.ServerLocation;
 import com.islandium.core.api.player.IslandiumPlayer;
+import com.islandium.core.api.util.NotificationType;
+import com.islandium.core.api.util.NotificationUtil;
 import com.islandium.prison.PrisonPlugin;
 import com.islandium.prison.mine.Mine;
 import com.hypixel.hytale.codec.Codec;
@@ -16,7 +18,6 @@ import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
 import com.hypixel.hytale.protocol.packets.player.ClearDebugShapes;
 import com.hypixel.hytale.protocol.packets.player.DisplayDebug;
-import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
 import com.hypixel.hytale.server.core.ui.builder.EventData;
@@ -425,7 +426,7 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
 
                 refreshPage(cmd, event);
                 sendUpdate(cmd, event, false);
-                player.sendMessage(Message.raw("[Prison] Bloc " + blockType + (nowEnabled ? " active" : " desactive")));
+                NotificationUtil.send(player, NotificationType.INFO, "Bloc " + blockType + (nowEnabled ? " active" : " desactive"));
             }
             return;
         }
@@ -458,7 +459,7 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                 editingBlockType = null; // Fermer l'éditeur
                 refreshPage(cmd, event);
                 sendUpdate(cmd, event, false);
-                player.sendMessage(Message.raw("[Prison] Limites appliquees pour " + blockType));
+                NotificationUtil.send(player, NotificationType.INFO, "Limites appliquees pour " + blockType);
             }
             return;
         }
@@ -473,7 +474,7 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                 editingBlockType = null; // Fermer l'éditeur
                 refreshPage(cmd, event);
                 sendUpdate(cmd, event, false);
-                player.sendMessage(Message.raw("[Prison] Limites effacees pour " + blockType));
+                NotificationUtil.send(player, NotificationType.INFO, "Limites effacees pour " + blockType);
             }
             return;
         }
@@ -520,7 +521,7 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
 
                 refreshPage(cmd, event);
                 sendUpdate(cmd, event, false);
-                player.sendMessage(Message.raw("[Prison] Bloc " + removedBlock + " retire. Nom copie dans le champ."));
+                NotificationUtil.send(player, NotificationType.SUCCESS, "Bloc " + removedBlock + " retire. Nom copie dans le champ.");
             }
             return;
         }
@@ -640,7 +641,7 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                     String rank = data.newMineRank != null && !data.newMineRank.isBlank() ? data.newMineRank : mineId;
 
                     if (plugin.getMineManager().getMine(mineId) != null) {
-                        player.sendMessage(Message.raw("[Prison] Une mine avec cet ID existe deja!"));
+                        NotificationUtil.send(player, NotificationType.ERROR, "Une mine avec cet ID existe deja!");
                         return;
                     }
 
@@ -650,14 +651,14 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                     plugin.getMineManager().addMine(mine);
                     plugin.getMineManager().saveMine(mine);
 
-                    player.sendMessage(Message.raw("[Prison] Mine '" + displayName + "' creee avec succes!"));
+                    NotificationUtil.send(player, NotificationType.SUCCESS, "Mine '" + displayName + "' creee avec succes!");
 
                     createMode = false;
                     selectedMineId = mineId;
                     refreshPage(cmd, event);
                     sendUpdate(cmd, event, false);
                 } else {
-                    player.sendMessage(Message.raw("[Prison] Veuillez specifier un ID pour la mine."));
+                    NotificationUtil.send(player, NotificationType.ERROR, "Veuillez specifier un ID pour la mine.");
                 }
             }
 
@@ -683,7 +684,7 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                             mine.setHeight(10);
                         }
                         plugin.getMineManager().saveMine(mine);
-                        player.sendMessage(Message.raw("[Prison] Forme changee en Cylindre."));
+                        NotificationUtil.send(player, NotificationType.SUCCESS, "Forme changee en Cylindre.");
                         refreshPage(cmd, event);
                         sendUpdate(cmd, event, false);
                     }
@@ -708,7 +709,7 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                         mine.setRadius(0);
                         mine.setHeight(0);
                         plugin.getMineManager().saveMine(mine);
-                        player.sendMessage(Message.raw("[Prison] Forme changee en Cuboid."));
+                        NotificationUtil.send(player, NotificationType.SUCCESS, "Forme changee en Cuboid.");
                         refreshPage(cmd, event);
                         sendUpdate(cmd, event, false);
                     }
@@ -722,13 +723,13 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                             .orElse(null);
 
                     if (islandiumPlayer == null) {
-                        player.sendMessage(Message.raw("[Prison] Impossible d'obtenir votre position."));
+                        NotificationUtil.send(player, NotificationType.ERROR, "Impossible d'obtenir votre position.");
                         return;
                     }
 
                     ServerLocation loc = islandiumPlayer.getLocation();
                     if (loc == null) {
-                        player.sendMessage(Message.raw("[Prison] Impossible d'obtenir votre position."));
+                        NotificationUtil.send(player, NotificationType.ERROR, "Impossible d'obtenir votre position.");
                         return;
                     }
 
@@ -737,16 +738,16 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                         switch (data.action) {
                             case "setCorner1" -> {
                                 mine.setCorner1(loc);
-                                player.sendMessage(Message.raw(String.format("[Prison] Coin 1 defini a %.0f, %.0f, %.0f", loc.x(), loc.y(), loc.z())));
+                                NotificationUtil.send(player, NotificationType.SUCCESS, String.format("Coin 1 defini a %.0f, %.0f, %.0f", loc.x(), loc.y(), loc.z()));
                             }
                             case "setCorner2" -> {
                                 mine.setCorner2(loc);
-                                player.sendMessage(Message.raw(String.format("[Prison] Coin 2 defini a %.0f, %.0f, %.0f", loc.x(), loc.y(), loc.z())));
+                                NotificationUtil.send(player, NotificationType.SUCCESS, String.format("Coin 2 defini a %.0f, %.0f, %.0f", loc.x(), loc.y(), loc.z()));
                             }
                             case "setSpawn" -> {
                                 // Le spawn peut être défini indépendamment du centre (cylindre ou cuboid)
                                 mine.setSpawnPoint(loc);
-                                player.sendMessage(Message.raw(String.format("[Prison] Spawn defini a %.0f, %.0f, %.0f", loc.x(), loc.y(), loc.z())));
+                                NotificationUtil.send(player, NotificationType.SUCCESS, String.format("Spawn defini a %.0f, %.0f, %.0f", loc.x(), loc.y(), loc.z()));
                             }
                             case "setCenter" -> {
                                 // Arrondir aux coordonnées de bloc pour éviter les décalages
@@ -762,9 +763,9 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                                 // Forcer la mise à jour du spawn au centre (écrase l'ancien spawn)
                                 mine.updateSpawnToCenter();
                                 ServerLocation newSpawn = mine.getSpawnPoint();
-                                player.sendMessage(Message.raw(String.format("[Prison] Centre defini a %.0f, %.0f, %.0f", blockLoc.x(), blockLoc.y(), blockLoc.z())));
+                                NotificationUtil.send(player, NotificationType.SUCCESS, String.format("Centre defini a %.0f, %.0f, %.0f", blockLoc.x(), blockLoc.y(), blockLoc.z()));
                                 if (newSpawn != null) {
-                                    player.sendMessage(Message.raw(String.format("[Prison] Spawn auto: %.2f, %.2f, %.2f", newSpawn.x(), newSpawn.y(), newSpawn.z())));
+                                    NotificationUtil.send(player, NotificationType.INFO, String.format("Spawn auto: %.2f, %.2f, %.2f", newSpawn.x(), newSpawn.y(), newSpawn.z()));
                                 }
                                 // Effacer l'ancienne visualisation et en afficher une nouvelle
                                 clearVisualization(player);
@@ -787,7 +788,7 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                     if (mine != null) {
                         plugin.log(java.util.logging.Level.INFO, "[MineManagerPage] >>> RESET calling resetMine()...");
                         plugin.getMineManager().resetMine(mine);
-                        player.sendMessage(Message.raw("[Prison] Mine '" + mine.getDisplayName() + "' reset!"));
+                        NotificationUtil.send(player, NotificationType.SUCCESS, "Mine '" + mine.getDisplayName() + "' reset!");
                         // rebuild() car appendInline ne fonctionne pas dans sendUpdate
                         rebuild();
                         plugin.log(java.util.logging.Level.INFO, "[MineManagerPage] >>> RESET done, rebuild() called");
@@ -805,13 +806,13 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                     if (mine != null && mine.isConfigured()) {
                         plugin.log(java.util.logging.Level.INFO, "[MineManagerPage] >>> CLEAR calling clearMine()...");
                         plugin.getMineManager().clearMine(mine);
-                        player.sendMessage(Message.raw("[Prison] Zone de la mine '" + mine.getDisplayName() + "' videe!"));
+                        NotificationUtil.send(player, NotificationType.INFO, "Zone de la mine '" + mine.getDisplayName() + "' videe!");
                         // rebuild() car appendInline ne fonctionne pas dans sendUpdate
                         rebuild();
                         plugin.log(java.util.logging.Level.INFO, "[MineManagerPage] >>> CLEAR done, rebuild() called");
                     } else {
                         plugin.log(java.util.logging.Level.WARNING, "[MineManagerPage] >>> CLEAR FAILED: mine not configured!");
-                        player.sendMessage(Message.raw("[Prison] La mine n'est pas configuree."));
+                        NotificationUtil.send(player, NotificationType.ERROR, "La mine n'est pas configuree.");
                     }
                 } else {
                     plugin.log(java.util.logging.Level.WARNING, "[MineManagerPage] >>> CLEAR FAILED: selectedMineId is null!");
@@ -832,14 +833,14 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                                 mine.addBlock(entry.getKey(), Math.round(percent * 10.0) / 10.0);
                             }
                             plugin.getMineManager().saveMine(mine);
-                            player.sendMessage(Message.raw("[Prison] Mine scannee! " + blocks.size() + " types de blocs trouves."));
+                            NotificationUtil.send(player, NotificationType.INFO, "Mine scannee! " + blocks.size() + " types de blocs trouves.");
                             refreshPage(cmd, event);
                             sendUpdate(cmd, event, false);
                         } else {
-                            player.sendMessage(Message.raw("[Prison] Aucun bloc trouve dans la mine."));
+                            NotificationUtil.send(player, NotificationType.WARNING, "Aucun bloc trouve dans la mine.");
                         }
                     } else {
-                        player.sendMessage(Message.raw("[Prison] La mine n'est pas configuree (coins manquants)."));
+                        NotificationUtil.send(player, NotificationType.ERROR, "La mine n'est pas configuree (coins manquants).");
                     }
                 }
             }
@@ -860,18 +861,18 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                                     com.hypixel.hytale.math.vector.Vector3f currentRotation = transform.getRotation().clone();
                                     Teleport teleport = new Teleport(targetPos, currentRotation);
                                     entityStore.addComponent(entityRef, Teleport.getComponentType(), teleport);
-                                    player.sendMessage(Message.raw("[Prison] Teleporte a la mine " + mine.getDisplayName()));
+                                    NotificationUtil.send(player, NotificationType.INFO, "Teleporte a la mine " + mine.getDisplayName());
                                 } else {
-                                    player.sendMessage(Message.raw("[Prison] Erreur: transform null"));
+                                    NotificationUtil.send(player, NotificationType.ERROR, "Erreur: transform null");
                                 }
                             } else {
-                                player.sendMessage(Message.raw("[Prison] Erreur: ref invalide"));
+                                NotificationUtil.send(player, NotificationType.ERROR, "Erreur: ref invalide");
                             }
                         } catch (Exception e) {
-                            player.sendMessage(Message.raw("[Prison] Erreur teleportation: " + e.getMessage()));
+                            NotificationUtil.send(player, NotificationType.ERROR, "Erreur teleportation: " + e.getMessage());
                         }
                     } else {
-                        player.sendMessage(Message.raw("[Prison] Cette mine n'a pas de point de spawn defini."));
+                        NotificationUtil.send(player, NotificationType.ERROR, "Cette mine n'a pas de point de spawn defini.");
                     }
                 }
             }
@@ -884,10 +885,10 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                         visualizationActive = !visualizationActive;
                         if (visualizationActive) {
                             sendMineVisualization(player, mine);
-                            player.sendMessage(Message.raw("[Prison] Visualisation activee (5 min)."));
+                            NotificationUtil.send(player, NotificationType.INFO, "Visualisation activee (5 min).");
                         } else {
                             clearVisualization(player);
-                            player.sendMessage(Message.raw("[Prison] Visualisation desactivee."));
+                            NotificationUtil.send(player, NotificationType.INFO, "Visualisation desactivee.");
                         }
                     }
                 }
@@ -899,9 +900,9 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                     if (mine != null && mine.hasVillageZone()) {
                         clearVisualization(player);
                         sendVillageVisualization(player, mine);
-                        player.sendMessage(Message.raw("[Prison] Visualisation village activee (5 min)."));
+                        NotificationUtil.send(player, NotificationType.INFO, "Visualisation village activee (5 min).");
                     } else {
-                        player.sendMessage(Message.raw("[Prison] Village margin est a 0 pour cette mine."));
+                        NotificationUtil.send(player, NotificationType.WARNING, "Village margin est a 0 pour cette mine.");
                     }
                 }
             }
@@ -920,7 +921,7 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                         // NOTE: Le rayon et la hauteur sont gérés par les events ValueChanged
                         // Le bouton Save ne modifie que displayName et requiredRank
                         plugin.getMineManager().saveMine(mine);
-                        player.sendMessage(Message.raw("[Prison] Mine sauvegardee!"));
+                        NotificationUtil.send(player, NotificationType.SUCCESS, "Mine sauvegardee!");
                         refreshPage(cmd, event);
                         sendUpdate(cmd, event, false);
                     }
@@ -932,7 +933,7 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                     Mine mine = plugin.getMineManager().getMine(selectedMineId);
                     if (mine != null) {
                         plugin.getMineManager().removeMine(selectedMineId);
-                        player.sendMessage(Message.raw("[Prison] Mine '" + mine.getDisplayName() + "' supprimee!"));
+                        NotificationUtil.send(player, NotificationType.SUCCESS, "Mine '" + mine.getDisplayName() + "' supprimee!");
                         selectedMineId = null;
                         refreshPage(cmd, event);
                         sendUpdate(cmd, event, false);
@@ -952,7 +953,7 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                         }
                         mine.addBlock(data.blockType, percent);
                         plugin.getMineManager().saveMine(mine);
-                        player.sendMessage(Message.raw("[Prison] Bloc " + data.blockType + " ajoute (" + percent + "%)"));
+                        NotificationUtil.send(player, NotificationType.SUCCESS, "Bloc " + data.blockType + " ajoute (" + percent + "%)");
 
                         // Clear les champs
                         cmd.set("#BlockTypeField.Value", "");
@@ -973,12 +974,12 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                         String blockId = mainHand.getItemId();
                         cmd.set("#BlockTypeField.Value", blockId);
                         sendUpdate(cmd, event, false);
-                        player.sendMessage(Message.raw("[Prison] Bloc selectionne: " + blockId));
+                        NotificationUtil.send(player, NotificationType.INFO, "Bloc selectionne: " + blockId);
                     } else {
-                        player.sendMessage(Message.raw("[Prison] Vous ne tenez aucun bloc en main!"));
+                        NotificationUtil.send(player, NotificationType.ERROR, "Vous ne tenez aucun bloc en main!");
                     }
                 } else {
-                    player.sendMessage(Message.raw("[Prison] Impossible de lire l'inventaire."));
+                    NotificationUtil.send(player, NotificationType.ERROR, "Impossible de lire l'inventaire.");
                 }
             }
 
@@ -995,7 +996,7 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                         }
                         mine.addBlock("air", percent);
                         plugin.getMineManager().saveMine(mine);
-                        player.sendMessage(Message.raw("[Prison] Air ajoute (" + percent + "%)"));
+                        NotificationUtil.send(player, NotificationType.SUCCESS, "Air ajoute (" + percent + "%)");
                         refreshPage(cmd, event);
                         sendUpdate(cmd, event, false);
                     }
@@ -1062,14 +1063,14 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
         connection.write(new ClearDebugShapes());
         connection.write(new ClearDebugShapes());
 
-        player.sendMessage(Message.raw("[DEBUG] Visualisation rafraichie"));
+        NotificationUtil.send(player, NotificationType.INFO, "[DEBUG] Visualisation rafraichie");
 
         if (mine.isCylindrical()) {
             // Visualiser un cylindre
             if (mine.getCenter() != null) {
                 sendCylinderVisualization(player, mine);
             } else {
-                player.sendMessage(Message.raw("[Prison] Le centre du cylindre n'est pas defini."));
+                NotificationUtil.send(player, NotificationType.ERROR, "Le centre du cylindre n'est pas defini.");
                 visualizationActive = false;
             }
         } else {
@@ -1077,7 +1078,7 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
             if (mine.getCorner1() != null && mine.getCorner2() != null) {
                 sendCuboidVisualization(player, mine);
             } else {
-                player.sendMessage(Message.raw("[Prison] Les coins de la mine ne sont pas definis."));
+                NotificationUtil.send(player, NotificationType.ERROR, "Les coins de la mine ne sont pas definis.");
                 visualizationActive = false;
             }
         }
@@ -1340,7 +1341,7 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
             connection.write(packet);
         }
 
-        player.sendMessage(Message.raw("[Prison] Village: " + packets.size() + " elements affiches."));
+        NotificationUtil.send(player, NotificationType.INFO, "Village: " + packets.size() + " elements affiches.");
     }
 
     /**

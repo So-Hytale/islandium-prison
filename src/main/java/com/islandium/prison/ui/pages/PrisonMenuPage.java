@@ -3,6 +3,8 @@ package com.islandium.prison.ui.pages;
 import com.islandium.core.api.IslandiumAPI;
 import com.islandium.core.api.economy.EconomyService;
 import com.islandium.core.api.player.IslandiumPlayer;
+import com.islandium.core.api.util.NotificationType;
+import com.islandium.core.api.util.NotificationUtil;
 import com.islandium.prison.PrisonPlugin;
 import com.islandium.prison.config.PrisonConfig;
 import com.islandium.prison.economy.SellService;
@@ -22,7 +24,6 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
-import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
 import com.hypixel.hytale.server.core.inventory.Inventory;
@@ -1061,7 +1062,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                     plugin.getCore().getTeleportService().teleportWithWarmup(
                         islandiumPlayer,
                         mine.getSpawnPoint(),
-                        () -> player.sendMessage(Message.raw("Teleporte a la mine " + mine.getDisplayName() + "!"))
+                        () -> NotificationUtil.send(player, NotificationType.INFO, "Teleporte a la mine " + mine.getDisplayName() + "!")
                     );
                 }
             }
@@ -1100,9 +1101,9 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                 case "sellAll" -> {
                     SellService.SellResult result = plugin.getSellService().sellFromInventory(uuid, player, null);
                     if (result.isEmpty()) {
-                        player.sendMessage(Message.raw("Rien a vendre dans ton inventaire!"));
+                        NotificationUtil.send(player, NotificationType.WARNING, "Rien a vendre dans ton inventaire!");
                     } else {
-                        player.sendMessage(Message.raw("Vendu " + result.getTotalBlocksSold() + " blocs pour " + SellService.formatMoney(result.getTotalEarned()) + "!"));
+                        NotificationUtil.send(player, NotificationType.SUCCESS, "Vendu " + result.getTotalBlocksSold() + " blocs pour " + SellService.formatMoney(result.getTotalEarned()) + "!");
                     }
                     // Rebuild la page vendre pour rafraichir
                     buildVendrePage(cmd, event, player);
@@ -1114,15 +1115,15 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                     switch (result) {
                         case SUCCESS -> {
                             String newRank = plugin.getRankManager().getPlayerRank(uuid);
-                            player.sendMessage(Message.raw("Rankup! Tu es maintenant rang " + newRank + "!"));
+                            NotificationUtil.send(player, NotificationType.SUCCESS, "Rankup! Tu es maintenant rang " + newRank + "!");
                             buildRangPage(cmd, event);
                             sendUpdate(cmd, event, false);
                         }
-                        case NOT_ENOUGH_MONEY -> player.sendMessage(Message.raw("Pas assez d'argent!"));
-                        case MAX_RANK -> player.sendMessage(Message.raw("Tu es deja au rang maximum!"));
+                        case NOT_ENOUGH_MONEY -> NotificationUtil.send(player, NotificationType.ERROR, "Pas assez d'argent!");
+                        case MAX_RANK -> NotificationUtil.send(player, NotificationType.ERROR, "Tu es deja au rang maximum!");
                         case CHALLENGES_INCOMPLETE -> {
                             int completed = plugin.getChallengeManager().getCompletedCount(uuid, plugin.getRankManager().getPlayerRank(uuid));
-                            player.sendMessage(Message.raw("Defis incomplets! (" + completed + "/9) - Complete tes defis pour rankup."));
+                            NotificationUtil.send(player, NotificationType.WARNING, "Defis incomplets! (" + completed + "/9) - Complete tes defis pour rankup.");
                         }
                     }
                     return;
@@ -1131,7 +1132,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                     int count = plugin.getRankManager().maxRankup(uuid);
                     if (count > 0) {
                         String newRank = plugin.getRankManager().getPlayerRank(uuid);
-                        player.sendMessage(Message.raw("Max Rankup! +" + count + " rangs -> " + newRank));
+                        NotificationUtil.send(player, NotificationType.SUCCESS, "Max Rankup! +" + count + " rangs -> " + newRank);
                         buildRangPage(cmd, event);
                         sendUpdate(cmd, event, false);
                     } else {
@@ -1140,9 +1141,9 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                         boolean challengesDone = plugin.getChallengeManager().areAllChallengesComplete(uuid, currentRankId);
                         if (!challengesDone) {
                             int completed = plugin.getChallengeManager().getCompletedCount(uuid, currentRankId);
-                            player.sendMessage(Message.raw("Defis incomplets! (" + completed + "/9) - Complete tes defis pour rankup."));
+                            NotificationUtil.send(player, NotificationType.WARNING, "Defis incomplets! (" + completed + "/9) - Complete tes defis pour rankup.");
                         } else {
-                            player.sendMessage(Message.raw("Impossible de rankup (pas assez d'argent ou rang max)!"));
+                            NotificationUtil.send(player, NotificationType.ERROR, "Impossible de rankup (pas assez d'argent ou rang max)!");
                         }
                     }
                     return;
@@ -1152,13 +1153,13 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                         ChallengeManager cm = plugin.getChallengeManager();
                         int result = cm.trySubmitItems(uuid, data.challengeId, player);
                         switch (result) {
-                            case 0 -> player.sendMessage(Message.raw("Challenge valide! Items soumis avec succes."));
+                            case 0 -> NotificationUtil.send(player, NotificationType.SUCCESS, "Challenge valide! Items soumis avec succes.");
                             case 1 -> {
                                 List<String> missing = cm.getMissingItems(uuid, data.challengeId, player);
-                                player.sendMessage(Message.raw("Items manquants: " + String.join(", ", missing)));
+                                NotificationUtil.send(player, NotificationType.WARNING, "Items manquants: " + String.join(", ", missing));
                             }
-                            case 2 -> player.sendMessage(Message.raw("Ce challenge n'est pas de type soumission."));
-                            case 3 -> player.sendMessage(Message.raw("Ce challenge est deja termine!"));
+                            case 2 -> NotificationUtil.send(player, NotificationType.ERROR, "Ce challenge n'est pas de type soumission.");
+                            case 3 -> NotificationUtil.send(player, NotificationType.WARNING, "Ce challenge est deja termine!");
                         }
                         // Refresh defis page
                         buildDefisPageForRank(cmd, event, viewingDefiRank);
@@ -1171,15 +1172,15 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                     switch (result) {
                         case SUCCESS -> {
                             String newRank = plugin.getRankManager().getPlayerRank(uuid);
-                            player.sendMessage(Message.raw("Rankup! Tu es maintenant rang " + newRank + "!"));
+                            NotificationUtil.send(player, NotificationType.SUCCESS, "Rankup! Tu es maintenant rang " + newRank + "!");
                             buildDefisPage(cmd, event);
                             sendUpdate(cmd, event, false);
                         }
-                        case NOT_ENOUGH_MONEY -> player.sendMessage(Message.raw("Pas assez d'argent!"));
-                        case MAX_RANK -> player.sendMessage(Message.raw("Tu es deja au rang maximum!"));
+                        case NOT_ENOUGH_MONEY -> NotificationUtil.send(player, NotificationType.ERROR, "Pas assez d'argent!");
+                        case MAX_RANK -> NotificationUtil.send(player, NotificationType.ERROR, "Tu es deja au rang maximum!");
                         case CHALLENGES_INCOMPLETE -> {
                             int completed = plugin.getChallengeManager().getCompletedCount(uuid, plugin.getRankManager().getPlayerRank(uuid));
-                            player.sendMessage(Message.raw("Defis incomplets! (" + completed + "/9) - Complete tes defis pour rankup."));
+                            NotificationUtil.send(player, NotificationType.WARNING, "Defis incomplets! (" + completed + "/9) - Complete tes defis pour rankup.");
                         }
                     }
                     return;
@@ -1187,22 +1188,22 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                 case "defiPrestige" -> {
                     if (plugin.getRankManager().prestige(uuid)) {
                         int newPrestige = plugin.getRankManager().getPlayerPrestige(uuid);
-                        player.sendMessage(Message.raw("Prestige! Tu es maintenant Prestige " + newPrestige + "!"));
+                        NotificationUtil.send(player, NotificationType.SUCCESS, "Prestige! Tu es maintenant Prestige " + newPrestige + "!");
                         buildDefisPage(cmd, event);
                         sendUpdate(cmd, event, false);
                     } else {
-                        player.sendMessage(Message.raw("Tu dois etre rang FREE pour prestige!"));
+                        NotificationUtil.send(player, NotificationType.ERROR, "Tu dois etre rang FREE pour prestige!");
                     }
                     return;
                 }
                 case "prestige" -> {
                     if (plugin.getRankManager().prestige(uuid)) {
                         int newPrestige = plugin.getRankManager().getPlayerPrestige(uuid);
-                        player.sendMessage(Message.raw("Prestige! Tu es maintenant Prestige " + newPrestige + "!"));
+                        NotificationUtil.send(player, NotificationType.SUCCESS, "Prestige! Tu es maintenant Prestige " + newPrestige + "!");
                         buildRangPage(cmd, event);
                         sendUpdate(cmd, event, false);
                     } else {
-                        player.sendMessage(Message.raw("Tu dois etre rang FREE pour prestige!"));
+                        NotificationUtil.send(player, NotificationType.ERROR, "Tu dois etre rang FREE pour prestige!");
                     }
                     return;
                 }
@@ -1211,12 +1212,12 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                     switch (result) {
                         case SUCCESS -> {
                             int lvl = plugin.getStatsManager().getFortuneLevel(uuid);
-                            player.sendMessage(Message.raw("Fortune amelioree au niveau " + lvl + "!"));
+                            NotificationUtil.send(player, NotificationType.SUCCESS, "Fortune amelioree au niveau " + lvl + "!");
                             buildUpgradesPage(cmd, event);
                             sendUpdate(cmd, event, false);
                         }
-                        case NOT_ENOUGH_MONEY -> player.sendMessage(Message.raw("Pas assez d'argent!"));
-                        case MAX_LEVEL -> player.sendMessage(Message.raw("Fortune deja au niveau max!"));
+                        case NOT_ENOUGH_MONEY -> NotificationUtil.send(player, NotificationType.ERROR, "Pas assez d'argent!");
+                        case MAX_LEVEL -> NotificationUtil.send(player, NotificationType.ERROR, "Fortune deja au niveau max!");
                     }
                     return;
                 }
@@ -1225,24 +1226,24 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                     switch (result) {
                         case SUCCESS -> {
                             int lvl = plugin.getStatsManager().getEfficiencyLevel(uuid);
-                            player.sendMessage(Message.raw("Efficacite amelioree au niveau " + lvl + "!"));
+                            NotificationUtil.send(player, NotificationType.SUCCESS, "Efficacite amelioree au niveau " + lvl + "!");
                             buildUpgradesPage(cmd, event);
                             sendUpdate(cmd, event, false);
                         }
-                        case NOT_ENOUGH_MONEY -> player.sendMessage(Message.raw("Pas assez d'argent!"));
-                        case MAX_LEVEL -> player.sendMessage(Message.raw("Efficacite deja au niveau max!"));
+                        case NOT_ENOUGH_MONEY -> NotificationUtil.send(player, NotificationType.ERROR, "Pas assez d'argent!");
+                        case MAX_LEVEL -> NotificationUtil.send(player, NotificationType.ERROR, "Efficacite deja au niveau max!");
                     }
                     return;
                 }
                 case "autoSell" -> {
                     if (plugin.getStatsManager().hasAutoSell(uuid)) {
                         boolean enabled = plugin.getUpgradeManager().toggleAutoSell(uuid);
-                        player.sendMessage(Message.raw("Auto-Sell " + (enabled ? "active!" : "desactive!")));
+                        NotificationUtil.send(player, NotificationType.SUCCESS, "Auto-Sell " + (enabled ? "active!" : "desactive!"));
                     } else {
                         PickaxeUpgradeManager.UpgradeResult result = plugin.getUpgradeManager().purchaseAutoSell(uuid);
                         switch (result) {
-                            case SUCCESS -> player.sendMessage(Message.raw("Auto-Sell achete et active!"));
-                            case NOT_ENOUGH_MONEY -> player.sendMessage(Message.raw("Pas assez d'argent!"));
+                            case SUCCESS -> NotificationUtil.send(player, NotificationType.SUCCESS, "Auto-Sell achete et active!");
+                            case NOT_ENOUGH_MONEY -> NotificationUtil.send(player, NotificationType.ERROR, "Pas assez d'argent!");
                             default -> {}
                         }
                     }

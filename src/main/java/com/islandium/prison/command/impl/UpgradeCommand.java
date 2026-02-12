@@ -3,6 +3,7 @@ package com.islandium.prison.command.impl;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.arguments.system.OptionalArg;
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
+import com.islandium.core.api.util.NotificationType;
 import com.islandium.prison.PrisonPlugin;
 import com.islandium.prison.command.base.PrisonCommand;
 import com.islandium.prison.economy.SellService;
@@ -36,12 +37,12 @@ public class UpgradeCommand extends PrisonCommand {
     @Override
     public CompletableFuture<Void> execute(CommandContext ctx) {
         if (!isPlayer(ctx)) {
-            sendMessage(ctx, "&cCette commande est réservée aux joueurs!");
+            sendNotification(ctx, NotificationType.ERROR, "Cette commande est reservee aux joueurs!");
             return complete();
         }
 
         if (!hasPermission(ctx, "prison.upgrade")) {
-            sendMessage(ctx, "&cTu n'as pas la permission!");
+            sendNotification(ctx, NotificationType.ERROR, "Tu n'as pas la permission!");
             return complete();
         }
 
@@ -73,7 +74,7 @@ public class UpgradeCommand extends PrisonCommand {
                 break;
 
             default:
-                sendMessage(ctx, "&cUsage: /upgrade [fortune|efficiency|autosell]");
+                sendNotification(ctx, NotificationType.WARNING, "Usage: /upgrade [fortune|efficiency|autosell]");
                 break;
         }
 
@@ -145,20 +146,17 @@ public class UpgradeCommand extends PrisonCommand {
         switch (result) {
             case SUCCESS:
                 int newLevel = plugin.getStatsManager().getFortuneLevel(uuid);
-                sendMessage(ctx, plugin.getConfig().getMessage("prefix")
-                        + "&a⛏ Fortune améliorée au niveau &e" + newLevel + "&a!");
+                sendNotification(ctx, NotificationType.SUCCESS, "Fortune amelioree au niveau " + newLevel + "!");
                 sendMessage(ctx, "   " + plugin.getUpgradeManager().getFortuneDescription(newLevel));
                 break;
 
             case MAX_LEVEL:
-                sendMessage(ctx, plugin.getConfig().getMessage("prefix")
-                        + "&cTu as déjà atteint le niveau maximum de Fortune!");
+                sendNotification(ctx, NotificationType.ERROR, "Tu as deja atteint le niveau maximum de Fortune!");
                 break;
 
             case NOT_ENOUGH_MONEY:
                 BigDecimal price = plugin.getUpgradeManager().getFortuneNextPrice(uuid);
-                sendMessage(ctx, plugin.getConfig().getMessage("prefix")
-                        + "&cPas assez d'argent! Il te faut &e" + SellService.formatMoney(price) + "&c.");
+                sendNotification(ctx, NotificationType.ERROR, "Pas assez d'argent! Il te faut " + SellService.formatMoney(price) + ".");
                 break;
         }
     }
@@ -172,20 +170,17 @@ public class UpgradeCommand extends PrisonCommand {
         switch (result) {
             case SUCCESS:
                 int newLevel = plugin.getStatsManager().getEfficiencyLevel(uuid);
-                sendMessage(ctx, plugin.getConfig().getMessage("prefix")
-                        + "&a⚡ Efficacité améliorée au niveau &e" + newLevel + "&a!");
+                sendNotification(ctx, NotificationType.SUCCESS, "Efficacite amelioree au niveau " + newLevel + "!");
                 sendMessage(ctx, "   " + plugin.getUpgradeManager().getEfficiencyDescription(newLevel));
                 break;
 
             case MAX_LEVEL:
-                sendMessage(ctx, plugin.getConfig().getMessage("prefix")
-                        + "&cTu as déjà atteint le niveau maximum d'Efficacité!");
+                sendNotification(ctx, NotificationType.ERROR, "Tu as deja atteint le niveau maximum d'Efficacite!");
                 break;
 
             case NOT_ENOUGH_MONEY:
                 BigDecimal price = plugin.getUpgradeManager().getEfficiencyNextPrice(uuid);
-                sendMessage(ctx, plugin.getConfig().getMessage("prefix")
-                        + "&cPas assez d'argent! Il te faut &e" + SellService.formatMoney(price) + "&c.");
+                sendNotification(ctx, NotificationType.ERROR, "Pas assez d'argent! Il te faut " + SellService.formatMoney(price) + ".");
                 break;
         }
     }
@@ -198,11 +193,9 @@ public class UpgradeCommand extends PrisonCommand {
             // Toggle
             boolean enabled = plugin.getUpgradeManager().toggleAutoSell(uuid);
             if (enabled) {
-                sendMessage(ctx, plugin.getConfig().getMessage("prefix")
-                        + "&a🔄 Auto-Sell &aactivé! &7Les blocs seront vendus automatiquement.");
+                sendNotification(ctx, NotificationType.SUCCESS, "Auto-Sell active! Les blocs seront vendus automatiquement.");
             } else {
-                sendMessage(ctx, plugin.getConfig().getMessage("prefix")
-                        + "&c🔄 Auto-Sell &cdésactivé! &7Les blocs iront dans ton inventaire.");
+                sendNotification(ctx, NotificationType.INFO, "Auto-Sell desactive! Les blocs iront dans ton inventaire.");
             }
         } else {
             // Acheter
@@ -210,21 +203,18 @@ public class UpgradeCommand extends PrisonCommand {
 
             switch (result) {
                 case SUCCESS:
-                    sendMessage(ctx, plugin.getConfig().getMessage("prefix")
-                            + "&a🔄 Auto-Sell acheté et activé!");
+                    sendNotification(ctx, NotificationType.SUCCESS, "Auto-Sell achete et active!");
                     sendMessage(ctx, "   &7Les blocs seront vendus automatiquement au minage.");
-                    sendMessage(ctx, "   &8(/upgrade autosell pour désactiver)");
+                    sendMessage(ctx, "   &8(/upgrade autosell pour desactiver)");
                     break;
 
                 case NOT_ENOUGH_MONEY:
-                    sendMessage(ctx, plugin.getConfig().getMessage("prefix")
-                            + "&cPas assez d'argent! Il te faut &e"
-                            + SellService.formatMoney(PickaxeUpgradeManager.getAutoSellBasePrice()) + "&c.");
+                    sendNotification(ctx, NotificationType.ERROR, "Pas assez d'argent! Il te faut "
+                            + SellService.formatMoney(PickaxeUpgradeManager.getAutoSellBasePrice()) + ".");
                     break;
 
                 case ALREADY_OWNED:
-                    sendMessage(ctx, plugin.getConfig().getMessage("prefix")
-                            + "&cTu possèdes déjà l'Auto-Sell!");
+                    sendNotification(ctx, NotificationType.ERROR, "Tu possedes deja l'Auto-Sell!");
                     break;
             }
         }

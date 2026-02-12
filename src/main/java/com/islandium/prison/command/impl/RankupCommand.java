@@ -1,6 +1,7 @@
 package com.islandium.prison.command.impl;
 
 import com.hypixel.hytale.server.core.command.system.CommandContext;
+import com.islandium.core.api.util.NotificationType;
 import com.islandium.prison.PrisonPlugin;
 import com.islandium.prison.command.base.PrisonCommand;
 import com.islandium.prison.config.PrisonConfig;
@@ -24,12 +25,12 @@ public class RankupCommand extends PrisonCommand {
     @Override
     public CompletableFuture<Void> execute(CommandContext ctx) {
         if (!isPlayer(ctx)) {
-            sendMessage(ctx, "&cCette commande est réservée aux joueurs!");
+            sendNotification(ctx, NotificationType.ERROR, "Cette commande est reservee aux joueurs!");
             return complete();
         }
 
         if (!hasPermission(ctx, "prison.rankup")) {
-            sendMessage(ctx, "&cTu n'as pas la permission!");
+            sendNotification(ctx, NotificationType.ERROR, "Tu n'as pas la permission!");
             return complete();
         }
 
@@ -58,7 +59,7 @@ public class RankupCommand extends PrisonCommand {
                 break;
             case CHALLENGES_INCOMPLETE:
                 int completed = plugin.getChallengeManager().getCompletedCount(uuid, rankManager.getPlayerRank(uuid));
-                sendMessage(ctx, "&cDefis incomplets! (" + completed + "/9) - Complete tes defis pour rankup.");
+                sendNotification(ctx, NotificationType.ERROR, "Defis incomplets! (" + completed + "/9) - Complete tes defis pour rankup.");
                 break;
         }
 

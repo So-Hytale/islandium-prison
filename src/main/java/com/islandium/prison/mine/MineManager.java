@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import com.islandium.core.api.location.ServerLocation;
 import com.islandium.core.api.player.IslandiumPlayer;
 import com.islandium.prison.PrisonPlugin;
+import com.islandium.core.api.util.NotificationType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -1186,7 +1187,7 @@ public class MineManager {
         for (IslandiumPlayer player : plugin.getCore().getPlayerManager().getOnlinePlayersLocal()) {
             ServerLocation loc = player.getLocation();
             if (loc != null && mine.contains(loc)) {
-                player.sendMessage(message);
+                player.sendNotification(NotificationType.INFO, message);
             }
         }
     }

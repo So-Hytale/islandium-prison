@@ -14,6 +14,7 @@ import com.hypixel.hytale.server.core.event.events.ecs.BreakBlockEvent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.islandium.core.api.location.ServerLocation;
+import com.islandium.core.api.util.NotificationType;
 import com.islandium.prison.PrisonPlugin;
 import com.islandium.prison.economy.SellService;
 import com.islandium.prison.mine.Mine;
@@ -210,7 +211,7 @@ public class BreakBlockEventSystem extends EntityEventSystem<EntityStore, BreakB
 
             if (earned.compareTo(BigDecimal.ZERO) > 0) {
                 plugin.getCore().getPlayerManager().getOnlinePlayer(uuid).ifPresent(islandiumPlayer -> {
-                    islandiumPlayer.sendMessage("&a+" + SellService.formatMoney(earned) + " &7(auto-sell)");
+                    islandiumPlayer.sendNotification(NotificationType.SUCCESS, "+" + SellService.formatMoney(earned) + " (auto-sell)");
                 });
             }
         }

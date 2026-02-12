@@ -1,6 +1,7 @@
 package com.islandium.prison.command.impl;
 
 import com.hypixel.hytale.server.core.command.system.CommandContext;
+import com.islandium.core.api.util.NotificationType;
 import com.islandium.prison.PrisonPlugin;
 import com.islandium.prison.command.base.PrisonCommand;
 import org.jetbrains.annotations.NotNull;
@@ -21,12 +22,12 @@ public class PrestigeCommand extends PrisonCommand {
     @Override
     public CompletableFuture<Void> execute(CommandContext ctx) {
         if (!isPlayer(ctx)) {
-            sendMessage(ctx, "&cCette commande est réservée aux joueurs!");
+            sendNotification(ctx, NotificationType.ERROR, "Cette commande est reservee aux joueurs!");
             return complete();
         }
 
         if (!hasPermission(ctx, "prison.prestige")) {
-            sendMessage(ctx, "&cTu n'as pas la permission!");
+            sendNotification(ctx, NotificationType.ERROR, "Tu n'as pas la permission!");
             return complete();
         }
 
@@ -35,8 +36,7 @@ public class PrestigeCommand extends PrisonCommand {
         // Check if can prestige
         if (!plugin.getRankManager().canPrestige(uuid)) {
             String currentRank = plugin.getRankManager().getPlayerRank(uuid);
-            sendMessage(ctx, "&cTu dois atteindre le rang &eFREE &cpour pouvoir prestige!");
-            sendMessage(ctx, "&7Rang actuel: &e" + currentRank);
+            sendNotification(ctx, NotificationType.ERROR, "Tu dois atteindre le rang FREE pour pouvoir prestige! Rang actuel: " + currentRank);
             return complete();
         }
 
@@ -57,11 +57,10 @@ public class PrestigeCommand extends PrisonCommand {
 
         // Perform prestige
         if (plugin.getRankManager().prestige(uuid)) {
-            sendMessage(ctx, "&a&l✓ PRESTIGE RÉUSSI!");
-            sendMessage(ctx, "&aTu es maintenant Prestige &e" + (currentPrestige + 1) + "&a!");
+            sendNotification(ctx, NotificationType.SUCCESS, "PRESTIGE REUSSI! Tu es maintenant Prestige " + (currentPrestige + 1) + "!");
             sendMessage(ctx, "&7Bon courage pour ta nouvelle progression!");
         } else {
-            sendMessage(ctx, "&cErreur lors du prestige.");
+            sendNotification(ctx, NotificationType.ERROR, "Erreur lors du prestige.");
         }
 
         return complete();

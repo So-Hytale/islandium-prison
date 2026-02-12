@@ -5,6 +5,7 @@ import com.hypixel.hytale.server.core.command.system.arguments.system.OptionalAr
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.islandium.core.api.player.IslandiumPlayer;
 import com.islandium.prison.PrisonPlugin;
+import com.islandium.core.api.util.NotificationType;
 import com.islandium.prison.command.base.PrisonCommand;
 import com.islandium.prison.mine.Mine;
 import org.jetbrains.annotations.NotNull;
@@ -29,12 +30,12 @@ public class MineCommand extends PrisonCommand {
     @Override
     public CompletableFuture<Void> execute(CommandContext ctx) {
         if (!isPlayer(ctx)) {
-            sendMessage(ctx, "&cCette commande est réservée aux joueurs!");
+            sendNotification(ctx, NotificationType.ERROR, "Cette commande est reservee aux joueurs!");
             return complete();
         }
 
         if (!hasPermission(ctx, "prison.mine")) {
-            sendMessage(ctx, "&cTu n'as pas la permission!");
+            sendNotification(ctx, NotificationType.ERROR, "Tu n'as pas la permission!");
             return complete();
         }
 
@@ -51,20 +52,20 @@ public class MineCommand extends PrisonCommand {
 
         Mine mine = plugin.getMineManager().getMine(mineName);
         if (mine == null) {
-            sendMessage(ctx, "&cMine &e" + mineName + "&c introuvable!");
+            sendNotification(ctx, NotificationType.ERROR, "Mine " + mineName + " introuvable!");
             return complete();
         }
 
         // Check access (using UUID)
         if (!plugin.getMineManager().canAccess(uuid, mine)) {
             sendConfigMessage(ctx, "mine.no-access");
-            sendMessage(ctx, "&7Tu dois être rang &e" + mine.getRequiredRank() + "&7 ou plus pour accéder à cette mine.");
+            sendNotification(ctx, NotificationType.ERROR, "Tu dois etre rang " + mine.getRequiredRank() + " ou plus pour acceder a cette mine.");
             return complete();
         }
 
         // Check if mine has spawn
         if (!mine.hasSpawn()) {
-            sendMessage(ctx, "&cLa mine &e" + mine.getDisplayName() + "&c n'a pas de point de spawn configuré!");
+            sendNotification(ctx, NotificationType.ERROR, "La mine " + mine.getDisplayName() + " n'a pas de point de spawn configure!");
             return complete();
         }
 

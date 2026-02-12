@@ -4,6 +4,7 @@ import com.islandium.core.api.IslandiumAPI;
 import com.islandium.core.api.economy.EconomyService;
 import com.islandium.core.database.SQLExecutor;
 import com.islandium.prison.PrisonPlugin;
+import com.islandium.core.api.util.NotificationType;
 import org.jetbrains.annotations.NotNull;
 
 import com.hypixel.hytale.server.core.entity.entities.Player;
@@ -272,10 +273,12 @@ public class ChallengeManager {
         plugin.getCore().getPlayerManager().getOnlinePlayer(uuid).ifPresent(p -> {
             String tierText = totalTiers > 1 ? " (palier " + tier + "/" + totalTiers + ")" : "";
             boolean allDone = tier >= totalTiers;
-            String msg = allDone
-                    ? "&a[Defi] &e" + def.getDisplayName() + " &a-> COMPLETE! &6+" + com.islandium.prison.economy.SellService.formatMoney(reward)
-                    : "&a[Defi] &e" + def.getDisplayName() + tierText + " &6+" + com.islandium.prison.economy.SellService.formatMoney(reward);
-            p.sendMessage(msg);
+            String rewardText = "+" + com.islandium.prison.economy.SellService.formatMoney(reward);
+            if (allDone) {
+                p.sendNotification(NotificationType.SUCCESS, def.getDisplayName() + " -> COMPLETE!", rewardText);
+            } else {
+                p.sendNotification(NotificationType.SUCCESS, def.getDisplayName() + tierText, rewardText);
+            }
         });
     }
 
