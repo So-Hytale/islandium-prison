@@ -109,7 +109,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         cmd.set("#HubGrid.Visible", true);
         cmd.set("#PageContent.Visible", false);
         cmd.set("#HeaderTitle.Text", "");
-        cmd.set("#BackBtn.Visible", false);
+        cmd.set("#BackBtn.Visible", true);
         cmd.set("#HeaderConfigBtn.Visible", false);
     }
 
@@ -1239,6 +1239,11 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                 currentPage = "cellule";
                 buildCellulePage(cmd, event);
                 sendUpdate(cmd, event, false);
+                return;
+            }
+            // Hub -> fermer le menu prison
+            if ("hub".equals(currentPage)) {
+                close();
                 return;
             }
             currentPage = "hub";
