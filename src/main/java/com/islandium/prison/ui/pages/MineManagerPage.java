@@ -1214,7 +1214,8 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                 MINE_COLOR,
                 DISPLAY_DURATION,
                 true,
-                null
+                null,
+                1.0f
         );
     }
 
@@ -1253,7 +1254,8 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                         MINE_COLOR,
                         DISPLAY_DURATION,
                         true,
-                        null
+                        null,
+                        1.0f
                 ));
             }
         }
@@ -1308,7 +1310,8 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                 MINE_COLOR,
                 DISPLAY_DURATION,
                 true,
-                null
+                null,
+                1.0f
         );
     }
 
@@ -1451,7 +1454,8 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                 VILLAGE_COLOR,
                 DISPLAY_DURATION,
                 true,
-                null
+                null,
+                1.0f
         );
     }
 
