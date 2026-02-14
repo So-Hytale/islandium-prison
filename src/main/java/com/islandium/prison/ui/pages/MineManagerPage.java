@@ -850,23 +850,14 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                     Mine mine = plugin.getMineManager().getMine(selectedMineId);
                     if (mine != null && mine.hasSpawn()) {
                         ServerLocation spawn = mine.getSpawnPoint();
-                        // Téléportation directe comme RegionMainPage
+                        // Utiliser TeleportService pour sauvegarder /back et centraliser les TP
                         try {
-                            Ref<EntityStore> entityRef = player.getReference();
-                            if (entityRef != null && entityRef.isValid()) {
-                                Store<EntityStore> entityStore = entityRef.getStore();
-                                TransformComponent transform = entityStore.getComponent(entityRef, TransformComponent.getComponentType());
-                                if (transform != null) {
-                                    Vector3d targetPos = new Vector3d(spawn.x(), spawn.y(), spawn.z());
-                                    com.hypixel.hytale.math.vector.Vector3f currentRotation = transform.getRotation().clone();
-                                    Teleport teleport = new Teleport(targetPos, currentRotation);
-                                    entityStore.addComponent(entityRef, Teleport.getComponentType(), teleport);
-                                    NotificationUtil.send(player, NotificationType.INFO, "Teleporte a la mine " + mine.getDisplayName());
-                                } else {
-                                    NotificationUtil.send(player, NotificationType.ERROR, "Erreur: transform null");
-                                }
+                            var islandiumPlayerOpt = plugin.getCore().getPlayerManager().getOnlinePlayer(player.getUuid());
+                            if (islandiumPlayerOpt.isPresent()) {
+                                plugin.getCore().getTeleportService().teleportInstant(islandiumPlayerOpt.get(), spawn);
+                                NotificationUtil.send(player, NotificationType.INFO, "Teleporte a la mine " + mine.getDisplayName());
                             } else {
-                                NotificationUtil.send(player, NotificationType.ERROR, "Erreur: ref invalide");
+                                NotificationUtil.send(player, NotificationType.ERROR, "Erreur: joueur non trouve");
                             }
                         } catch (Exception e) {
                             NotificationUtil.send(player, NotificationType.ERROR, "Erreur teleportation: " + e.getMessage());
