@@ -280,8 +280,8 @@ public class ChallengeManager {
             if (hytalePlayer != null) {
                 if (allDone) {
                     TitleUtil.showTitle(hytalePlayer,
-                            def.getDisplayName() + " COMPLETE!",
-                         rewardText,
+                        def.getDisplayName() + " COMPLETE!",
+                        rewardText,
                         0.3f, 6.0f, 0.5f);
                 } else {
                     TitleUtil.showTitle(hytalePlayer,
