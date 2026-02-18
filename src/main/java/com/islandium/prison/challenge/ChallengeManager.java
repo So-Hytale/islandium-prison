@@ -280,14 +280,14 @@ public class ChallengeManager {
             if (hytalePlayer != null) {
                 if (allDone) {
                     TitleUtil.showTitle(hytalePlayer,
-                        "§a" + def.getDisplayName() + " COMPLETE!",
-                        "§e" + rewardText,
-                        0.3f, 2.0f, 0.5f);
+                            def.getDisplayName() + " COMPLETE!",
+                         rewardText,
+                        0.3f, 6.0f, 0.5f);
                 } else {
                     TitleUtil.showTitle(hytalePlayer,
-                        "§a" + def.getDisplayName() + tierText,
-                        "§e" + rewardText,
-                        0.3f, 1.5f, 0.3f);
+                        def.getDisplayName() + tierText,
+                        rewardText,
+                        0.3f, 5.5f, 0.3f);
                 }
             } else {
                 // Fallback si le Player natif n'est pas disponible
