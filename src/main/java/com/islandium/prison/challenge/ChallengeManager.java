@@ -490,6 +490,23 @@ public class ChallengeManager {
     }
 
     /**
+     * Reset un seul challenge d'un joueur (admin).
+     */
+    public void resetSingleChallenge(@NotNull UUID uuid, @NotNull String challengeId) {
+        PlayerChallengeProgress progress = getProgress(uuid);
+        progress.challenges.remove(challengeId);
+
+        try {
+            getSql().execute(
+                "DELETE FROM prison_challenge_progress WHERE player_uuid = ? AND challenge_id = ?",
+                uuid.toString(), challengeId
+            );
+        } catch (Exception e) {
+            plugin.log(Level.WARNING, "Failed to delete single challenge progress from SQL: " + e.getMessage());
+        }
+    }
+
+    /**
      * Reset TOUS les challenges d'un joueur (utilise au prestige).
      */
     public void resetAllChallenges(@NotNull UUID uuid) {

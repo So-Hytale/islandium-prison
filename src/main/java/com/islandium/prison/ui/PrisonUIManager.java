@@ -4,6 +4,7 @@ import com.islandium.prison.PrisonPlugin;
 import com.islandium.prison.ui.prisonhud.PrisonHud;
 import com.islandium.prison.ui.pages.ChallengeConfigPage;
 import com.islandium.prison.ui.pages.MineManagerPage;
+import com.islandium.prison.ui.pages.PrisonMenuPage;
 import com.islandium.prison.ui.pages.SellConfigPage;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -59,7 +60,8 @@ public class PrisonUIManager {
                         PrisonHud hud = entry.getValue();
                         PlayerHudInfo info = trackedPlayers.get(uuid);
                         if (info != null && !isInWorld(info.player(), requiredWorld)) {
-                            hideHud(info.player());
+                            // hideHud doit s'executer sur le world thread
+                            runOnWorldThread(info.player(), () -> hideHud(info.player()));
                         } else {
                             hud.refreshData();
                         }
@@ -75,7 +77,8 @@ public class PrisonUIManager {
                         if (!activeHuds.containsKey(uuid)) {
                             PlayerHudInfo info = entry.getValue();
                             if (isInWorld(info.player(), requiredWorld)) {
-                                showHud(info.playerRef(), info.player());
+                                // showHud doit s'executer sur le world thread
+                                runOnWorldThread(info.player(), () -> showHud(info.playerRef(), info.player()));
                             }
                         }
                     } catch (Exception e) {
@@ -95,6 +98,23 @@ public class PrisonUIManager {
     }
 
     // === HUD Management (via MultipleHUD API) ===
+
+    /**
+     * Execute une action sur le world thread du joueur.
+     * Necessaire car les operations MultipleHUD doivent s'executer sur le world thread.
+     */
+    private void runOnWorldThread(@NotNull Player player, @NotNull Runnable action) {
+        try {
+            var ref = player.getReference();
+            if (ref == null || !ref.isValid()) return;
+            var store = ref.getStore();
+            var world = store.getExternalData().getWorld();
+            if (world == null) return;
+            CompletableFuture.runAsync(action, world);
+        } catch (Exception e) {
+            plugin.log(Level.WARNING, "Failed to run on world thread: " + e.getMessage());
+        }
+    }
 
     /**
      * Verifie si un joueur est dans le monde specifie.
@@ -307,6 +327,37 @@ public class PrisonUIManager {
 
         } catch (Exception e) {
             plugin.log(Level.SEVERE, "Failed to open challenge config: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Ouvre la page des challenges d'un autre joueur (mode admin).
+     */
+    public void openChallengesForPlayer(@NotNull Player admin, @NotNull UUID targetUuid, @NotNull String targetName) {
+        try {
+            var ref = admin.getReference();
+            if (ref == null || !ref.isValid()) {
+                plugin.log(Level.WARNING, "Cannot open challenges for player: Reference is null or invalid");
+                return;
+            }
+
+            var store = ref.getStore();
+            var world = store.getExternalData().getWorld();
+
+            CompletableFuture.runAsync(() -> {
+                var playerRef = store.getComponent(ref, PlayerRef.getComponentType());
+                if (playerRef == null) {
+                    plugin.log(Level.WARNING, "Cannot open challenges for player: PlayerRef not found");
+                    return;
+                }
+
+                PrisonMenuPage page = new PrisonMenuPage(playerRef, plugin, targetUuid, targetName);
+                admin.getPageManager().openCustomPage(ref, store, page);
+            }, world);
+
+        } catch (Exception e) {
+            plugin.log(Level.SEVERE, "Failed to open challenges for player: " + e.getMessage());
             e.printStackTrace();
         }
     }

@@ -55,6 +55,7 @@ public class PrisonAdminCommand extends PrisonCommand {
         // GUI subcommands
         addSubCommand(new GuiCommand(plugin));
         addSubCommand(new SellConfigCommand(plugin));
+        addSubCommand(new ChallengesCommand(plugin));
 
         // General subcommands
         addSubCommand(new ReloadCommand(plugin));
@@ -106,6 +107,7 @@ public class PrisonAdminCommand extends PrisonCommand {
         sendMessage(ctx, "&e&lGeneral:");
         sendMessage(ctx, "&e/pa gui &8- &7Ouvre l'interface de gestion");
         sendMessage(ctx, "&e/pa sellconfig &8- &7Configure le sell shop (UI)");
+        sendMessage(ctx, "&e/pa challenges <player> &8- &7Voir/modifier les defis d'un joueur");
         sendMessage(ctx, "&e/pa reload &8- &7Recharge la config");
         sendMessage(ctx, "&e/pa save &8- &7Sauvegarde les donnees");
     }
@@ -852,6 +854,49 @@ public class PrisonAdminCommand extends PrisonCommand {
             }
 
             plugin.getUIManager().openSellConfig(player);
+            return complete();
+        }
+    }
+
+    // ============================================
+    // CHALLENGES SUBCOMMAND
+    // ============================================
+
+    private static class ChallengesCommand extends PrisonCommand {
+        private final RequiredArg<String> playerArg;
+
+        public ChallengesCommand(@NotNull PrisonPlugin plugin) {
+            super(plugin, "challenges", "Voir/modifier les defis d'un joueur");
+            addAliases("defis", "ch");
+            playerArg = withRequiredArg("player", "Nom du joueur", ArgTypes.STRING);
+        }
+
+        @Override
+        public CompletableFuture<Void> execute(CommandContext ctx) {
+            if (!isPlayer(ctx)) {
+                sendNotification(ctx, NotificationType.ERROR, "Cette commande est reservee aux joueurs!");
+                return complete();
+            }
+
+            Player admin = getPlayer(ctx);
+            if (admin == null) {
+                sendNotification(ctx, NotificationType.ERROR, "Impossible de recuperer le joueur!");
+                return complete();
+            }
+
+            String playerName = ctx.get(playerArg);
+
+            plugin.getCore().getPlayerManager().getOnlinePlayers()
+                    .thenAccept(players -> {
+                        for (IslandiumPlayer p : players) {
+                            if (p.getName().equalsIgnoreCase(playerName)) {
+                                plugin.getUIManager().openChallengesForPlayer(admin, p.getUniqueId(), p.getName());
+                                return;
+                            }
+                        }
+                        sendNotification(ctx, NotificationType.ERROR, "Joueur " + playerName + " non trouve!");
+                    });
+
             return complete();
         }
     }

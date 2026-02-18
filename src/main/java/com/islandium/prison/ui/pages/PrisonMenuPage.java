@@ -50,6 +50,8 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
     private String currentPage = "hub";
     private String startPage = null;
     private String viewingDefiRank = null; // Rang actuellement affiché dans la page defis
+    private UUID targetUuid = null; // UUID du joueur ciblé (admin mode), null = soi-même
+    private String targetName = null; // Nom du joueur ciblé (admin mode)
 
     public PrisonMenuPage(@Nonnull PlayerRef playerRef, PrisonPlugin plugin) {
         super(playerRef, CustomPageLifetime.CanDismiss, PageData.CODEC);
@@ -65,6 +67,18 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         this.plugin = plugin;
         this.playerRef = playerRef;
         this.startPage = startPage;
+    }
+
+    /**
+     * Constructeur admin pour voir/modifier les challenges d'un autre joueur.
+     */
+    public PrisonMenuPage(@Nonnull PlayerRef playerRef, PrisonPlugin plugin, @Nonnull UUID targetUuid, @Nonnull String targetName) {
+        super(playerRef, CustomPageLifetime.CanDismiss, PageData.CODEC);
+        this.plugin = plugin;
+        this.playerRef = playerRef;
+        this.startPage = "defis";
+        this.targetUuid = targetUuid;
+        this.targetName = targetName;
     }
 
     @Override
@@ -723,7 +737,9 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
         showSubPage(cmd);
         cmd.clear("#PageContent");
 
-        UUID uuid = playerRef.getUuid();
+        // Mode admin: utiliser le targetUuid si defini, sinon le joueur courant
+        UUID uuid = targetUuid != null ? targetUuid : playerRef.getUuid();
+        boolean isAdminMode = targetUuid != null;
         String playerRank = plugin.getRankManager().getPlayerRank(uuid);
 
         // Determiner le rang a afficher
@@ -738,7 +754,8 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
 
         String counterText = completedCount + "/" + totalCount;
         boolean isCurrentRank = displayRank.equals(playerRank);
-        cmd.set("#HeaderTitle.Text", "DEFIS - RANG " + displayRank + "  " + counterText + (isCurrentRank ? "  (actuel)" : ""));
+        String headerPrefix = isAdminMode ? "DEFIS DE " + targetName + " - RANG " : "DEFIS - RANG ";
+        cmd.set("#HeaderTitle.Text", headerPrefix + displayRank + "  " + counterText + (isCurrentRank ? "  (actuel)" : ""));
 
         // Boutons navigation entre rangs
         int displayRankIndex = plugin.getRankManager().getRankIndex(displayRank);
@@ -781,10 +798,22 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
             return;
         }
 
+        // Detecter admin pour afficher les boutons RESET
+        boolean isAdmin = false;
+        try {
+            var perms = com.hypixel.hytale.server.core.permissions.PermissionsModule.get();
+            UUID adminUuid = playerRef.getUuid();
+            isAdmin = perms.getGroupsForUser(adminUuid).contains("OP")
+                || perms.hasPermission(adminUuid, "prison.admin")
+                || perms.hasPermission(adminUuid, "*");
+        } catch (Exception ignored) {}
+
+        int rowHeight = isAdmin ? 160 : 130;
+
         // Build 3 rows of 3 challenges each
         for (int row = 0; row < 3; row++) {
             StringBuilder rowContent = new StringBuilder();
-            rowContent.append("Group #DefiRow").append(row).append(" { Anchor: (Height: 130, Top: 8); LayoutMode: Left; ");
+            rowContent.append("Group #DefiRow").append(row).append(" { Anchor: (Height: ").append(rowHeight).append(", Top: 8); LayoutMode: Left; ");
 
             for (int col = 0; col < 3; col++) {
                 int idx = row * 3 + col;
@@ -909,6 +938,22 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                     cmd.set(cardSelector + " #Prog.Text", progressText);
                     cmd.set(cardSelector + " #Rew.Text", rewardText);
                 }
+
+                // Bouton RESET admin sous chaque carte
+                if (isAdmin) {
+                    String resetBtnId = "ResetDefi" + idx;
+                    cmd.appendInline(cardSelector,
+                        "Group { Anchor: (Height: 26, Top: 2); LayoutMode: Left; " +
+                        "  Group { FlexWeight: 1; } " +
+                        "  TextButton #" + resetBtnId + " { Anchor: (Width: 80, Height: 22); " +
+                        "    Style: TextButtonStyle(Default: (Background: #3a1a1a, LabelStyle: (FontSize: 10, TextColor: #ff6666, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
+                        "    Hovered: (Background: #5a2a2a, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
+                        "  Group { FlexWeight: 1; } " +
+                        "}");
+                    cmd.set(cardSelector + " #" + resetBtnId + ".Text", "RESET");
+                    event.addEventBinding(CustomUIEventBindingType.Activating, cardSelector + " #" + resetBtnId,
+                        EventData.of("Action", "resetChallenge").append("ChallengeId", def.getId()), false);
+                }
             }
         }
 
@@ -964,15 +1009,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
             }
         }
 
-        // Bouton admin config challenges dans le header
-        boolean isAdmin = false;
-        try {
-            var perms = com.hypixel.hytale.server.core.permissions.PermissionsModule.get();
-            isAdmin = perms.getGroupsForUser(uuid).contains("OP")
-                || perms.hasPermission(uuid, "prison.admin")
-                || perms.hasPermission(uuid, "*");
-        } catch (Exception ignored) {}
-
+        // Bouton admin config challenges dans le header (reutilise isAdmin du haut)
         if (isAdmin) {
             cmd.set("#HeaderConfigBtn.Visible", true);
             cmd.set("#HeaderConfigBtn.Text", "CONFIG CHALLENGES");
@@ -1161,6 +1198,17 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                             case 2 -> NotificationUtil.send(player, NotificationType.ERROR, "Ce challenge n'est pas de type soumission.");
                             case 3 -> NotificationUtil.send(player, NotificationType.WARNING, "Ce challenge est deja termine!");
                         }
+                        // Refresh defis page
+                        buildDefisPageForRank(cmd, event, viewingDefiRank);
+                        sendUpdate(cmd, event, false);
+                    }
+                    return;
+                }
+                case "resetChallenge" -> {
+                    if (data.challengeId != null) {
+                        UUID resetTarget = targetUuid != null ? targetUuid : uuid;
+                        plugin.getChallengeManager().resetSingleChallenge(resetTarget, data.challengeId);
+                        NotificationUtil.send(player, NotificationType.SUCCESS, "Challenge " + data.challengeId + " reinitialise!");
                         // Refresh defis page
                         buildDefisPageForRank(cmd, event, viewingDefiRank);
                         sendUpdate(cmd, event, false);
