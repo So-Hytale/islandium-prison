@@ -5,6 +5,7 @@ import com.islandium.core.api.economy.EconomyService;
 import com.islandium.core.database.SQLExecutor;
 import com.islandium.prison.PrisonPlugin;
 import com.islandium.core.api.util.NotificationType;
+import com.islandium.core.api.util.TitleUtil;
 import org.jetbrains.annotations.NotNull;
 
 import com.hypixel.hytale.server.core.entity.entities.Player;
@@ -274,10 +275,24 @@ public class ChallengeManager {
             String tierText = totalTiers > 1 ? " (palier " + tier + "/" + totalTiers + ")" : "";
             boolean allDone = tier >= totalTiers;
             String rewardText = "+" + com.islandium.prison.economy.SellService.formatMoney(reward);
-            if (allDone) {
-                p.sendNotification(NotificationType.SUCCESS, def.getDisplayName() + " -> COMPLETE!", rewardText);
+
+            Player hytalePlayer = p.getHytalePlayer();
+            if (hytalePlayer != null) {
+                if (allDone) {
+                    TitleUtil.showTitle(hytalePlayer,
+                        "§a" + def.getDisplayName() + " COMPLETE!",
+                        "§e" + rewardText,
+                        0.3f, 2.0f, 0.5f);
+                } else {
+                    TitleUtil.showTitle(hytalePlayer,
+                        "§a" + def.getDisplayName() + tierText,
+                        "§e" + rewardText,
+                        0.3f, 1.5f, 0.3f);
+                }
             } else {
-                p.sendNotification(NotificationType.SUCCESS, def.getDisplayName() + tierText, rewardText);
+                // Fallback si le Player natif n'est pas disponible
+                p.sendNotification(NotificationType.SUCCESS,
+                    def.getDisplayName() + (allDone ? " -> COMPLETE!" : tierText), rewardText);
             }
         });
     }
