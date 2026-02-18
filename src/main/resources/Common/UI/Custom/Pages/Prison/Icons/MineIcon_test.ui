@@ -1,0 +1,2 @@
+// Icone mine test
+Group { Anchor: (Width: 80, Height: 80); Background: PatchStyle(TexturePath: "mines.png"); }
