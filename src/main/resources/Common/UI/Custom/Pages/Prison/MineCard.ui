@@ -16,6 +16,7 @@ Group {
                 Group { FlexWeight: 1; }
                 Group #IconTarget {
                     Anchor: (Width: 80, Height: 80);
+                    Background: PatchStyle(TexturePath: "mines.png");
                 }
                 Group { FlexWeight: 1; }
             }

@@ -194,7 +194,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                 // Le template est ajoute a l'index col dans la row
                 String cardSelector = rowSelector + "[" + col + "]";
 
-                // Injecter l'icone generee (fichier .ui avec le bon TexturePath)
+                // Injecter l'icone de la mine (fichier .ui avec le bon TexturePath)
                 String iconUi = "Pages/Prison/Icons/MineIcon_" + mine.getId().toLowerCase() + ".ui";
                 cmd.append(cardSelector + " #IconTarget", iconUi);
 
