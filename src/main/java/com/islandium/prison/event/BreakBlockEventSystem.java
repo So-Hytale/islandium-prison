@@ -19,8 +19,6 @@ import com.islandium.prison.PrisonPlugin;
 import com.islandium.prison.economy.SellService;
 import com.islandium.prison.mine.Mine;
 
-import com.hypixel.hytale.server.core.inventory.ItemStack;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
