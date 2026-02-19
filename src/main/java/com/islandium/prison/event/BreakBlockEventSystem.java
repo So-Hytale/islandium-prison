@@ -19,6 +19,8 @@ import com.islandium.prison.PrisonPlugin;
 import com.islandium.prison.economy.SellService;
 import com.islandium.prison.mine.Mine;
 
+import com.hypixel.hytale.server.core.inventory.ItemStack;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
@@ -205,7 +207,7 @@ public class BreakBlockEventSystem extends EntityEventSystem<EntityStore, BreakB
         int fortuneLevel = plugin.getStatsManager().getFortuneLevel(uuid);
         int dropCount = calculateFortuneDrops(fortuneLevel);
 
-        // 3. Auto-sell ou laisser dans l'inventaire
+        // 3. Auto-sell ou donner directement dans l'inventaire
         if (plugin.getStatsManager().isAutoSellEnabled(uuid)) {
             BigDecimal earned = plugin.getSellService().autoSell(uuid, blockId, dropCount);
 
@@ -213,6 +215,23 @@ public class BreakBlockEventSystem extends EntityEventSystem<EntityStore, BreakB
                 plugin.getCore().getPlayerManager().getOnlinePlayer(uuid).ifPresent(islandiumPlayer -> {
                     islandiumPlayer.sendNotification(NotificationType.SUCCESS, "+" + SellService.formatMoney(earned) + " (auto-sell)");
                 });
+            }
+        } else {
+            // Pas d'auto-sell: donner l'item directement dans l'inventaire
+            // (bypass le drop au sol qui serait bloqué par le flag item-pickup de la région)
+            try {
+                var inv = player.getInventory();
+                if (inv != null) {
+                    ItemStack stack = new ItemStack(blockId, dropCount);
+                    var tx = inv.getHotbar().addItemStack(stack);
+                    if (!tx.succeeded()) {
+                        tx = inv.getStorage().addItemStack(stack);
+                    }
+                }
+            } catch (Exception e) {
+                if (successCount <= 3) {
+                    LOGGER.warning("[PRISON] Erreur ajout item inventaire: " + e.getMessage());
+                }
             }
         }
 
