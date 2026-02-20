@@ -77,6 +77,16 @@ public class ChallengeHud extends CustomUIHud {
 
         cmd.set("#ChallengeHud.Visible", true);
 
+        // Compter le nombre de slots valides pour ajuster la hauteur
+        int validCount = 0;
+        for (String cid : pinnedIds) {
+            if (validCount >= 3) break;
+            if (ChallengeRegistry.getChallenge(cid) != null) validCount++;
+        }
+        // Header(22) + sep(7) + padding(12) + slots * 51
+        int hudHeight = 41 + validCount * 51;
+        cmd.set("#ChallengeHud.Anchor.Height", hudHeight);
+
         int slotIdx = 0;
         for (String challengeId : pinnedIds) {
             if (slotIdx >= 3) break;

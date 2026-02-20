@@ -2,7 +2,7 @@ $C = "../../Common.ui";
 Group #ChallengeHud {
   LayoutMode: Top;
   Background: (Color: #0a0f1acc);
-  Anchor: (Width: 220, Left: 10, Top: 300);
+  Anchor: (Width: 220, Height: 195, Left: 10, Top: 300);
   Padding: (Left: 10, Right: 10, Top: 6, Bottom: 6);
   Group #HeaderRow {
     LayoutMode: Left;
