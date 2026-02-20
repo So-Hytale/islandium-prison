@@ -307,6 +307,11 @@ public class ChallengeManager {
 
                 // Notification au joueur
                 notifyTierComplete(uuid, def, data.completedTier, tiers.size(), reward);
+
+                // Auto-unpin si le challenge est entierement complete
+                if (data.completedTier >= tiers.size() && isPinned(uuid, def.getId())) {
+                    togglePin(uuid, def.getId());
+                }
             } else {
                 break;
             }
@@ -405,6 +410,11 @@ public class ChallengeManager {
 
         notifyTierComplete(uuid, def, data.completedTier, def.getTierCount(), reward);
         persistAsync(uuid, challengeId, data);
+
+        // Auto-unpin si entierement complete
+        if (data.completedTier >= def.getTierCount() && isPinned(uuid, challengeId)) {
+            togglePin(uuid, challengeId);
+        }
         return 0;
     }
 
