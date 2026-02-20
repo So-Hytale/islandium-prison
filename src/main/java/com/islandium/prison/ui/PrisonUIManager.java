@@ -1,6 +1,7 @@
 package com.islandium.prison.ui;
 
 import com.islandium.prison.PrisonPlugin;
+import com.islandium.prison.ui.challengehud.ChallengeHud;
 import com.islandium.prison.ui.prisonhud.PrisonHud;
 import com.islandium.prison.ui.pages.ChallengeConfigPage;
 import com.islandium.prison.ui.pages.MineManagerPage;
@@ -27,11 +28,13 @@ import java.util.logging.Level;
 public class PrisonUIManager {
 
     private static final String HUD_ID = "PrisonHud";
+    private static final String CHALLENGE_HUD_ID = "ChallengeHud";
 
     private static final long REFRESH_INTERVAL_SECONDS = 1;
 
     private final PrisonPlugin plugin;
     private final Map<UUID, PrisonHud> activeHuds = new ConcurrentHashMap<>();
+    private final Map<UUID, ChallengeHud> activeChallengeHuds = new ConcurrentHashMap<>();
     /** Joueurs connectes dont le HUD est masque (pas dans le monde prison). */
     private final Map<UUID, PlayerHudInfo> trackedPlayers = new ConcurrentHashMap<>();
     private ScheduledExecutorService refreshScheduler;
@@ -70,15 +73,34 @@ public class PrisonUIManager {
                     }
                 }
 
+                // Refresh Challenge HUDs actifs
+                for (var entry : activeChallengeHuds.entrySet()) {
+                    try {
+                        UUID uuid = entry.getKey();
+                        ChallengeHud chHud = entry.getValue();
+                        PlayerHudInfo info = trackedPlayers.get(uuid);
+                        if (info != null && !isInWorld(info.player(), requiredWorld)) {
+                            runOnWorldThread(info.player(), () -> hideChallengeHud(info.player()));
+                        } else {
+                            chHud.refreshData();
+                        }
+                    } catch (Exception e) {
+                        // Ignore
+                    }
+                }
+
                 // Verifier les joueurs trackes sans HUD actif (viennent d'arriver dans le monde prison)
                 for (var entry : trackedPlayers.entrySet()) {
                     try {
                         UUID uuid = entry.getKey();
-                        if (!activeHuds.containsKey(uuid)) {
-                            PlayerHudInfo info = entry.getValue();
-                            if (isInWorld(info.player(), requiredWorld)) {
+                        PlayerHudInfo info = entry.getValue();
+                        if (isInWorld(info.player(), requiredWorld)) {
+                            if (!activeHuds.containsKey(uuid)) {
                                 // showHud doit s'executer sur le world thread
                                 runOnWorldThread(info.player(), () -> showHud(info.playerRef(), info.player()));
+                            }
+                            if (!activeChallengeHuds.containsKey(uuid)) {
+                                runOnWorldThread(info.player(), () -> showChallengeHud(info.playerRef(), info.player()));
                             }
                         }
                     } catch (Exception e) {
@@ -142,6 +164,7 @@ public class PrisonUIManager {
         String requiredWorld = plugin.getConfig().getWorldName();
         if (isInWorld(player, requiredWorld)) {
             showHud(playerRef, player);
+            showChallengeHud(playerRef, player);
         }
     }
 
@@ -206,6 +229,69 @@ public class PrisonUIManager {
         }
     }
 
+    // === Challenge HUD Management ===
+
+    /**
+     * Affiche le Challenge HUD pour un joueur (defis suivis).
+     * Ne s'affiche que si le joueur a des challenges epingles.
+     */
+    public void showChallengeHud(@NotNull PlayerRef playerRef, @NotNull Player player) {
+        try {
+            UUID uuid = playerRef.getUuid();
+
+            if (plugin.getChallengeManager().getPinnedChallenges(uuid).isEmpty()) {
+                return;
+            }
+
+            ChallengeHud hud = new ChallengeHud(playerRef, player, plugin);
+            activeChallengeHuds.put(uuid, hud);
+            invokeMultipleHUD("setCustomHud", player, playerRef, CHALLENGE_HUD_ID, hud);
+        } catch (Exception e) {
+            plugin.log(Level.WARNING, "Failed to show Challenge HUD: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Cache le Challenge HUD d'un joueur.
+     */
+    public void hideChallengeHud(@NotNull Player player) {
+        try {
+            var ref = player.getReference();
+            if (ref == null || !ref.isValid()) return;
+
+            var store = ref.getStore();
+            var playerRef = store.getComponent(ref, PlayerRef.getComponentType());
+            if (playerRef == null) return;
+
+            UUID uuid = playerRef.getUuid();
+            activeChallengeHuds.remove(uuid);
+            invokeMultipleHUD("hideCustomHud", player, playerRef, CHALLENGE_HUD_ID);
+        } catch (Exception e) {
+            plugin.log(Level.WARNING, "Failed to hide Challenge HUD: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Rafraichit le Challenge HUD d'un joueur par UUID.
+     * Appele apres un toggle pin pour forcer le refresh immediat.
+     * Si le joueur n'a plus de pins, recree le HUD (pour qu'il se masque).
+     */
+    public void refreshChallengeHud(@NotNull UUID uuid) {
+        ChallengeHud hud = activeChallengeHuds.get(uuid);
+        if (hud != null) {
+            hud.refreshData();
+        } else {
+            // Pas de HUD actif, mais le joueur vient peut-etre d'epingler son premier defi
+            PlayerHudInfo info = trackedPlayers.get(uuid);
+            if (info != null && !plugin.getChallengeManager().getPinnedChallenges(uuid).isEmpty()) {
+                String requiredWorld = plugin.getConfig().getWorldName();
+                if (isInWorld(info.player(), requiredWorld)) {
+                    runOnWorldThread(info.player(), () -> showChallengeHud(info.playerRef(), info.player()));
+                }
+            }
+        }
+    }
+
     /**
      * Rafraichit le HUD Prison pour un joueur.
      */
@@ -239,6 +325,7 @@ public class PrisonUIManager {
      */
     public void cleanupPlayer(@NotNull UUID uuid) {
         activeHuds.remove(uuid);
+        activeChallengeHuds.remove(uuid);
         trackedPlayers.remove(uuid);
     }
 

@@ -1,0 +1,117 @@
+$C = "../../Common.ui";
+Group #ChallengeHud {
+  LayoutMode: Top;
+  Background: (Color: #0a0f1acc);
+  Anchor: (Width: 220, Left: 10, Top: 300);
+  Padding: (Left: 10, Right: 10, Top: 6, Bottom: 6);
+  Group #HeaderRow {
+    LayoutMode: Left;
+    Anchor: (Height: 22, Left: -10, Right: -10, Top: -6);
+    Background: (Color: #151d2a);
+    Padding: (Horizontal: 10);
+    Label #Header {
+      FlexWeight: 1;
+      Text: "DEFIS SUIVIS";
+      Style: (FontSize: 11, TextColor: #ff9800, RenderBold: true, HorizontalAlignment: Center, VerticalAlignment: Center);
+    }
+  }
+  Group #Sep {
+    Background: (Color: #2a3a5c);
+    Anchor: (Height: 1, Top: 4, Bottom: 2);
+  }
+  Group #Slot0 {
+    Anchor: (Top: 2);
+    LayoutMode: Top;
+    Visible: false;
+    Label #Name {
+      Anchor: (Height: 16);
+      Text: "";
+      Style: (FontSize: 11, TextColor: #ffd700, RenderBold: true);
+    }
+    Label #Bar {
+      Anchor: (Height: 14);
+      Text: "";
+      Style: (FontSize: 10, TextColor: #96a9be);
+    }
+    Group {
+      Anchor: (Height: 14);
+      LayoutMode: Left;
+      Label #Prog {
+        FlexWeight: 1;
+        Text: "";
+        Style: (FontSize: 10, TextColor: #ffffff, VerticalAlignment: Center);
+      }
+      Label #Rew {
+        Anchor: (Width: 80);
+        Text: "";
+        Style: (FontSize: 10, TextColor: #66bb6a, VerticalAlignment: Center);
+      }
+    }
+    Group {
+      Background: (Color: #2a3a5c44);
+      Anchor: (Height: 1, Top: 2);
+    }
+  }
+  Group #Slot1 {
+    Anchor: (Top: 2);
+    LayoutMode: Top;
+    Visible: false;
+    Label #Name {
+      Anchor: (Height: 16);
+      Text: "";
+      Style: (FontSize: 11, TextColor: #ffd700, RenderBold: true);
+    }
+    Label #Bar {
+      Anchor: (Height: 14);
+      Text: "";
+      Style: (FontSize: 10, TextColor: #96a9be);
+    }
+    Group {
+      Anchor: (Height: 14);
+      LayoutMode: Left;
+      Label #Prog {
+        FlexWeight: 1;
+        Text: "";
+        Style: (FontSize: 10, TextColor: #ffffff, VerticalAlignment: Center);
+      }
+      Label #Rew {
+        Anchor: (Width: 80);
+        Text: "";
+        Style: (FontSize: 10, TextColor: #66bb6a, VerticalAlignment: Center);
+      }
+    }
+    Group {
+      Background: (Color: #2a3a5c44);
+      Anchor: (Height: 1, Top: 2);
+    }
+  }
+  Group #Slot2 {
+    Anchor: (Top: 2);
+    LayoutMode: Top;
+    Visible: false;
+    Label #Name {
+      Anchor: (Height: 16);
+      Text: "";
+      Style: (FontSize: 11, TextColor: #ffd700, RenderBold: true);
+    }
+    Label #Bar {
+      Anchor: (Height: 14);
+      Text: "";
+      Style: (FontSize: 10, TextColor: #96a9be);
+    }
+    Group {
+      Anchor: (Height: 14);
+      LayoutMode: Left;
+      Label #Prog {
+        FlexWeight: 1;
+        Text: "";
+        Style: (FontSize: 10, TextColor: #ffffff, VerticalAlignment: Center);
+      }
+      Label #Rew {
+        Anchor: (Width: 80);
+        Text: "";
+        Style: (FontSize: 10, TextColor: #66bb6a, VerticalAlignment: Center);
+      }
+    }
+  }
+}

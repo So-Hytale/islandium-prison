@@ -808,7 +808,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                 || perms.hasPermission(adminUuid, "*");
         } catch (Exception ignored) {}
 
-        int rowHeight = isAdmin ? 160 : 130;
+        int rowHeight = 130;
 
         // Build 3 rows of 3 challenges each
         for (int row = 0; row < 3; row++) {
@@ -828,19 +828,47 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                 PlayerChallengeProgress.ChallengeProgressData data = challengeManager.getProgressData(uuid, def.getId());
                 boolean isComplete = data.completedTier >= def.getTierCount();
                 boolean isSubmitType = def.getType() == ChallengeType.SUBMIT_ITEMS;
+                boolean isPinned = challengeManager.isPinned(uuid, def.getId());
 
                 String cardBg = isComplete ? "#1a2a1a" : "#151d28";
                 String cardHoverBg = isComplete ? "#1a2a1a" : "#1e2a38";
                 String titleColor = isComplete ? "#66bb6a" : "#ffd700";
                 String cardId = "Defi" + idx;
 
+                // Boutons titre row (SUIVRE + RESET)
+                String suivreBtnId = "SuivreD" + idx;
+                String suivreBg = isPinned ? "#2a4a1a" : "#1a2836";
+                String suivreHoverBg = isPinned ? "#3a6a2a" : "#253545";
+                String suivreTextColor = isPinned ? "#66bb6a" : "#7c8b99";
+
+                StringBuilder titleRowBtns = new StringBuilder();
+                // Bouton SUIVRE (pour tous les joueurs)
+                titleRowBtns.append("TextButton #").append(suivreBtnId)
+                    .append(" { Anchor: (Width: 55, Height: 20); ")
+                    .append("Style: TextButtonStyle(Default: (Background: ").append(suivreBg)
+                    .append(", LabelStyle: (FontSize: 9, TextColor: ").append(suivreTextColor)
+                    .append(", HorizontalAlignment: Center, VerticalAlignment: Center)), ")
+                    .append("Hovered: (Background: ").append(suivreHoverBg)
+                    .append(", LabelStyle: (FontSize: 9, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center))); } ");
+
+                if (isAdmin) {
+                    String resetBtnId = "ResetD" + idx;
+                    titleRowBtns.append("TextButton #").append(resetBtnId)
+                        .append(" { Anchor: (Width: 50, Height: 20, Left: 2); ")
+                        .append("Style: TextButtonStyle(Default: (Background: #3a1a1a, LabelStyle: (FontSize: 9, TextColor: #ff6666, HorizontalAlignment: Center, VerticalAlignment: Center)), ")
+                        .append("Hovered: (Background: #5a2a2a, LabelStyle: (FontSize: 9, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center))); } ");
+                }
+
                 if (isSubmitType && !isComplete) {
                     // SUBMIT_ITEMS card: clickable Button with hover
                     rowContent.append("Button #").append(cardId)
                         .append(" { FlexWeight: 1; Style: ButtonStyle(Default: (Background: ").append(cardBg)
                         .append("), Hovered: (Background: ").append(cardHoverBg).append(")); ")
-                        .append("  Group { LayoutMode: Top; Padding: (Horizontal: 12, Vertical: 8); ")
-                        .append("    Label #Title { Anchor: (Height: 24); Style: (FontSize: 14, TextColor: ").append(titleColor).append(", RenderBold: true); } ")
+                        .append("  Group { LayoutMode: Top; Padding: (Horizontal: 12, Vertical: 6); ")
+                        .append("    Group #TitleRow { Anchor: (Height: 24); LayoutMode: Left; ")
+                        .append("      Label #Title { FlexWeight: 1; Style: (FontSize: 14, TextColor: ").append(titleColor).append(", RenderBold: true, VerticalAlignment: Center); } ")
+                        .append("      ").append(titleRowBtns)
+                        .append("    } ")
                         .append("    Label #Desc { Anchor: (Height: 18); Style: (FontSize: 11, TextColor: #7c8b99); } ")
                         .append("    Label #Items { Anchor: (Height: 36, Top: 2); Style: (FontSize: 11, TextColor: #96a9be); } ")
                         .append("    Group { Anchor: (Height: 22, Top: 2); LayoutMode: Left; ")
@@ -852,8 +880,11 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                 } else {
                     // Standard card (non-clickable Group)
                     rowContent.append("Group #").append(cardId)
-                        .append(" { FlexWeight: 1; Background: (Color: ").append(cardBg).append("); Padding: (Horizontal: 12, Vertical: 8); LayoutMode: Top; ")
-                        .append("  Label #Title { Anchor: (Height: 26); Style: (FontSize: 14, TextColor: ").append(titleColor).append(", RenderBold: true); } ")
+                        .append(" { FlexWeight: 1; Background: (Color: ").append(cardBg).append("); Padding: (Horizontal: 12, Vertical: 6); LayoutMode: Top; ")
+                        .append("  Group #TitleRow { Anchor: (Height: 26); LayoutMode: Left; ")
+                        .append("    Label #Title { FlexWeight: 1; Style: (FontSize: 14, TextColor: ").append(titleColor).append(", RenderBold: true, VerticalAlignment: Center); } ")
+                        .append("    ").append(titleRowBtns)
+                        .append("  } ")
                         .append("  Label #Desc { Anchor: (Height: 20); Style: (FontSize: 12, TextColor: #7c8b99); } ")
                         .append("  Label #Bar { Anchor: (Height: 22, Top: 4); Style: (FontSize: 13, TextColor: #96a9be); } ")
                         .append("  Group { Anchor: (Height: 22, Top: 2); LayoutMode: Left; ")
@@ -878,6 +909,7 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                 PlayerChallengeProgress.ChallengeProgressData data = challengeManager.getProgressData(uuid, def.getId());
                 boolean isComplete = data.completedTier >= def.getTierCount();
                 boolean isSubmitType = def.getType() == ChallengeType.SUBMIT_ITEMS;
+                boolean isPinned = challengeManager.isPinned(uuid, def.getId());
                 String cardSelector = "#DefiRow" + row + " #Defi" + idx;
 
                 String tierInfo = def.getTierCount() > 1
@@ -886,6 +918,20 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
 
                 cmd.set(cardSelector + " #Title.Text", def.getDisplayName() + tierInfo);
                 cmd.set(cardSelector + " #Desc.Text", def.getDescription());
+
+                // Bouton SUIVRE — texte et event
+                String suivreBtnId = "SuivreD" + idx;
+                cmd.set(cardSelector + " #" + suivreBtnId + ".Text", isPinned ? "SUIVI" : "SUIVRE");
+                event.addEventBinding(CustomUIEventBindingType.Activating, cardSelector + " #" + suivreBtnId,
+                    EventData.of("Action", "togglePin").append("ChallengeId", def.getId()), false);
+
+                // Bouton RESET admin — texte et event
+                if (isAdmin) {
+                    String resetBtnId = "ResetD" + idx;
+                    cmd.set(cardSelector + " #" + resetBtnId + ".Text", "RESET");
+                    event.addEventBinding(CustomUIEventBindingType.Activating, cardSelector + " #" + resetBtnId,
+                        EventData.of("Action", "resetChallenge").append("ChallengeId", def.getId()), false);
+                }
 
                 if (isSubmitType && !isComplete) {
                     // SUBMIT_ITEMS: show required items list + click action
@@ -937,22 +983,6 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                     cmd.set(cardSelector + " #Bar.Text", progressBar);
                     cmd.set(cardSelector + " #Prog.Text", progressText);
                     cmd.set(cardSelector + " #Rew.Text", rewardText);
-                }
-
-                // Bouton RESET admin sous chaque carte
-                if (isAdmin) {
-                    String resetBtnId = "ResetDefi" + idx;
-                    cmd.appendInline(cardSelector,
-                        "Group { Anchor: (Height: 26, Top: 2); LayoutMode: Left; " +
-                        "  Group { FlexWeight: 1; } " +
-                        "  TextButton #" + resetBtnId + " { Anchor: (Width: 80, Height: 22); " +
-                        "    Style: TextButtonStyle(Default: (Background: #3a1a1a, LabelStyle: (FontSize: 10, TextColor: #ff6666, HorizontalAlignment: Center, VerticalAlignment: Center)), " +
-                        "    Hovered: (Background: #5a2a2a, LabelStyle: (FontSize: 10, TextColor: #ffffff, HorizontalAlignment: Center, VerticalAlignment: Center))); } " +
-                        "  Group { FlexWeight: 1; } " +
-                        "}");
-                    cmd.set(cardSelector + " #" + resetBtnId + ".Text", "RESET");
-                    event.addEventBinding(CustomUIEventBindingType.Activating, cardSelector + " #" + resetBtnId,
-                        EventData.of("Action", "resetChallenge").append("ChallengeId", def.getId()), false);
                 }
             }
         }
@@ -1182,6 +1212,23 @@ public class PrisonMenuPage extends InteractiveCustomUIPage<PrisonMenuPage.PageD
                         } else {
                             NotificationUtil.send(player, NotificationType.ERROR, "Impossible de rankup (pas assez d'argent ou rang max)!");
                         }
+                    }
+                    return;
+                }
+                case "togglePin" -> {
+                    if (data.challengeId != null) {
+                        UUID pinTarget = targetUuid != null ? targetUuid : uuid;
+                        int result = plugin.getChallengeManager().togglePin(pinTarget, data.challengeId);
+                        switch (result) {
+                            case 1 -> NotificationUtil.send(player, NotificationType.SUCCESS, "Defi suivi!");
+                            case 0 -> NotificationUtil.send(player, NotificationType.INFO, "Defi retire du suivi.");
+                            case -1 -> NotificationUtil.send(player, NotificationType.WARNING, "Maximum 3 defis suivis!");
+                        }
+                        // Refresh defis page pour mettre a jour le bouton
+                        buildDefisPageForRank(cmd, event, viewingDefiRank);
+                        sendUpdate(cmd, event, false);
+                        // Refresh le Challenge HUD
+                        plugin.getUIManager().refreshChallengeHud(pinTarget);
                     }
                     return;
                 }

@@ -31,6 +31,10 @@ public class ChallengeManager {
     // Cache en memoire : UUID -> (challengeId -> ProgressData)
     private final Map<UUID, PlayerChallengeProgress> playerProgress = new ConcurrentHashMap<>();
 
+    // Cache des challenges epingles : UUID -> Set<challengeId>
+    private final Map<UUID, Set<String>> pinnedChallenges = new ConcurrentHashMap<>();
+    private static final int MAX_PINS = 3;
+
     public ChallengeManager(@NotNull PrisonPlugin plugin) {
         this.plugin = plugin;
     }
@@ -60,6 +64,18 @@ public class ChallengeManager {
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
             """).join();
             plugin.log(Level.INFO, "Challenge table migration completed.");
+
+            // Table pour les challenges epingles au HUD
+            getSql().execute("""
+                CREATE TABLE IF NOT EXISTS prison_challenge_pins (
+                    player_uuid CHAR(36) NOT NULL,
+                    challenge_id VARCHAR(64) NOT NULL,
+                    pinned_at BIGINT NOT NULL,
+                    PRIMARY KEY (player_uuid, challenge_id),
+                    INDEX idx_player_pins (player_uuid)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            """).join();
+            plugin.log(Level.INFO, "Challenge pins table migration completed.");
         } catch (Exception e) {
             plugin.log(Level.SEVERE, "Failed to run challenge migrations: " + e.getMessage());
         }
@@ -98,6 +114,36 @@ public class ChallengeManager {
             plugin.log(Level.INFO, "Loaded challenge progress for " + playerProgress.size() + " players from SQL.");
         } catch (Exception e) {
             plugin.log(Level.SEVERE, "Failed to load challenge data from SQL: " + e.getMessage());
+        }
+
+        // Charger les pins
+        loadPins();
+    }
+
+    /**
+     * Charge les challenges epingles depuis SQL vers le cache.
+     */
+    private void loadPins() {
+        try {
+            List<PinRow> rows = getSql().queryList(
+                "SELECT player_uuid, challenge_id FROM prison_challenge_pins",
+                rs -> {
+                    try {
+                        return new PinRow(rs.getString("player_uuid"), rs.getString("challenge_id"));
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            ).join();
+
+            for (PinRow row : rows) {
+                UUID uuid = UUID.fromString(row.playerUuid);
+                pinnedChallenges.computeIfAbsent(uuid, k -> ConcurrentHashMap.newKeySet()).add(row.challengeId);
+            }
+
+            plugin.log(Level.INFO, "Loaded challenge pins for " + pinnedChallenges.size() + " players.");
+        } catch (Exception e) {
+            plugin.log(Level.WARNING, "Failed to load challenge pins: " + e.getMessage());
         }
     }
 
@@ -511,6 +557,7 @@ public class ChallengeManager {
      */
     public void resetAllChallenges(@NotNull UUID uuid) {
         playerProgress.remove(uuid);
+        clearPins(uuid);
 
         // Supprimer en SQL aussi
         try {
@@ -520,6 +567,74 @@ public class ChallengeManager {
             );
         } catch (Exception e) {
             plugin.log(Level.WARNING, "Failed to delete all challenge progress from SQL: " + e.getMessage());
+        }
+    }
+
+    // ===========================
+    // Pinned Challenges (HUD tracking)
+    // ===========================
+
+    /**
+     * Verifie si un challenge est epingle pour un joueur.
+     */
+    public boolean isPinned(@NotNull UUID uuid, @NotNull String challengeId) {
+        Set<String> pins = pinnedChallenges.get(uuid);
+        return pins != null && pins.contains(challengeId);
+    }
+
+    /**
+     * Toggle l'epingle d'un challenge. Retourne -1 si max atteint, 0 si desepingle, 1 si epingle.
+     */
+    public int togglePin(@NotNull UUID uuid, @NotNull String challengeId) {
+        Set<String> pins = pinnedChallenges.computeIfAbsent(uuid, k -> ConcurrentHashMap.newKeySet());
+        if (pins.contains(challengeId)) {
+            pins.remove(challengeId);
+            try {
+                getSql().execute(
+                    "DELETE FROM prison_challenge_pins WHERE player_uuid = ? AND challenge_id = ?",
+                    uuid.toString(), challengeId
+                );
+            } catch (Exception e) {
+                plugin.log(Level.WARNING, "Failed to delete pin: " + e.getMessage());
+            }
+            return 0; // Desepingle
+        } else {
+            if (pins.size() >= MAX_PINS) {
+                return -1; // Max atteint
+            }
+            pins.add(challengeId);
+            try {
+                getSql().execute(
+                    "INSERT INTO prison_challenge_pins (player_uuid, challenge_id, pinned_at) VALUES (?, ?, ?)",
+                    uuid.toString(), challengeId, System.currentTimeMillis()
+                );
+            } catch (Exception e) {
+                plugin.log(Level.WARNING, "Failed to insert pin: " + e.getMessage());
+            }
+            return 1; // Epingle
+        }
+    }
+
+    /**
+     * Retourne les IDs des challenges epingles d'un joueur.
+     */
+    @NotNull
+    public Set<String> getPinnedChallenges(@NotNull UUID uuid) {
+        return pinnedChallenges.getOrDefault(uuid, Set.of());
+    }
+
+    /**
+     * Supprime tous les pins d'un joueur.
+     */
+    private void clearPins(@NotNull UUID uuid) {
+        pinnedChallenges.remove(uuid);
+        try {
+            getSql().execute(
+                "DELETE FROM prison_challenge_pins WHERE player_uuid = ?",
+                uuid.toString()
+            );
+        } catch (Exception e) {
+            plugin.log(Level.WARNING, "Failed to clear pins: " + e.getMessage());
         }
     }
 
@@ -537,4 +652,5 @@ public class ChallengeManager {
     // ===========================
 
     private record ProgressRow(String playerUuid, String challengeId, long currentValue, int completedTier) {}
+    private record PinRow(String playerUuid, String challengeId) {}
 }
