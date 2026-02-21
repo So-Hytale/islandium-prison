@@ -79,7 +79,7 @@ public class ChallengeHud extends CustomUIHud {
 
         int slotIdx = 0;
         for (String challengeId : pinnedIds) {
-            if (slotIdx >= 3) break;
+            if (slotIdx >= 5) break;
 
             ChallengeDefinition def = ChallengeRegistry.getChallenge(challengeId);
             if (def == null) continue;
@@ -143,7 +143,7 @@ public class ChallengeHud extends CustomUIHud {
         }
 
         // Masquer les slots inutilises
-        for (int i = slotIdx; i < 3; i++) {
+        for (int i = slotIdx; i < 5; i++) {
             cmd.set("#Slot" + i + ".Visible", false);
         }
     }

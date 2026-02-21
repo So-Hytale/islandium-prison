@@ -33,7 +33,7 @@ public class ChallengeManager {
 
     // Cache des challenges epingles : UUID -> Set<challengeId>
     private final Map<UUID, Set<String>> pinnedChallenges = new ConcurrentHashMap<>();
-    private static final int MAX_PINS = 3;
+    private static final int MAX_PINS = 5;
 
     public ChallengeManager(@NotNull PrisonPlugin plugin) {
         this.plugin = plugin;
