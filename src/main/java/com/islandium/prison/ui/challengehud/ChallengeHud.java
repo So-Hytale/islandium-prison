@@ -19,9 +19,11 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * HUD affichant les defis epingles (suivis) par le joueur.
- * Positionne a gauche de l'ecran, max 3 slots.
+ * Positionne a gauche de l'ecran, max 5 slots.
  */
 public class ChallengeHud extends CustomUIHud {
+
+    private static final String SLOT_TEMPLATE = "Pages/Prison/ChallengeHudSlot.ui";
 
     private final PrisonPlugin plugin;
     private final UUID playerUuid;
@@ -37,7 +39,7 @@ public class ChallengeHud extends CustomUIHud {
     @Override
     protected void build(UICommandBuilder cmd) {
         cmd.append("Pages/Prison/ChallengeHud.ui");
-        populateData(cmd, true);
+        populateSlots(cmd, true);
     }
 
     /**
@@ -62,12 +64,13 @@ public class ChallengeHud extends CustomUIHud {
     private void doRefresh() {
         try {
             UICommandBuilder cmd = new UICommandBuilder();
-            populateData(cmd, false);
-            update(false, cmd);
+            cmd.append("Pages/Prison/ChallengeHud.ui");
+            populateSlots(cmd, true);
+            update(true, cmd);
         } catch (Exception ignored) {}
     }
 
-    private void populateData(UICommandBuilder cmd, boolean isBuild) {
+    private void populateSlots(UICommandBuilder cmd, boolean isBuild) {
         Set<String> pinnedIds = plugin.getChallengeManager().getPinnedChallenges(playerUuid);
 
         if (pinnedIds.isEmpty()) {
@@ -88,9 +91,10 @@ public class ChallengeHud extends CustomUIHud {
                 plugin.getChallengeManager().getProgressData(playerUuid, challengeId);
 
             boolean isComplete = data.completedTier >= def.getTierCount();
-            String slotSelector = "#Slot" + slotIdx;
 
-            cmd.set(slotSelector + ".Visible", true);
+            // Append un slot dynamiquement
+            cmd.append("#Slots", SLOT_TEMPLATE);
+            String sel = "#Slots[" + slotIdx + "]";
 
             // Nom + tier info
             String tierInfo = def.getTierCount() > 1
@@ -109,7 +113,6 @@ public class ChallengeHud extends CustomUIHud {
                 progressText = "COMPLETE";
                 rewardText = "";
             } else if (def.getType() == ChallengeType.SUBMIT_ITEMS) {
-                // SUBMIT_ITEMS: pas de barre de progression classique
                 target = 1;
                 progressText = "Items requis";
                 ChallengeDefinition.ChallengeTier tier = def.getTiers().get(data.completedTier);
@@ -122,29 +125,22 @@ public class ChallengeHud extends CustomUIHud {
             }
 
             String bar = buildProgressBar(currentValue, target, isComplete);
-
-            // Couleurs
             String nameColor = isComplete ? "#66bb6a" : "#ffd700";
 
             if (isBuild) {
-                cmd.set(slotSelector + " #Name.Text", nameText);
-                cmd.set(slotSelector + " #Bar.Text", bar);
-                cmd.set(slotSelector + " #Prog.Text", progressText);
-                cmd.set(slotSelector + " #Rew.Text", rewardText);
+                cmd.set(sel + " #SName.Text", nameText);
+                cmd.set(sel + " #SBar.Text", bar);
+                cmd.set(sel + " #SProg.Text", progressText);
+                cmd.set(sel + " #SRew.Text", rewardText);
             } else {
-                cmd.set(slotSelector + " #Name.TextSpans", Message.raw(nameText));
-                cmd.set(slotSelector + " #Bar.TextSpans", Message.raw(bar));
-                cmd.set(slotSelector + " #Prog.TextSpans", Message.raw(progressText));
-                cmd.set(slotSelector + " #Rew.TextSpans", Message.raw(rewardText));
+                cmd.set(sel + " #SName.TextSpans", Message.raw(nameText));
+                cmd.set(sel + " #SBar.TextSpans", Message.raw(bar));
+                cmd.set(sel + " #SProg.TextSpans", Message.raw(progressText));
+                cmd.set(sel + " #SRew.TextSpans", Message.raw(rewardText));
             }
-            cmd.set(slotSelector + " #Name.Style.TextColor", nameColor);
+            cmd.set(sel + " #SName.Style.TextColor", nameColor);
 
             slotIdx++;
-        }
-
-        // Masquer les slots inutilises
-        for (int i = slotIdx; i < 5; i++) {
-            cmd.set("#Slot" + i + ".Visible", false);
         }
     }
 

@@ -1,0 +1,32 @@
+Group {
+  Anchor: (Top: 2);
+  LayoutMode: Top;
+  Label #SName {
+    Anchor: (Height: 16);
+    Text: "";
+    Style: (FontSize: 11, TextColor: #ffd700, RenderBold: true);
+  }
+  Label #SBar {
+    Anchor: (Height: 14);
+    Text: "";
+    Style: (FontSize: 10, TextColor: #96a9be);
+  }
+  Group {
+    Anchor: (Height: 14);
+    LayoutMode: Left;
+    Label #SProg {
+      FlexWeight: 1;
+      Text: "";
+      Style: (FontSize: 10, TextColor: #ffffff, VerticalAlignment: Center);
+    }
+    Label #SRew {
+      Anchor: (Width: 80);
+      Text: "";
+      Style: (FontSize: 10, TextColor: #66bb6a, VerticalAlignment: Center);
+    }
+  }
+  Group {
+    Background: (Color: #2a3a5c44);
+    Anchor: (Height: 1, Top: 2);
+  }
+}
