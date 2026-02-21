@@ -850,7 +850,8 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                     Mine mine = plugin.getMineManager().getMine(selectedMineId);
                     if (mine != null && mine.hasSpawn()) {
                         ServerLocation spawn = mine.getSpawnPoint();
-                        // Utiliser TeleportService pour sauvegarder /back et centraliser les TP
+                        // Fermer l'UI avant la TP pour eviter les conflits client
+                        close();
                         try {
                             var islandiumPlayerOpt = plugin.getCore().getPlayerManager().getOnlinePlayer(player.getUuid());
                             if (islandiumPlayerOpt.isPresent()) {

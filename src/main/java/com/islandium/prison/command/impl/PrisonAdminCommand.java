@@ -197,6 +197,79 @@ public class PrisonAdminCommand extends PrisonCommand {
             sendMessage(ctx, "&7Spawn: " + (mine.hasSpawn() ? "&aOui" : "&cNon"));
             sendMessage(ctx, "&7Blocs restants: &e" + String.format("%.1f%%", mine.getRemainingPercentage()));
             sendMessage(ctx, "&7Auto-reset: " + (mine.isAutoReset() ? "&aOui" : "&cNon"));
+            sendMessage(ctx, "&7Village margin: &e" + mine.getVillageMargin());
+
+            if (mine.isCylindrical()) {
+                sendMessage(ctx, "");
+                sendMessage(ctx, "&b&lCylindre:");
+                ServerLocation center = mine.getCenter();
+                if (center != null) {
+                    sendMessage(ctx, "&7Centre: &e" + (int) Math.floor(center.x()) + ", " + (int) Math.floor(center.y()) + ", " + (int) Math.floor(center.z()) + " &8(world: " + center.world() + ")");
+                } else {
+                    sendMessage(ctx, "&7Centre: &cNon defini");
+                }
+                sendMessage(ctx, "&7Rayon: &e" + mine.getRadius() + " &8(adjust: " + mine.getRadiusAdjust() + ")");
+                sendMessage(ctx, "&7Hauteur: &e" + mine.getHeight());
+                if (center != null) {
+                    int cy = (int) Math.floor(center.y());
+                    sendMessage(ctx, "&7Zone Y mine: &e[" + cy + ", " + (cy + mine.getHeight() - 1) + "] &8(excl: " + (cy + mine.getHeight()) + ")");
+                    if (mine.getVillageMargin() > 0) {
+                        sendMessage(ctx, "&7Zone Y village: &e[" + (cy - mine.getVillageMargin()) + ", " + (cy + mine.getHeight() + mine.getVillageMargin() - 1) + "]");
+                    }
+                }
+
+                // Debug position du joueur si c'est un joueur
+                if (isPlayer(ctx)) {
+                    IslandiumPlayer player = requireIslandiumPlayer(ctx);
+                    ServerLocation loc = player.getLocation();
+                    if (loc != null && center != null) {
+                        int lx = (int) Math.floor(loc.x());
+                        int ly = (int) Math.floor(loc.y());
+                        int lz = (int) Math.floor(loc.z());
+                        int cx = (int) Math.floor(center.x());
+                        int cy = (int) Math.floor(center.y());
+                        int cz = (int) Math.floor(center.z());
+                        int dx = lx - cx;
+                        int dz = lz - cz;
+
+                        sendMessage(ctx, "");
+                        sendMessage(ctx, "&d&lDebug position:");
+                        sendMessage(ctx, "&7Ta pos: &e" + lx + ", " + ly + ", " + lz + " &8(world: " + loc.world() + ")");
+                        sendMessage(ctx, "&7Delta XZ: &e" + dx + ", " + dz + " &8(rayon mine: " + mine.getRadius() + ")");
+
+                        // Check Y
+                        boolean yInMine = ly >= cy && ly < cy + mine.getHeight();
+                        boolean yInVillage = ly >= cy - mine.getVillageMargin() && ly < cy + mine.getHeight() + mine.getVillageMargin();
+                        sendMessage(ctx, "&7Y dans mine: " + (yInMine ? "&aOUI" : "&cNON") + " &8(" + ly + " in [" + cy + "," + (cy + mine.getHeight()) + "[)");
+                        sendMessage(ctx, "&7Y dans village: " + (yInVillage ? "&aOUI" : "&cNON"));
+
+                        // Check XZ ellipse
+                        double rX = mine.getRadius() + mine.getRadiusAdjust();
+                        double rZ = rX;
+                        double distSq = (dx * dx) / (rX * rX) + (dz * dz) / (rZ * rZ);
+                        sendMessage(ctx, "&7XZ dans ellipse: " + (distSq < 1.0 ? "&aOUI" : "&cNON") + " &8(dist=" + String.format("%.3f", distSq) + " < 1.0)");
+
+                        // World match
+                        boolean worldMatch = center.world().equals(loc.world());
+                        sendMessage(ctx, "&7Meme monde: " + (worldMatch ? "&aOUI" : "&cNON &e" + center.world() + " vs " + loc.world()));
+
+                        // Resultat
+                        sendMessage(ctx, "&7contains(): " + (mine.contains(loc) ? "&aVRAI" : "&cFAUX"));
+                        sendMessage(ctx, "&7containsVillage(): " + (mine.containsVillage(loc) ? "&aVRAI" : "&cFAUX"));
+                    }
+                }
+            } else {
+                sendMessage(ctx, "");
+                sendMessage(ctx, "&b&lCuboid:");
+                ServerLocation c1 = mine.getCorner1();
+                ServerLocation c2 = mine.getCorner2();
+                if (c1 != null && c2 != null) {
+                    sendMessage(ctx, "&7Coin 1: &e" + (int) c1.x() + ", " + (int) c1.y() + ", " + (int) c1.z());
+                    sendMessage(ctx, "&7Coin 2: &e" + (int) c2.x() + ", " + (int) c2.y() + ", " + (int) c2.z());
+                } else {
+                    sendMessage(ctx, "&7Coins: &cNon definis");
+                }
+            }
 
             return complete();
         }
