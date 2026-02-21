@@ -32,7 +32,7 @@ public class ChallengeHud extends CustomUIHud {
     private static final int HEADER_HEIGHT = 22;
     private static final int SEP_HEIGHT = 7; // 1px + 4 top + 2 bottom
     private static final int PADDING = 12; // 6 top + 6 bottom
-    private static final int SLOT_HEIGHT = 49; // 16+14+14+3=47 content + 2 top margin
+    private static final int SLOT_HEIGHT = 35; // 16+14+3=33 content + 2 top margin
 
     private final PrisonPlugin plugin;
     private final UUID playerUuid;
@@ -182,17 +182,14 @@ public class ChallengeHud extends CustomUIHud {
             rewardText = "-> " + SellService.formatMoney(tier.reward());
         }
 
-        String bar = buildProgressBar(currentValue, target, isComplete);
         String nameColor = isComplete ? "#66bb6a" : "#ffd700";
 
         if (isBuild) {
             cmd.set(sel + " #SName.Text", nameText);
-            cmd.set(sel + " #SBar.Text", bar);
             cmd.set(sel + " #SProg.Text", progressText);
             cmd.set(sel + " #SRew.Text", rewardText);
         } else {
             cmd.set(sel + " #SName.TextSpans", Message.raw(nameText));
-            cmd.set(sel + " #SBar.TextSpans", Message.raw(bar));
             cmd.set(sel + " #SProg.TextSpans", Message.raw(progressText));
             cmd.set(sel + " #SRew.TextSpans", Message.raw(rewardText));
         }
@@ -200,18 +197,6 @@ public class ChallengeHud extends CustomUIHud {
     }
 
     // === Helpers ===
-
-    private String buildProgressBar(long current, long target, boolean complete) {
-        if (target <= 0) target = 1;
-        double ratio = complete ? 1.0 : Math.min(1.0, (double) current / target);
-        int filled = (int) (ratio * 20);
-        StringBuilder sb = new StringBuilder("[");
-        for (int i = 0; i < 20; i++) {
-            sb.append(i < filled ? '#' : '-');
-        }
-        sb.append("]");
-        return sb.toString();
-    }
 
     private String formatNumber(long number) {
         if (number >= 1_000_000_000) {

@@ -6,11 +6,6 @@ Group {
     Text: "";
     Style: (FontSize: 11, TextColor: #ffd700, RenderBold: true);
   }
-  Label #SBar {
-    Anchor: (Height: 14);
-    Text: "";
-    Style: (FontSize: 10, TextColor: #96a9be);
-  }
   Group {
     Anchor: (Height: 14);
     LayoutMode: Left;
