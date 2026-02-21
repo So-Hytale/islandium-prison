@@ -274,22 +274,25 @@ public class PrisonUIManager {
     /**
      * Rafraichit le Challenge HUD d'un joueur par UUID.
      * Appele apres un toggle pin pour forcer le refresh immediat.
-     * Si le joueur n'a plus de pins, recree le HUD (pour qu'il se masque).
+     * Detruit et recree le HUD pour recalculer la taille (Height dynamique).
      */
     public void refreshChallengeHud(@NotNull UUID uuid) {
-        ChallengeHud hud = activeChallengeHuds.get(uuid);
-        if (hud != null) {
-            hud.refreshData();
-        } else {
-            // Pas de HUD actif, mais le joueur vient peut-etre d'epingler son premier defi
-            PlayerHudInfo info = trackedPlayers.get(uuid);
-            if (info != null && !plugin.getChallengeManager().getPinnedChallenges(uuid).isEmpty()) {
-                String requiredWorld = plugin.getConfig().getWorldName();
-                if (isInWorld(info.player(), requiredWorld)) {
-                    runOnWorldThread(info.player(), () -> showChallengeHud(info.playerRef(), info.player()));
-                }
+        PlayerHudInfo info = trackedPlayers.get(uuid);
+        if (info == null) return;
+
+        String requiredWorld = plugin.getConfig().getWorldName();
+        if (!isInWorld(info.player(), requiredWorld)) return;
+
+        runOnWorldThread(info.player(), () -> {
+            // Toujours detruire l'ancien HUD
+            if (activeChallengeHuds.containsKey(uuid)) {
+                hideChallengeHud(info.player());
             }
-        }
+            // Recreer seulement si le joueur a encore des pins
+            if (!plugin.getChallengeManager().getPinnedChallenges(uuid).isEmpty()) {
+                showChallengeHud(info.playerRef(), info.player());
+            }
+        });
     }
 
     /**
