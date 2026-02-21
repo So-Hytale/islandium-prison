@@ -5,7 +5,6 @@ import com.islandium.core.api.economy.EconomyService;
 import com.islandium.core.api.location.ServerLocation;
 import com.islandium.core.api.player.IslandiumPlayer;
 import com.islandium.prison.PrisonPlugin;
-import com.islandium.prison.config.PrisonConfig;
 import com.islandium.prison.mine.Mine;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.Player;
@@ -58,35 +57,6 @@ public class PrisonHud extends CustomUIHud {
             cmd.set("#PrestigeValue.Visible", true);
         }
 
-        // Progression vers rang suivant
-        try {
-            PrisonConfig.RankInfo nextRank = plugin.getRankManager().getNextRankInfo(playerUuid);
-            if (nextRank == null) {
-                cmd.set("#ProgressInfo.Text", "Rang Maximum !");
-                cmd.set("#ProgressInfo.Style.TextColor", "#69f0ae");
-            } else {
-                BigDecimal rankupPrice = plugin.getRankManager().getRankupPrice(playerUuid, nextRank);
-                BigDecimal balance = getBalance();
-                double progress = 0.0;
-                if (rankupPrice.compareTo(BigDecimal.ZERO) > 0) {
-                    progress = balance.doubleValue() / rankupPrice.doubleValue();
-                    progress = Math.max(0.0, Math.min(1.0, progress));
-                }
-                int percent = (int) (progress * 100);
-                String bar = buildProgressBar(progress, 10);
-                cmd.set("#ProgressInfo.Text", bar + " " + percent + "% -> " + nextRank.displayName);
-                if (percent >= 100) {
-                    cmd.set("#ProgressInfo.Style.TextColor", "#69f0ae");
-                } else if (percent >= 50) {
-                    cmd.set("#ProgressInfo.Style.TextColor", "#ffab40");
-                } else {
-                    cmd.set("#ProgressInfo.Style.TextColor", "#b0b8c0");
-                }
-            }
-        } catch (Exception e) {
-            cmd.set("#ProgressInfo.Text", "");
-        }
-
         // Multiplicateur
         double multiplier = plugin.getRankManager().getPlayerMultiplier(playerUuid);
         cmd.set("#MultiplierValue.Text", "x" + MULTIPLIER_FORMAT.format(multiplier));
@@ -123,54 +93,28 @@ public class PrisonHud extends CustomUIHud {
         long blocksMined = plugin.getStatsManager().getBlocksMined(playerUuid);
         cmd.set("#BlocksValue.Text", formatBlockCount(blocksMined));
 
-        // Fortune (pips + level)
+        // Fortune
         int fortuneLevel = plugin.getStatsManager().getFortuneLevel(playerUuid);
-        cmd.set("#FortuneLabel.Text", "Fortune");
-        cmd.set("#FortunePips.Text", buildPips(fortuneLevel, 5));
         cmd.set("#FortuneLevel.Text", fortuneLevel + "/5");
         if (fortuneLevel > 0) {
-            cmd.set("#FortunePips.Style.TextColor", "#ffab40");
             cmd.set("#FortuneLabel.Style.TextColor", "#ffab40");
             cmd.set("#FortuneLevel.Style.TextColor", "#ffab40");
         } else {
-            cmd.set("#FortunePips.Style.TextColor", "#3a3a4a");
             cmd.set("#FortuneLabel.Style.TextColor", "#8090a0");
             cmd.set("#FortuneLevel.Style.TextColor", "#505060");
         }
 
-        // Efficiency (pips + level)
+        // Vitesse
         int efficiencyLevel = plugin.getStatsManager().getEfficiencyLevel(playerUuid);
-        cmd.set("#EffLabel.Text", "Vitesse");
-        cmd.set("#EffPips.Text", buildPips(efficiencyLevel, 5));
         cmd.set("#EffLevel.Text", efficiencyLevel + "/5");
         if (efficiencyLevel > 0) {
-            cmd.set("#EffPips.Style.TextColor", "#448aff");
             cmd.set("#EffLabel.Style.TextColor", "#448aff");
             cmd.set("#EffLevel.Style.TextColor", "#448aff");
         } else {
-            cmd.set("#EffPips.Style.TextColor", "#3a3a4a");
             cmd.set("#EffLabel.Style.TextColor", "#8090a0");
             cmd.set("#EffLevel.Style.TextColor", "#505060");
         }
 
-        // Auto-sell
-        boolean hasAutoSell = plugin.getStatsManager().hasAutoSell(playerUuid);
-        boolean autoSellEnabled = plugin.getStatsManager().isAutoSellEnabled(playerUuid);
-        if (hasAutoSell) {
-            if (autoSellEnabled) {
-                cmd.set("#AutoSellLabel.Text", "ON");
-                cmd.set("#AutoSellLabel.Style.TextColor", "#69f0ae");
-                cmd.set("#ASLabel.Style.TextColor", "#69f0ae");
-            } else {
-                cmd.set("#AutoSellLabel.Text", "OFF");
-                cmd.set("#AutoSellLabel.Style.TextColor", "#ff5252");
-                cmd.set("#ASLabel.Style.TextColor", "#ff5252");
-            }
-        } else {
-            cmd.set("#AutoSellLabel.Text", "---");
-            cmd.set("#AutoSellLabel.Style.TextColor", "#505060");
-            cmd.set("#ASLabel.Style.TextColor", "#8090a0");
-        }
     }
 
     /**
@@ -211,35 +155,6 @@ public class PrisonHud extends CustomUIHud {
             cmd.set("#PrestigeLabel.Visible", prestige > 0);
             cmd.set("#PrestigeValue.Visible", prestige > 0);
 
-            // Progression
-            try {
-                PrisonConfig.RankInfo nextRank = plugin.getRankManager().getNextRankInfo(playerUuid);
-                if (nextRank == null) {
-                    cmd.set("#ProgressInfo.TextSpans", Message.raw("Rang Maximum !"));
-                    cmd.set("#ProgressInfo.Style.TextColor", "#69f0ae");
-                } else {
-                    BigDecimal rankupPrice = plugin.getRankManager().getRankupPrice(playerUuid, nextRank);
-                    BigDecimal balance = getBalance();
-                    double progress = 0.0;
-                    if (rankupPrice.compareTo(BigDecimal.ZERO) > 0) {
-                        progress = balance.doubleValue() / rankupPrice.doubleValue();
-                        progress = Math.max(0.0, Math.min(1.0, progress));
-                    }
-                    int percent = (int) (progress * 100);
-                    String bar = buildProgressBar(progress, 10);
-                    cmd.set("#ProgressInfo.TextSpans", Message.raw(bar + " " + percent + "% -> " + nextRank.displayName));
-                    if (percent >= 100) {
-                        cmd.set("#ProgressInfo.Style.TextColor", "#69f0ae");
-                    } else if (percent >= 50) {
-                        cmd.set("#ProgressInfo.Style.TextColor", "#ffab40");
-                    } else {
-                        cmd.set("#ProgressInfo.Style.TextColor", "#b0b8c0");
-                    }
-                }
-            } catch (Exception e) {
-                cmd.set("#ProgressInfo.TextSpans", Message.raw(""));
-            }
-
             // Balance
             cmd.set("#BalanceValue.TextSpans", Message.raw(formatCompact(getBalance())));
 
@@ -278,49 +193,24 @@ public class PrisonHud extends CustomUIHud {
 
             // Fortune
             int fortuneLevel = plugin.getStatsManager().getFortuneLevel(playerUuid);
-            cmd.set("#FortunePips.TextSpans", Message.raw(buildPips(fortuneLevel, 5)));
             cmd.set("#FortuneLevel.TextSpans", Message.raw(fortuneLevel + "/5"));
             if (fortuneLevel > 0) {
-                cmd.set("#FortunePips.Style.TextColor", "#ffab40");
                 cmd.set("#FortuneLabel.Style.TextColor", "#ffab40");
                 cmd.set("#FortuneLevel.Style.TextColor", "#ffab40");
             } else {
-                cmd.set("#FortunePips.Style.TextColor", "#3a3a4a");
                 cmd.set("#FortuneLabel.Style.TextColor", "#8090a0");
                 cmd.set("#FortuneLevel.Style.TextColor", "#505060");
             }
 
-            // Efficiency
+            // Vitesse
             int efficiencyLevel = plugin.getStatsManager().getEfficiencyLevel(playerUuid);
-            cmd.set("#EffPips.TextSpans", Message.raw(buildPips(efficiencyLevel, 5)));
             cmd.set("#EffLevel.TextSpans", Message.raw(efficiencyLevel + "/5"));
             if (efficiencyLevel > 0) {
-                cmd.set("#EffPips.Style.TextColor", "#448aff");
                 cmd.set("#EffLabel.Style.TextColor", "#448aff");
                 cmd.set("#EffLevel.Style.TextColor", "#448aff");
             } else {
-                cmd.set("#EffPips.Style.TextColor", "#3a3a4a");
                 cmd.set("#EffLabel.Style.TextColor", "#8090a0");
                 cmd.set("#EffLevel.Style.TextColor", "#505060");
-            }
-
-            // Auto-sell
-            boolean hasAutoSell = plugin.getStatsManager().hasAutoSell(playerUuid);
-            boolean autoSellEnabled = plugin.getStatsManager().isAutoSellEnabled(playerUuid);
-            if (hasAutoSell) {
-                if (autoSellEnabled) {
-                    cmd.set("#AutoSellLabel.TextSpans", Message.raw("ON"));
-                    cmd.set("#AutoSellLabel.Style.TextColor", "#69f0ae");
-                    cmd.set("#ASLabel.Style.TextColor", "#69f0ae");
-                } else {
-                    cmd.set("#AutoSellLabel.TextSpans", Message.raw("OFF"));
-                    cmd.set("#AutoSellLabel.Style.TextColor", "#ff5252");
-                    cmd.set("#ASLabel.Style.TextColor", "#ff5252");
-                }
-            } else {
-                cmd.set("#AutoSellLabel.TextSpans", Message.raw("---"));
-                cmd.set("#AutoSellLabel.Style.TextColor", "#505060");
-                cmd.set("#ASLabel.Style.TextColor", "#8090a0");
             }
 
             update(false, cmd);
@@ -330,24 +220,6 @@ public class PrisonHud extends CustomUIHud {
     }
 
     // === Helpers ===
-
-    private String buildPips(int level, int max) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < max; i++) {
-            sb.append(i < level ? '#' : '-');
-        }
-        return sb.toString();
-    }
-
-    private String buildProgressBar(double progress, int segments) {
-        int filled = (int) (progress * segments);
-        StringBuilder sb = new StringBuilder("[");
-        for (int i = 0; i < segments; i++) {
-            sb.append(i < filled ? '|' : '.');
-        }
-        sb.append("]");
-        return sb.toString();
-    }
 
     /**
      * Retourne la mine dans laquelle le joueur est actuellement (mine ou village), ou null.

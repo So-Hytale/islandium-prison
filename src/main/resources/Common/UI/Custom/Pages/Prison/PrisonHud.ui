@@ -3,7 +3,7 @@ $C = "../../Common.ui";
 Group #PrisonHud {
   LayoutMode: Top;
   Background: (Color: #0a0f1acc);
-  Anchor: (Width: 230, Height: 272, Right: 10, Top: 300);
+  Anchor: (Width: 230, Height: 235, Right: 10, Top: 300);
   Padding: (Left: 12, Right: 12, Top: 8, Bottom: 8);
   Group #HeaderRow {
     LayoutMode: Left;
@@ -42,15 +42,6 @@ Group #PrisonHud {
       Anchor: (Width: 25);
       Text: "0";
       Style: (FontSize: 14, TextColor: #da70d6, VerticalAlignment: Center, RenderBold: true);
-    }
-  }
-  Group #ProgressRow {
-    LayoutMode: Left;
-    Anchor: (Height: 16, Top: 1);
-    Label #ProgressInfo {
-      FlexWeight: 1;
-      Text: "";
-      Style: (FontSize: 9, TextColor: #b0b8c0, VerticalAlignment: Center);
     }
   }
   Group #Sep2 {
@@ -126,13 +117,8 @@ Group #PrisonHud {
       Text: "Fortune";
       Style: (FontSize: 10, TextColor: #8090a0, VerticalAlignment: Center);
     }
-    Label #FortunePips {
-      FlexWeight: 1;
-      Text: "-----";
-      Style: (FontSize: 11, TextColor: #3a3a4a, VerticalAlignment: Center);
-    }
     Label #FortuneLevel {
-      Anchor: (Width: 30);
+      FlexWeight: 1;
       Text: "0/5";
       Style: (FontSize: 10, TextColor: #8090a0, VerticalAlignment: Center);
     }
@@ -145,29 +131,10 @@ Group #PrisonHud {
       Text: "Vitesse";
       Style: (FontSize: 10, TextColor: #8090a0, VerticalAlignment: Center);
     }
-    Label #EffPips {
-      FlexWeight: 1;
-      Text: "-----";
-      Style: (FontSize: 11, TextColor: #3a3a4a, VerticalAlignment: Center);
-    }
     Label #EffLevel {
-      Anchor: (Width: 30);
+      FlexWeight: 1;
       Text: "0/5";
       Style: (FontSize: 10, TextColor: #8090a0, VerticalAlignment: Center);
-    }
-  }
-  Group #AutoSellRow {
-    LayoutMode: Left;
-    Anchor: (Height: 18, Top: 2);
-    Label #ASLabel {
-      Anchor: (Width: 65);
-      Text: "Auto-Sell";
-      Style: (FontSize: 10, TextColor: #8090a0, VerticalAlignment: Center);
-    }
-    Label #AutoSellLabel {
-      FlexWeight: 1;
-      Text: "---";
-      Style: (FontSize: 10, TextColor: #505060, VerticalAlignment: Center, RenderBold: true);
     }
   }
   Group #Sep4 {
