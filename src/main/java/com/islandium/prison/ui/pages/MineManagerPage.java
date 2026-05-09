@@ -1205,7 +1205,7 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                 matrix.asFloatData(),
                 MINE_COLOR,
                 DISPLAY_DURATION,
-                true,
+                (byte) 0,
                 null,
                 1.0f
         );
@@ -1245,7 +1245,7 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                         matrix.asFloatData(),
                         MINE_COLOR,
                         DISPLAY_DURATION,
-                        true,
+                        (byte) 0,
                         null,
                         1.0f
                 ));
@@ -1301,7 +1301,7 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                 matrix.asFloatData(),
                 MINE_COLOR,
                 DISPLAY_DURATION,
-                true,
+                (byte) 0,
                 null,
                 1.0f
         );
@@ -1445,7 +1445,7 @@ public class MineManagerPage extends InteractiveCustomUIPage<MineManagerPage.Pag
                 matrix.asFloatData(),
                 VILLAGE_COLOR,
                 DISPLAY_DURATION,
-                true,
+                (byte) 0,
                 null,
                 1.0f
         );
